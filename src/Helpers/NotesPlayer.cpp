@@ -25,8 +25,10 @@ void NotesPlayer::decreaseTimeToLive(){
     std::map<int, RTPEventNotePlus>::iterator it;
     for(size_t i = 0; i < _ringingNotes.size(); i++){
         for(it = _ringingNotes[i].begin(); it != _ringingNotes[i].end();){
-            if(!it->second.decreaseTimeToLive())
-                it = _ringingNotes[i].erase(it);
+            if(!it->second.decreaseTimeToLive()){
+                it->second.playNoteOff();
+                _ringingNotes[i].erase(it++);
+            } 
             else
                 ++it;  
         }   
@@ -51,6 +53,9 @@ void NotesPlayer::killAllNotes(){
             it->second.playNoteOff();
         _ringingNotes[i].clear();
     }
-    while(!_notesQueue.empty())
+    while(!_notesQueue.empty()){
+        RTPEventNotePlus note = _notesQueue.front();
+        note.playNoteOff();
         _notesQueue.pop();
+    }
 }
