@@ -37,6 +37,10 @@ int RTPSequencer::getSelectedSequencePageOffset(){
   return Sequencer[_selectedScene].getSelectedSequencePageOffset();
 }
 
+int RTPSequencer::getSelectedSequencePage(){
+  return Sequencer[_selectedScene].getSelectedSequencePage();
+}
+
 void RTPSequencer::selectScene(int scene){
   _selectedScene = scene;
 }

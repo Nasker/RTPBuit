@@ -68,6 +68,7 @@ void BuitDevicesManager::changeScene(ControlCommand command){
 void  BuitDevicesManager::nudgePage(ControlCommand command){
     _sequencer.nudgePageInSelectedSequence(command);
     writeSequenceToNeoTrellis(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor());
+    printToScreen("Sequence "+ String(_sequencer.getSelectedSequence()+1),"", "Page "+ String(_sequencer.getSelectedSequencePage()+1));
 }
 
 void BuitDevicesManager::presentScene(){
@@ -76,7 +77,7 @@ void BuitDevicesManager::presentScene(){
 }
 
 void BuitDevicesManager::presentSequence(){
-    printToScreen("Sequence",_sequencer.getSelectedSequence(),"");
+    printToScreen("Sequence "+ String(_sequencer.getSelectedSequence()+1),"","Page "+ String(_sequencer.getSelectedSequencePage()+1));
     writeSequenceToNeoTrellis(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor()); 
 }
 

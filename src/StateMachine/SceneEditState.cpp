@@ -8,7 +8,7 @@ SceneEditState::SceneEditState (BuitStateMachine& buitMachine, BuitDevicesManage
 
 void SceneEditState::singleClick() {
   Serial.println("Going to Sequence Select!");
-  _devices.printToScreen("Sequence Select", "", "");
+  _devices.printToScreen("Select a", "Sequence", "");
   _buitMachine.setState(_buitMachine.getSequenceSelectState());
 }
 

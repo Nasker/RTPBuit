@@ -22,6 +22,7 @@ public:
   void setSelectedSequence(int selectedSequence);
   int getSelectedSequence();
   int getSelectedSequencePageOffset();
+  int getSelectedSequencePage();
   int getSize();
   RTPSequenceNoteStates getSelectedSequenceNoteStates();
   RTPSequencesState getSequencesState();

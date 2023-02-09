@@ -21,6 +21,7 @@ public:
   void pauseSequencer();
   int getSelectedSequencePosition();
   int getSelectedSequencePageOffset();
+  int getSelectedSequencePage();
   void selectScene(int scene);
   void increaseSelectedScene();
   void decreaseSelectedScene();

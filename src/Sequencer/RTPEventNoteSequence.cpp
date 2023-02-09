@@ -224,6 +224,10 @@ int RTPEventNoteSequence::pageOffset(){
   return _selectedPage * SEQ_BLOCK_SIZE;
 }
 
+int RTPEventNoteSequence::page(){
+  return _selectedPage;
+}
+
 list<RTPEventNotePlus> RTPEventNoteSequence::getEventNoteSequence(){
   return EventNoteSequence;
 }
