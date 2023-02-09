@@ -25,6 +25,7 @@ public:
   void increaseSelectedScene();
   void decreaseSelectedScene();
   int getSelectScene();
+  int getSelectedSequence();
   void addScene(RTPScene scene);
   void removeScene(int scene);
   void toggleSequence(int sequenceIndex);

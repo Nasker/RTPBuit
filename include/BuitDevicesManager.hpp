@@ -25,6 +25,7 @@ public:
 
     void presentScene();
     void presentSequence();
+    void showSequence();
     void presentTransport();
     void presentBuitCC();
 

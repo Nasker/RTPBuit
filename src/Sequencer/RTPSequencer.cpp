@@ -62,7 +62,7 @@ void RTPSequencer::addScene(RTPScene scene){
 }
 
 void RTPSequencer::removeScene(int scene){
-  //Sequencer.remove(scene);
+  //Sequencer.erase(Sequencer.begin() + scene);
 }
 
 void RTPSequencer::toggleNoteInSceneInSelectedSequence(int position){
@@ -80,6 +80,10 @@ RTPSequencesState RTPSequencer::getSequencesState(){
 
 void RTPSequencer::selectSequence(int sequenceIndex){
   Sequencer[_selectedScene].setSelectedSequence(sequenceIndex);
+}
+
+int RTPSequencer::getSelectedSequence(){
+  return Sequencer[_selectedScene].getSelectedSequence();
 }
 
 RTPSequenceNoteStates RTPSequencer::getSelectedSequenceNoteStates(){

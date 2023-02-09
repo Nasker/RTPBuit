@@ -33,6 +33,7 @@ void SequenceEditState::threeAxisChanged(ControlCommand command) {
 
 void SequenceEditState::trellisPressed(ControlCommand command) {
   _devices.editSequence(command);
+  _devices.showSequence();
 }
 
 void SequenceEditState::trellisReleased(ControlCommand command) {

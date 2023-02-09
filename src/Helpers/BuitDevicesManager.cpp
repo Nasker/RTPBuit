@@ -35,9 +35,7 @@ void BuitDevicesManager::editScene(ControlCommand command){
 }
 
 void BuitDevicesManager::editSequence(ControlCommand command){
-    printToScreen("Edit Sequence", "", "");
     _sequencer.toggleNoteInSceneInSelectedSequence(command.value);
-    _neoTrellis.writeSequenceStates(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor());
 }
 
 void BuitDevicesManager::editCurrentNote(ControlCommand command){
@@ -51,7 +49,6 @@ void BuitDevicesManager::displayCursorInSequence(ControlCommand command){
         _neoTrellis.moveCursor(cursorPos);
     }
     else if (cursorPos == SEQ_BLOCK_SIZE){
-        Serial.printf("Display Cursor in Sequence Position: %d\n", _sequencer.getSelectedSequencePosition());
         _neoTrellis.writeSequenceStates(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor());
     }    
 }   
@@ -74,12 +71,16 @@ void  BuitDevicesManager::nudgePage(ControlCommand command){
 }
 
 void BuitDevicesManager::presentScene(){
-    printToScreen("Edit Scene","","");
+    printToScreen("Scene",_sequencer.getSelectScene(),"");
     writeSceneToNeoTrellis(_sequencer.getSequencesState());
 }
 
 void BuitDevicesManager::presentSequence(){
-    printToScreen("Edit Sequence","","");
+    printToScreen("Sequence",_sequencer.getSelectedSequence(),"");
+    writeSequenceToNeoTrellis(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor()); 
+}
+
+void BuitDevicesManager::showSequence(){
     writeSequenceToNeoTrellis(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor()); 
 }
 

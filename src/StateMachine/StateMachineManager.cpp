@@ -8,7 +8,7 @@ StateMachineManager::StateMachineManager(BuitDevicesManager& devices):_devices(d
 StateMachineManager::~StateMachineManager() {}
 
 void StateMachineManager::setInitialState() {
-  buitStateMachine.setState(buitStateMachine.getInitState());
+  buitStateMachine.setState(buitStateMachine.getSceneEditState());
 }
 
 void StateMachineManager::handleActions(ControlCommand callbackControlCommand) {
