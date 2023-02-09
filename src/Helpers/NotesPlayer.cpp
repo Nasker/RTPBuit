@@ -13,11 +13,11 @@ void NotesPlayer::playNotes(){
     while(!_notesQueue.empty()){
         RTPEventNotePlus note = _notesQueue.front();
         _notesQueue.pop();
-        auto ans = _ringingNotes[note.getMidiChannel() - 1].
-        insert( std::pair<int, RTPEventNotePlus>(note.getEventNote(), note) );
-        note.playNoteOn();
-        if(ans.second)
+        auto ans = _ringingNotes[note.getMidiChannel() - 1].insert( std::pair<int, RTPEventNotePlus>(note.getEventNote(), note) );
+        if(ans.second) // play note only if it was not already playing
             note.playNoteOn();
+        else // if it was already playing, update its length
+            ans.first->second.setLength(note.getLength());
     }
 }
 
