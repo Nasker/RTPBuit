@@ -16,7 +16,7 @@ class BuitStateMachine{
 	BuitState* _sequenceSettingsState;
 
 public:
-	BuitStateMachine(BuitDevicesManager& outDevices);  //, LiquidScreen& lScreen
+	BuitStateMachine(BuitDevicesManager& outDevices);
 	void singleClick();
 	void doubleClick();
 	void longClick();

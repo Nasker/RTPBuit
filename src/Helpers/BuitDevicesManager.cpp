@@ -81,6 +81,21 @@ void  BuitDevicesManager::nudgePage(ControlCommand command){
     printToScreen("Sequence "+ String(_sequencer.getSelectedSequence()+1),"", "Page "+ String(_sequencer.getSelectedSequencePage()+1));
 }
 
+void BuitDevicesManager::selectParameter(ControlCommand command){
+    _sequencer.selectParameterInSequece(command.value);
+}
+
+void BuitDevicesManager::rotateParameter(ControlCommand command){
+    switch(command.commandType){
+        case ROTATING_RIGHT:
+            _sequencer.incselectParameterInSequece();
+            break;
+        case ROTATING_LEFT:
+            _sequencer.decselectParameterInSequece();
+            break;
+    }
+}
+
 void BuitDevicesManager::presentScene(){
     printToScreen("Scene",_sequencer.getSelectScene(),"");
     writeSceneToNeoTrellis(_sequencer.getSequencesState());
@@ -98,6 +113,11 @@ void BuitDevicesManager::showSequence(){
 void BuitDevicesManager::presentTransport(){
     printToScreen("Transport", "", "");
     writeTransportPage();
+}
+
+void BuitDevicesManager::presentSequenceSettings(){
+    printToScreen("Sequence Settings", "", "");
+    _neoTrellis.writeSequenceSettingsPage(_sequencer.getSelectedSequenceSettings());
 }
 
 void BuitDevicesManager::presentBuitCC(){

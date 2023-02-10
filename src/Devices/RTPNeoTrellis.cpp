@@ -77,6 +77,18 @@ void RTPNeoTrellis::writeBuitCCStates(RTPSequencesState ccStates, int color){
   myTrellis.pixels.show();
 }
 
+void RTPNeoTrellis::writeSequenceSettingsPage(SequenceSettings sequenceSettings){
+  Serial.printf("CH: %d, color: %d, type: %d, length: %d\n", 
+  sequenceSettings.midiChannel, sequenceSettings.color, sequenceSettings.type, sequenceSettings.lenght);
+  for(int i=0; i<SCENE_BLOCK_SIZE; i++)
+    myTrellis.pixels.setPixelColor(i, 0);
+  myTrellis.pixels.setPixelColor(convertMatrix[0], sequenceSettings.midiChannel);
+  myTrellis.pixels.setPixelColor(convertMatrix[1], sequenceSettings.color);
+  myTrellis.pixels.setPixelColor(convertMatrix[2], sequenceSettings.type);
+  myTrellis.pixels.setPixelColor(convertMatrix[3], sequenceSettings.lenght);
+  myTrellis.pixels.show();
+}
+
 void RTPNeoTrellis::writeTransportPage(int color){
   for(int i=0; i<SCENE_BLOCK_SIZE; i++){
     myTrellis.pixels.setPixelColor(i, color);

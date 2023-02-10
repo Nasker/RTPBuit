@@ -26,7 +26,6 @@ void RTPMainUnit::updatePeriodically(){
 }
 
 void RTPMainUnit::actOnControlsCallback(ControlCommand callbackCommand){
-  //devicesManager.printToScreen(callbackCommand);
   stateMachineManager.handleActions(callbackCommand);
 }
 

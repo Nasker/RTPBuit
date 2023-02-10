@@ -26,13 +26,14 @@ public:
   int getSize();
   RTPSequenceNoteStates getSelectedSequenceNoteStates();
   RTPSequencesState getSequencesState();
+  SequenceSettings getSelectedSequenceSettings();
   void selectParameterInSequece(int parameterIndex);
   void incselectParameterInSequece();
   void decselectParameterInSequece();
+  int getSelectedParameterInSequeceValue();
   void incselectPageInSequence();
   void decselectPageInSequence();
   int getSelectedSequenceCurrentPosition();
-  int getSelectedParameterInSequeceValue();
   int getSequenceType(int sequenceIndex);
   void toggleSequence(int sequenceIndex);
   void toggleNoteInSequence(int position);

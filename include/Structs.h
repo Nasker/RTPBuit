@@ -19,3 +19,10 @@ struct ThreeReadings {
   int sensorReading2;
   int sensorReading3;
 };
+
+struct SequenceSettings{
+  int midiChannel;
+  int type;
+  int color; 
+  int lenght;
+};

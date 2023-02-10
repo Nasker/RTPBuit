@@ -1,9 +1,16 @@
 #include "NotesPlayer.hpp"
+//#include "RTPMainUnit.hpp"
+
+//RTPMainUnit* NotesPlayer::mainUnit;
 
 NotesPlayer::NotesPlayer(){
     _notesQueue = queue<RTPEventNotePlus>();
     _ringingNotes = vector<std::map<int, RTPEventNotePlus>>(16);
 }
+/*
+void NotesPlayer::connectMainUnit(RTPMainUnit* mainUnit){
+    NotesPlayer::mainUnit = mainUnit;
+}*/
 
 void NotesPlayer::queueNote(RTPEventNotePlus note){
     _notesQueue.push(note);

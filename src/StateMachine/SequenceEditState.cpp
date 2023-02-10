@@ -18,8 +18,8 @@ void SequenceEditState::doubleClick() {
 }
 
 void SequenceEditState::longClick() {
-  //Serial.println("Going to Sequence Settings!");
-  _devices.printToScreen("State:", "Sequence Settings!","");
+  Serial.println("Going to Sequence Settings!");
+  _devices.presentSequenceSettings();
   _buitMachine.setState(_buitMachine.getSequenceSettingsState());
 }
 

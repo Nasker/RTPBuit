@@ -22,7 +22,7 @@ void SequenceSettingsState::longClick() {
 }
 
 void SequenceSettingsState::rotaryTurned(ControlCommand command) {
-  //Serial.println("Does nothing here!");
+  _devices.rotateParameter(command);
 }
 
 void SequenceSettingsState::threeAxisChanged(ControlCommand command) {
@@ -30,7 +30,8 @@ void SequenceSettingsState::threeAxisChanged(ControlCommand command) {
 }
 
 void SequenceSettingsState::trellisPressed(ControlCommand command) {
-  //Serial.println("Does nothing here!");
+  Serial.printf("Trellis pressed: %d\n", command.value);
+  _devices.selectParameter(command);
 } 
 
 void SequenceSettingsState::trellisReleased(ControlCommand command) {

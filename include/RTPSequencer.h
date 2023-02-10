@@ -16,12 +16,14 @@ class RTPSequencer{
 
 public:
   RTPSequencer(int NScenes, MusicManager& musicManager);
+  //void connectMainUnit(RTPMainUnit* mainUnit);
   void playAndMoveSequencer();
   void stopAndCleanSequencer();
   void pauseSequencer();
   int getSelectedSequencePosition();
   int getSelectedSequencePageOffset();
   int getSelectedSequencePage();
+  SequenceSettings getSelectedSequenceSettings();
   void selectScene(int scene);
   void increaseSelectedScene();
   void decreaseSelectedScene();
@@ -29,6 +31,10 @@ public:
   int getSelectedSequence();
   void addScene(RTPScene scene);
   void removeScene(int scene);
+  void selectParameterInSequece(int parameterIndex);
+  void incselectParameterInSequece();
+  void decselectParameterInSequece();
+  int getSelectedParameterInSequeceValue();
   void toggleSequence(int sequenceIndex);
   RTPSequencesState getSequencesState();
   void selectSequence(int sequenceIndex);

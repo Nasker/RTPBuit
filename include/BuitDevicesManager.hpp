@@ -29,6 +29,7 @@ public:
     void showSequence();
     void presentTransport();
     void presentBuitCC();
+    void presentSequenceSettings();
 
     void editScene(ControlCommand command);
     void editSequence(ControlCommand command);
@@ -39,6 +40,9 @@ public:
 
     void changeScene(ControlCommand command);
     void nudgePage(ControlCommand command);
+
+    void selectParameter(ControlCommand command);
+    void rotateParameter(ControlCommand command);
 
     void editBuitCC(ControlCommand command);
     void sendBuitCC(ControlCommand command);

@@ -81,12 +81,25 @@ RTPSequencesState RTPScene::getSequencesState(){
   return seqsState;
 }
 
+SequenceSettings RTPScene::getSelectedSequenceSettings(){
+  SequenceSettings settings;
+  settings.type = SequencerScene[_selectedSequence].getType();
+  settings.lenght = SequencerScene[_selectedSequence].getSequenceSize();
+  settings.color = SequencerScene[_selectedSequence].getColor();
+  settings.midiChannel = SequencerScene[_selectedSequence].getMidiChannel();
+  return settings;
+}
+
 int RTPScene::getSequenceType(int sequenceIndex)  {
   return SequencerScene[sequenceIndex].getType();
 }
 
 void RTPScene::selectParameterInSequece(int parameterIndex){
   SequencerScene[_selectedSequence].selectParameter(parameterIndex);
+}
+
+int RTPScene::getSelectedParameterInSequeceValue(){
+  return SequencerScene[_selectedSequence].getParameterValue();
 }
 
 void RTPScene::incselectParameterInSequece(){
@@ -107,10 +120,6 @@ void RTPScene::decselectPageInSequence(){
 
 int RTPScene::getSelectedSequenceCurrentPosition(){
   return SequencerScene[_selectedSequence].getCurrentSequencePosition();
-}
-
-int RTPScene::getSelectedParameterInSequeceValue(){
-  return SequencerScene[_selectedSequence].getParameterValue();
 }
 
 void RTPScene::toggleSequence(int sequenceIndex){

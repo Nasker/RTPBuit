@@ -9,6 +9,7 @@ RTPSequencerManager::RTPSequencerManager(RTPSequencer& seq):_sequencer(seq){
 
 void RTPSequencerManager::begin(RTPMainUnit* _mainUnit){
     RTPSequencerManager::mainUnit = _mainUnit;
+    //_sequencer.connectMainUnit(_mainUnit);
 }
 
 

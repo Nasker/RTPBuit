@@ -69,6 +69,8 @@ void RTPEventNoteSequence::enableSequence(bool state){
 }
 
 void RTPEventNoteSequence::selectParameter(int parameterIndex){
+  if(parameterIndex >= 3)
+    parameterIndex = 3;
   _selectedParameter = parameterIndex;
 }
 
@@ -128,6 +130,7 @@ void RTPEventNoteSequence::playCurrentEventNote(){
     }
   }
 } 
+
 void RTPEventNoteSequence::setMidiChannel(int midiChannel){
   sequenceParameters[MIDI_CHANNEL].setValue(midiChannel);
 }

@@ -1,4 +1,7 @@
 #include "RTPSequencer.h"
+//#include "RTPMainUnit.hpp"
+
+//RTPMainUnit* RTPSequencer::mainUnit;
 
 RTPSequencer::RTPSequencer(int NScenes, MusicManager& musicManager) :_musicManager(musicManager) {
   Serial.println("CREATING RTPSequencer");
@@ -9,6 +12,10 @@ RTPSequencer::RTPSequencer(int NScenes, MusicManager& musicManager) :_musicManag
     Sequencer.push_back(scene);
   }
 }
+
+/*void RTPSequencer::connectMainUnit(RTPMainUnit* mainUnit){
+  _notesPlayer.connectMainUnit(mainUnit);
+}*/
 
 void RTPSequencer::playAndMoveSequencer(){
   for(size_t i=0; i<Sequencer.size(); i++){ 
@@ -88,6 +95,27 @@ void RTPSequencer::selectSequence(int sequenceIndex){
 
 int RTPSequencer::getSelectedSequence(){
   return Sequencer[_selectedScene].getSelectedSequence();
+}
+
+void RTPSequencer::selectParameterInSequece(int parameterIndex){
+  Sequencer[_selectedScene].selectParameterInSequece(parameterIndex);
+}
+
+int RTPSequencer::getSelectedParameterInSequeceValue(){
+  return Sequencer[_selectedScene].getSelectedParameterInSequeceValue();
+}
+
+void RTPSequencer::incselectParameterInSequece(){
+  Sequencer[_selectedScene].incselectParameterInSequece();
+}
+
+void RTPSequencer::decselectParameterInSequece(){
+  Sequencer[_selectedScene].decselectParameterInSequece();
+}
+
+SequenceSettings RTPSequencer::getSelectedSequenceSettings(){
+  SequenceSettings sequenceSettings = Sequencer[_selectedScene].getSelectedSequenceSettings();
+  return sequenceSettings; 
 }
 
 RTPSequenceNoteStates RTPSequencer::getSelectedSequenceNoteStates(){
