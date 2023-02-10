@@ -121,7 +121,7 @@ void BuitDevicesManager::presentSequenceSettings(){
 }
 
 void BuitDevicesManager::presentBuitCC(){
-    printToScreen("Buit CCs", "", "");
+    printToScreen("CCs Matrix", "", "");
     _neoTrellis.writeBuitCCStates(_matrixBuitCC.getBuitCCStates(), TRANSPORT_COLOR);
 }
 

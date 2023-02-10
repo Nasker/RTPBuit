@@ -24,6 +24,7 @@ void SequenceEditState::longClick() {
 }
 
 void SequenceEditState::rotaryTurned(ControlCommand command) {
+  //Serial.println("Rotary turned: " + String(command.commandType));
   _devices.nudgePage(command);
 }
 

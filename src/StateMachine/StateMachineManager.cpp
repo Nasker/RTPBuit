@@ -17,34 +17,34 @@ void StateMachineManager::handleActions(ControlCommand callbackControlCommand) {
       switch (callbackControlCommand.commandType) {
           case SINGLE_CLICK:
             buitStateMachine.singleClick();
-            break;
+            return;
           case DOUBLE_CLICK:
             buitStateMachine.doubleClick();
-            break;
+            return;
           case LONG_CLICK:
             buitStateMachine.longClick();
-            break;
+            return;
       }
     case ROTARY:
       buitStateMachine.rotaryTurned(callbackControlCommand);
-      break;
+      return;
     case THREE_AXIS: 
       buitStateMachine.threeAxisChanged(callbackControlCommand);
-      break;
+      return;
     case TRELLIS:
       switch (callbackControlCommand.commandType) {
         case PRESSED:
             buitStateMachine.trellisPressed(callbackControlCommand);
-            break;
+            return;
         case RELEASED:    
             //buitStateMachine.trellisReleased(callbackControlCommand);
-            break;
+            return;
         default:
-            break;
+            return;
         }
       break;
     case SEQUENCER:
       buitStateMachine.sequencerCallback(callbackControlCommand);
-      break;
+      return;
   } 
 }

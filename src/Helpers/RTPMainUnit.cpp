@@ -26,6 +26,7 @@ void RTPMainUnit::updatePeriodically(){
 }
 
 void RTPMainUnit::actOnControlsCallback(ControlCommand callbackCommand){
+  //Serial.printf("DEVICE: %d  TYPE: %d  VALUE: %d\n", callbackCommand.controlType, callbackCommand.commandType, callbackCommand.value);
   stateMachineManager.handleActions(callbackCommand);
 }
 

@@ -25,7 +25,6 @@ void SceneEditState::longClick() {
 }
 
 void SceneEditState::rotaryTurned(ControlCommand command) {
-  //Serial.printf("Rotary turned: %d\n", command.commandType);
   _devices.changeScene(command);
 }
 
