@@ -47,6 +47,12 @@ void RTPNeoTrellis::begin(RTPMainUnit* _mainUnit){
   }
 }
 
+void RTPNeoTrellis::introAnimation(){
+  for(int i=0; i<NEO_TRELLIS_NUM_KEYS; i++)
+    myTrellis.pixels.setPixelColor(i, random(0,255), random(0,255), random(0,255));
+  myTrellis.pixels.show();
+}
+
 void RTPNeoTrellis::read(){
   if(!digitalRead(TRELLIS_INT_PIN))
     myTrellis.read(false);

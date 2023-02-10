@@ -7,6 +7,16 @@ _sequencer(seq){}
 void BuitDevicesManager::initSetup(){
     _oled.init();
     initBuitSD();
+    introAnimations();
+}
+
+void BuitDevicesManager::introAnimations(){
+    int x = 128;
+    String text = "I'm RTP's BUIT!!";
+    for (int i = 0; i < 90; i++) {
+        _oled.introAnimation(x, text);
+        _neoTrellis.introAnimation();
+    }
 }
 
 void BuitDevicesManager::printToScreen(String firstLine, String secondLine, String thirdLine){

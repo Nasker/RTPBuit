@@ -13,7 +13,6 @@ void RTPMainUnit::begin(){
   rtpTrellis.begin(this);
   SequencerManager.begin(this);
   devicesManager.initSetup();
-  devicesManager.printToScreen("Hey there!", "I'm Buit!", "FTW!");
 }
 
 void RTPMainUnit::update(){

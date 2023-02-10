@@ -15,6 +15,7 @@ class RTPOled{
 public:
     RTPOled();
     void init();
+    void introAnimation(int &x, String text);
     void printToScreen(String firstLine, String secondLine, String thirdLine);
     void printToScreen(ControlCommand command);
 };

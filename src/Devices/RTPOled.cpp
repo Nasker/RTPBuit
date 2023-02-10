@@ -9,6 +9,15 @@ void RTPOled::init(){
   }
 }
 
+void RTPOled::introAnimation(int &x, String text){
+  display.clearDisplay();
+  display.setCursor(x, 0);
+  display.setTextSize(8);
+  display.print(text);
+  display.display();
+  x -= 10;
+}
+
 void RTPOled::printToScreen(String firstLine, String secondLine, String thirdLine){
   display.clearDisplay();
   display.setTextSize(2); // Draw 2X-scale text

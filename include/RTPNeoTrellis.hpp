@@ -12,6 +12,7 @@ class RTPNeoTrellis{
  public:
     RTPNeoTrellis();
     void begin(RTPMainUnit* _mainUnit);
+    void introAnimation();
     static TrellisCallback blink(keyEvent evt);
     void read();
     void writeSequenceStates(RTPSequenceNoteStates seqStates, int color, boolean show=true);
