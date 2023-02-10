@@ -56,6 +56,7 @@ public:
 	size_t getSequenceSize();
 	void editNoteInSequence(size_t position, bool eventState);
 	bool getNoteStateInSequence(size_t position);
+	int getNoteVelocityInSequence(size_t position);
 	void editNoteInSequence(size_t position, int note, int velocity);
 	void editNoteInCurrentPosition(ControlCommand command);
 	void resizeSequence(size_t newSize);

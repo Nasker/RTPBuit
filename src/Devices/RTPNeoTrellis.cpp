@@ -59,8 +59,10 @@ void RTPNeoTrellis::read(){
 }
 
 void RTPNeoTrellis::writeSequenceStates(RTPSequenceNoteStates seqStates, int color, bool show=true){
-  for(int i=0; i<SEQ_BLOCK_SIZE; i++)
-      myTrellis.pixels.setPixelColor(convertMatrix[i], seqStates.val[i] ? color : 0);
+  for(int i=0; i<SEQ_BLOCK_SIZE; i++){
+      int pixelColor = seqStates.val[i] ? colorScaler(color, seqStates.velocity[i], 127)  :  0;
+      myTrellis.pixels.setPixelColor(convertMatrix[i], pixelColor);
+    }
   if(show)
     myTrellis.pixels.show();
 }
@@ -99,4 +101,11 @@ void RTPNeoTrellis::writeTransportPage(int color){
 void RTPNeoTrellis::moveCursor(int cursorPos){
   myTrellis.pixels.setPixelColor(convertMatrix[cursorPos], CURSOR_COLOR);
   myTrellis.pixels.show();
+}
+
+int RTPNeoTrellis::colorScaler(int color, int scalar, int max){   
+  int r = (color >> 16 & 0xFF) * scalar / max;
+  int g = (color >> 8 & 0xFF) * scalar/ max;
+  int b = (color & 0xFF) * scalar/ max;
+  return (r << 16) | (g << 8) | b;
 }

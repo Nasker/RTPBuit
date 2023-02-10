@@ -21,6 +21,5 @@ class RTPNeoTrellis{
     void writeSequenceSettingsPage(SequenceSettings sequenceSettings);
     void writeTransportPage(int color);
     void moveCursor(int cursorPos);
-    //void callbackFromTrellis(void(*userFunc)(String,int));
-    //void callbackFromNeoTrellis(RTPMainUnit*);
+    int colorScaler(int color, int scalar, int max);
 };

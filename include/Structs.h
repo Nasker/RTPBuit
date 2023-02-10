@@ -3,6 +3,7 @@
 
 struct RTPSequenceNoteStates{
   bool val[16];
+  int velocity[16];
 };
 
 struct RTPSequenceState{

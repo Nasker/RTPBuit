@@ -175,6 +175,15 @@ bool RTPEventNoteSequence::getNoteStateInSequence(size_t position){
   return NULL;
 }
 
+int RTPEventNoteSequence::getNoteVelocityInSequence(size_t position){
+  position = position + pageOffset();
+  if(position < EventNoteSequence.size()){
+    pointIterator(position);
+    return it->getEventVelocity();
+  } 
+  return NULL;
+}
+
 void RTPEventNoteSequence::editNoteInSequence(size_t position, int note, int velocity){
   position = position + pageOffset();
   if(position < EventNoteSequence.size()){
