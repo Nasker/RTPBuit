@@ -12,6 +12,7 @@
 
 class RTPOled{
     Adafruit_SSD1306 display{SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, SCREEN_ADDRESS};
+    String lastLines = "";
 public:
     RTPOled();
     void init();
