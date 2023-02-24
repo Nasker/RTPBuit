@@ -22,4 +22,5 @@ class RTPNeoTrellis{
     void writeTransportPage(int color);
     void moveCursor(int cursorPos);
     int colorScaler(int color, int scalar, int max);
+    int colorMapper(int colorIndex);
 };

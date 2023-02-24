@@ -6,9 +6,9 @@
 
 RTPEventNoteSequence::RTPEventNoteSequence(int midiChannel, int NEvents, int type, int baseNote, NotesPlayer& notesPlayer, MusicManager& musicManager):
  _notesPlayer(notesPlayer), _musicManager(musicManager){
-  RTPParameter parameterType = RTPParameter(0,2,type);
-  RTPParameter parameterMidiChannel = RTPParameter(1,16,midiChannel);
-  RTPParameter parameterColor = RTPParameter(0,0XFFFFFF,0);
+  RTPParameter parameterType = RTPParameter(0, N_TYPES, type);
+  RTPParameter parameterMidiChannel = RTPParameter(1, N_MIDI_CHANNELS, midiChannel);
+  RTPParameter parameterColor = RTPParameter(0, N_COLORS, 0);
   sequenceParameters.push_back(parameterType);
   sequenceParameters.push_back(parameterMidiChannel);
   sequenceParameters.push_back(parameterColor);
@@ -72,6 +72,7 @@ void RTPEventNoteSequence::selectParameter(int parameterIndex){
   if(parameterIndex >= 3)
     parameterIndex = 3;
   _selectedParameter = parameterIndex;
+  Serial.printf("Selected parameter: %d\n", _selectedParameter);
 }
 
 void RTPEventNoteSequence::increaseParameterValue(){
@@ -100,6 +101,7 @@ int RTPEventNoteSequence::getParameterValue(){
 
 void RTPEventNoteSequence::playCurrentEventNote(){
   pointIterator(_currentPosition);
+    it->setMidiChannel(getMidiChannel());
   if(isCurrentSequenceEnabled() && it->eventState()){
     switch (getType()){
       case DRUM:{

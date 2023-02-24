@@ -11,15 +11,15 @@ public:
         _value = value;
     }
     int incValue(){
-        if(_value < _maxValue){
-            _value++;
-        }
+        _value++;
+        if(_value >= _maxValue)
+            _value = _maxValue;
         return _value;
     }
     int decValue(){
-        if(_value > _minValue){
-            _value--;
-        }
+        _value--;
+        if(_value <= _minValue)
+            _value = _minValue;
         return _value;
     }
     int getValue(){
