@@ -66,6 +66,7 @@ public:
 	void increasePage();
 	void decreasePage();
 	int getParameterValue();
+	String getParameterName();
 	list<RTPEventNotePlus> getEventNoteSequence();
 	String dumpSequenceToJson();
 	int page();

@@ -102,6 +102,10 @@ int RTPScene::getSelectedParameterInSequeceValue(){
   return SequencerScene[_selectedSequence].getParameterValue();
 }
 
+String RTPScene::getSelectedParameterInSequeceName(){
+  return SequencerScene[_selectedSequence].getParameterName();
+}
+
 void RTPScene::incselectParameterInSequece(){
   SequencerScene[_selectedSequence].increaseParameterValue();
 }

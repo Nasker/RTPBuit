@@ -35,6 +35,7 @@ public:
   void incselectParameterInSequece();
   void decselectParameterInSequece();
   int getSelectedParameterInSequeceValue();
+  String getSelectedParameterInSequeceName();
   void toggleSequence(int sequenceIndex);
   RTPSequencesState getSequencesState();
   void selectSequence(int sequenceIndex);

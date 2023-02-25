@@ -116,7 +116,7 @@ void BuitDevicesManager::presentTransport(){
 }
 
 void BuitDevicesManager::presentSequenceSettings(){
-    printToScreen("Sequence Settings", "", "");
+    printToScreen("Settings", _sequencer.getSelectedParameterInSequeceName(), String(_sequencer.getSelectedParameterInSequeceValue()));
     _neoTrellis.writeSequenceSettingsPage(_sequencer.getSelectedSequenceSettings());
 }
 

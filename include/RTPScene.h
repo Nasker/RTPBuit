@@ -31,6 +31,7 @@ public:
   void incselectParameterInSequece();
   void decselectParameterInSequece();
   int getSelectedParameterInSequeceValue();
+  String getSelectedParameterInSequeceName();
   void incselectPageInSequence();
   void decselectPageInSequence();
   int getSelectedSequenceCurrentPosition();
