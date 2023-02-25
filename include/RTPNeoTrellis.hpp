@@ -3,6 +3,7 @@
 #include "Adafruit_NeoTrellis.h"
 #include "Structs.h"
 #include "ControlCommand.h"
+#include "ColorFunctions.h"
 #include "constants.h"
 
 class RTPMainUnit;
@@ -21,6 +22,4 @@ class RTPNeoTrellis{
     void writeSequenceSettingsPage(SequenceSettings sequenceSettings);
     void writeTransportPage(int color);
     void moveCursor(int cursorPos);
-    int colorScaler(int color, int scalar, int max);
-    int colorMapper(int colorIndex);
 };

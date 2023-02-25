@@ -6,10 +6,10 @@
 
 RTPEventNoteSequence::RTPEventNoteSequence(int midiChannel, int NEvents, int type, int baseNote, NotesPlayer& notesPlayer, MusicManager& musicManager):
  _notesPlayer(notesPlayer), _musicManager(musicManager){
-  RTPParameter parameterType = RTPParameter(0, N_TYPES, type, "Type");
+  RTPParameter parameterType = RTPParameter(0, N_TYPES-1, type, "Type");
   RTPParameter parameterMidiChannel = RTPParameter(1, N_MIDI_CHANNELS, midiChannel, "Midi CH");
-  RTPParameter parameterColor = RTPParameter(0, N_COLORS, 0, "Color");
-  RTPParameter parameterLenght = RTPParameter(0, N_PAGES, 0, "Lenght");
+  RTPParameter parameterColor = RTPParameter(0, N_COLORS-1, 0, "Color");
+  RTPParameter parameterLenght = RTPParameter(1, N_PAGES, 0, "Lenght");
   sequenceParameters.push_back(parameterType);
   sequenceParameters.push_back(parameterMidiChannel);
   sequenceParameters.push_back(parameterColor);

@@ -5,7 +5,7 @@
 #define N_SCENES 2
 #define N_PAGES 4
 #define N_TYPES 4
-#define N_COLORS 16
+#define N_COLORS 32
 #define N_MIDI_CHANNELS 16
 
 #define TRELLIS 1
