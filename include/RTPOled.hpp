@@ -9,6 +9,7 @@
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define SCREEN_ADDRESS 0x3C
+#define TEXT_SIZE 2
 
 class RTPOled{
     Adafruit_SSD1306 display{SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, SCREEN_ADDRESS};
@@ -19,4 +20,6 @@ public:
     void introAnimation(int &x, String text);
     void printToScreen(String firstLine, String secondLine, String thirdLine);
     void printToScreen(ControlCommand command);
+private:
+    int calcOffsetToCenterText(String textLine);
 };

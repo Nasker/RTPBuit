@@ -21,13 +21,14 @@ void RTPOled::introAnimation(int &x, String text){
 void RTPOled::printToScreen(String firstLine, String secondLine, String thirdLine){
   if (lastLines != firstLine+secondLine+thirdLine){
     display.clearDisplay();
-    display.setTextSize(2); // Draw 2X-scale text
+    display.setTextSize(TEXT_SIZE); // Draw 2X-scale text
     display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, 0);
+    display.drawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SSD1306_WHITE);
+    display.setCursor(calcOffsetToCenterText(firstLine), 0);
     display.println(firstLine);
-    display.setCursor(0, 20);
+    display.setCursor(calcOffsetToCenterText(secondLine), TEXT_SIZE * 10);
     display.println(secondLine);
-    display.setCursor(0, 40);
+    display.setCursor(calcOffsetToCenterText(thirdLine), TEXT_SIZE * 20);
     display.println(thirdLine);
     display.display();
     lastLines = firstLine+secondLine+thirdLine;
@@ -36,4 +37,9 @@ void RTPOled::printToScreen(String firstLine, String secondLine, String thirdLin
 
 void RTPOled::printToScreen(ControlCommand command){
     printToScreen("->ID: " + String(command.controlType),"->CMD: " + String(command.commandType),"->VAL: " + String(command.value));
+}
+
+int RTPOled::calcOffsetToCenterText(String textLine){
+  //calculates the offset to center in the display the given textLine
+  return textLine.length() * TEXT_SIZE * 10 / 2;
 }
