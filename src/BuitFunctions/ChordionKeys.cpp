@@ -3,10 +3,10 @@
 #include "MIDI.h"
 #include "Audio.h"
 
-MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
+//MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
 
 ChordionKeys::ChordionKeys(){
-    MIDI.begin(MIDI_CHANNEL_OMNI);
+    //MIDI.begin(MIDI_CHANNEL_OMNI);
 }
 
 void ChordionKeys::initSetup(){
@@ -45,22 +45,22 @@ PlayedChord ChordionKeys::playChord(int rootNote){
         for(int i=0; i< mController.chords.getChordSteps();i++){
             if(instChannel[j].voices == -1 && mController.chords.getChordStep(i) < 0){
                 usbMIDI.sendNoteOn(rootNote+mController.chords.getChordStep(i), 90, instChannel[j].midiChannel);
-                MIDI.sendNoteOn(rootNote+mController.chords.getChordStep(i), 90, instChannel[j].midiChannel);
+                //MIDI.sendNoteOn(rootNote+mController.chords.getChordStep(i), 90, instChannel[j].midiChannel);
                 //Serial.printf("CHANNEL %d\n", instChannel[j].midiChannel);
             }
             else if(instChannel[j].voices == 0){
                 usbMIDI.sendNoteOn(rootNote+mController.chords.getChordStep(i), 90, instChannel[j].midiChannel);
-                MIDI.sendNoteOn(rootNote+mController.chords.getChordStep(i), 90, instChannel[j].midiChannel);
+                //MIDI.sendNoteOn(rootNote+mController.chords.getChordStep(i), 90, instChannel[j].midiChannel);
                 //Serial.printf("CHANNEL %d\n", instChannel[j].midiChannel);
             }
             else if(instChannel[j].voices == 1 && mController.chords.getChordStep(i) >= 0 && mController.chords.getChordStep(i) < 12){
                 usbMIDI.sendNoteOn(rootNote+mController.chords.getChordStep(i), 90, instChannel[j].midiChannel);
-                MIDI.sendNoteOn(rootNote+mController.chords.getChordStep(i), 90, instChannel[j].midiChannel);
+                //MIDI.sendNoteOn(rootNote+mController.chords.getChordStep(i), 90, instChannel[j].midiChannel);
                 //Serial.printf("CHANNEL %d\n", instChannel[j].midiChannel);
             }
             else if(instChannel[j].voices == 2 && mController.chords.getChordStep(i) >= 12){
                 usbMIDI.sendNoteOn(rootNote+mController.chords.getChordStep(i), 90, instChannel[j].midiChannel);
-                MIDI.sendNoteOn(rootNote+mController.chords.getChordStep(i), 90, instChannel[j].midiChannel);
+                //MIDI.sendNoteOn(rootNote+mController.chords.getChordStep(i), 90, instChannel[j].midiChannel);
                 //Serial.printf("CHANNEL %d\n", instChannel[j].midiChannel);
             }
 
@@ -79,19 +79,19 @@ void ChordionKeys::releaseChord(int rootNote){
                 for(int j=0; j< mController.chords.getChordSteps();j++){
                     if(instChannel[k].voices == -1 && mController.chords.getChordStep(j) < 0){
                         usbMIDI.sendNoteOff(rootNote+mController.chords.getChordStep(j), 90, instChannel[k].midiChannel);
-                        MIDI.sendNoteOff(rootNote+mController.chords.getChordStep(j), 90, instChannel[k].midiChannel);
+                        //MIDI.sendNoteOff(rootNote+mController.chords.getChordStep(j), 90, instChannel[k].midiChannel);
                     }
                     if(instChannel[k].voices == 0){
                         usbMIDI.sendNoteOff(rootNote+mController.chords.getChordStep(j), 90, instChannel[k].midiChannel);
-                        MIDI.sendNoteOff(rootNote+mController.chords.getChordStep(j), 90, instChannel[k].midiChannel);
+                        //MIDI.sendNoteOff(rootNote+mController.chords.getChordStep(j), 90, instChannel[k].midiChannel);
                     }
                     if(instChannel[k].voices == 1 && mController.chords.getChordStep(j) >= 0 && mController.chords.getChordStep(j) < 12){
                         usbMIDI.sendNoteOff(rootNote+mController.chords.getChordStep(j), 90, instChannel[k].midiChannel);
-                        MIDI.sendNoteOff(rootNote+mController.chords.getChordStep(j), 90, instChannel[k].midiChannel);
+                        //MIDI.sendNoteOff(rootNote+mController.chords.getChordStep(j), 90, instChannel[k].midiChannel);
                     }
                     if(instChannel[k].voices == 2 && mController.chords.getChordStep(j) >= 12){
                         usbMIDI.sendNoteOff(rootNote+mController.chords.getChordStep(j), 90, instChannel[k].midiChannel);
-                        MIDI.sendNoteOff(rootNote+mController.chords.getChordStep(j), 90, instChannel[k].midiChannel);
+                        //MIDI.sendNoteOff(rootNote+mController.chords.getChordStep(j), 90, instChannel[k].midiChannel);
                     }
                 }
             }   
