@@ -1,7 +1,7 @@
 #include "RTPEventNotePlus.h"
-#include "MIDI.h"
+//#include "MIDI.h"
 
-MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
+//MIDI_CREATE_DEFAULT_INSTANCE();
 
 int RTPEventNotePlus::getMidiChannel(){
     return _midiChannel;
@@ -13,12 +13,12 @@ void RTPEventNotePlus::setMidiChannel(int midiChannel){
 
 void RTPEventNotePlus::playNoteOn(){
     usbMIDI.sendNoteOn(getEventNote(), getEventVelocity(), getMidiChannel());
-    MIDI.sendNoteOn(getEventNote(), getEventVelocity(), getMidiChannel());
+    //MIDI.sendNoteOn(getEventNote(), getEventVelocity(), getMidiChannel());
 }
 
 void RTPEventNotePlus::playNoteOff(){
     usbMIDI.sendNoteOff(getEventNote(), 0, getMidiChannel());
-    MIDI.sendNoteOff(getEventNote(), 0, getMidiChannel());
+    //MIDI.sendNoteOff(getEventNote(), 0, getMidiChannel());
 }
 
 void RTPEventNotePlus::setLength(int length){
