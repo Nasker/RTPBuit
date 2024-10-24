@@ -110,6 +110,9 @@ void RTPEventNoteSequence::playCurrentEventNote(){
     it->setMidiChannel(getMidiChannel());
   if(isCurrentSequenceEnabled() && it->eventState()){
     switch (getType()){
+      case CONTROL_TRACK:
+        _musicManager.setCurrentHarmony(0,0,0);
+        return;
       case DRUM:{
         it->setLength(1);
         _notesPlayer.queueNote(*it);

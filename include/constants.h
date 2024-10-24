@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-#define N_SCENES 2
+#define N_SCENES 3
 #define N_PAGES 4
 #define N_TYPES 4
 #define N_COLORS 32
@@ -51,5 +51,6 @@ enum RTPEventNoteSequenceType{
 	DRUM,
 	BASS_SYNTH,
 	MONO_SYNTH,
-	POLY_SYNTH
+	POLY_SYNTH,
+	CONTROL_TRACK
 };
