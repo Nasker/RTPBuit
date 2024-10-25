@@ -14,23 +14,6 @@ RTPEventNoteSequence::RTPEventNoteSequence(int midiChannel, int NEvents, int typ
   sequenceParameters.push_back(parameterMidiChannel);
   sequenceParameters.push_back(parameterColor);
   sequenceParameters.push_back(parameterLenght);
-  switch (getType()){
-    case DRUM:
-      setColor(DRUM_COLOR);
-      break;
-    case BASS_SYNTH:
-      setColor(BASS_SYNTH_COLOR);
-      break;
-    case MONO_SYNTH:
-      setColor(MONO_SYNTH_COLOR);
-      break;
-    case POLY_SYNTH:
-      setColor(POLY_SYNTH_COLOR);
-      break;
-    case CONTROL_TRACK:
-      setColor(CONTROL_TRACK_COLOR);
-      break;
-  }
   _baseNote = baseNote;
   _currentPosition = 0;
   _isRecording = false;
@@ -38,7 +21,6 @@ RTPEventNoteSequence::RTPEventNoteSequence(int midiChannel, int NEvents, int typ
   _selectedParameter = 0;
   _selectedPage = 0;
   _pages = ceil(NEvents / SEQ_BLOCK_SIZE);
-
   for(int i=0; i < NEvents; i++){
     RTPEventNotePlus eventNote = RTPEventNotePlus(midiChannel, false, _baseNote , 80); // true, 60, 80
     EventNoteSequence.push_back(eventNote);
