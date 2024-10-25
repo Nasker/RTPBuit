@@ -10,9 +10,13 @@ void ControlSequence::setTypeSpecificColor(){
 }
 
 void ControlSequence::playCurrentEventNote(){
-    int rootNote = it->getEventRead();
-    int chord  = it->getEventVelocity();
-    _musicManager.setCurrentHarmony(1, rootNote, chord);
+    pointIterator(_currentPosition);
+    it->setMidiChannel(getMidiChannel());
+    if(isCurrentSequenceEnabled() && it->eventState()){
+        int rootNote = it->getEventRead();
+        int chord  = it->getEventVelocity();
+        _musicManager.setCurrentHarmony(1, rootNote, chord);
+    }
 }
 
 void ControlSequence::editNoteInCurrentPosition(ControlCommand command){

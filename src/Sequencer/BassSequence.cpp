@@ -11,9 +11,13 @@ void BassSequence::setTypeSpecificColor(){
 }
 
 void BassSequence::playCurrentEventNote(){
-    _musicManager.setCurrentSteps(it->getEventRead(), BASS_SYNTH);
-    it->setEventNote(_musicManager.getCurrentChordNote());
-    _notesPlayer.queueNote(*it);
+    pointIterator(_currentPosition);
+    it->setMidiChannel(getMidiChannel());
+    if(isCurrentSequenceEnabled() && it->eventState()){
+        _musicManager.setCurrentSteps(it->getEventRead(), BASS_SYNTH);
+        it->setEventNote(_musicManager.getCurrentChordNote());
+        _notesPlayer.queueNote(*it);
+    }
 }
 
 void BassSequence::editNoteInCurrentPosition(ControlCommand command){

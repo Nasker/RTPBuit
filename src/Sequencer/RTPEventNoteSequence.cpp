@@ -43,7 +43,6 @@ RTPEventNoteSequence::RTPEventNoteSequence(int midiChannel, int NEvents, int typ
     RTPEventNotePlus eventNote = RTPEventNotePlus(midiChannel, false, _baseNote , 80); // true, 60, 80
     EventNoteSequence.push_back(eventNote);
   }
-  it = EventNoteSequence.begin();
 }
 
 void RTPEventNoteSequence::fordwardSequence(){

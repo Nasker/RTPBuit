@@ -11,12 +11,16 @@ void PolySequence::setTypeSpecificColor(){
 }
 
 void PolySequence::playCurrentEventNote(){
-    _musicManager.setCurrentSteps(it->getEventRead(), POLY_SYNTH);
-    auto chordNotes = _musicManager.getCurrentChordNotes();
-    while(!chordNotes.empty()){
-      it->setEventNote(chordNotes.front());
-      _notesPlayer.queueNote(*it);
-      chordNotes.pop();
+    pointIterator(_currentPosition);
+    it->setMidiChannel(getMidiChannel());
+    if(isCurrentSequenceEnabled() && it->eventState()){
+        _musicManager.setCurrentSteps(it->getEventRead(), POLY_SYNTH);
+        auto chordNotes = _musicManager.getCurrentChordNotes();
+        while(!chordNotes.empty()){
+            it->setEventNote(chordNotes.front());
+            _notesPlayer.queueNote(*it);
+            chordNotes.pop();
+        }
     }
 }
 

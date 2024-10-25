@@ -10,16 +10,19 @@ void DrumSequence::setTypeSpecificColor(){
 }
 
 void DrumSequence::playCurrentEventNote(){
-    if (it != EventNoteSequence.end() && !EventNoteSequence.empty()) {
+    pointIterator(_currentPosition);
+    it->setMidiChannel(getMidiChannel());
+    if(isCurrentSequenceEnabled() && it->eventState()){
         it->setLength(1);
         _notesPlayer.queueNote(*it);
-    } else
-        Serial.println("Iterator is invalid or EventNoteSequence is empty!");
+    }
 }
 
 void DrumSequence::editNoteInCurrentPosition(ControlCommand command){
-    if (command.commandType == CHANGE_RIGHT){
-        pointIterator(_currentPosition);
-        it->setEventRead(command.value);
+    if(command.controlType == THREE_AXIS){ 
+        if(command.commandType == CHANGE_RIGHT){
+            pointIterator(_currentPosition);
+            it->setEventVelocity(command.value);
+        }
     }
 }

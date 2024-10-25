@@ -11,9 +11,13 @@ void MonoSequence::setTypeSpecificColor(){
 }
 
 void MonoSequence::playCurrentEventNote(){
-    _musicManager.setCurrentSteps(it->getEventRead(), MONO_SYNTH);
-    it->setEventNote(_musicManager.getCurrentChordNote());
-    _notesPlayer.queueNote(*it);
+    pointIterator(_currentPosition);
+    it->setMidiChannel(getMidiChannel());
+    if(isCurrentSequenceEnabled() && it->eventState()){
+        _musicManager.setCurrentSteps(it->getEventRead(), MONO_SYNTH);
+        it->setEventNote(_musicManager.getCurrentChordNote());
+        _notesPlayer.queueNote(*it);
+    }
 }
 
 void MonoSequence::editNoteInCurrentPosition(ControlCommand command){
