@@ -3,10 +3,11 @@
 #include "RTPEventNoteSequence.h"
 #include "Structs.h"
 #include <vector>
+#include <memory>
 using namespace std;
 
 class RTPScene{
-  vector<RTPEventNoteSequence> SequencerScene;
+  vector<unique_ptr<RTPEventNoteSequence>> SequencerScene;
   String _name;
   int _NSequences;
   int _selectedSequence;
@@ -27,11 +28,11 @@ public:
   RTPSequenceNoteStates getSelectedSequenceNoteStates();
   RTPSequencesState getSequencesState();
   SequenceSettings getSelectedSequenceSettings();
-  void selectParameterInSequece(int parameterIndex);
-  void incselectParameterInSequece();
-  void decselectParameterInSequece();
-  int getSelectedParameterInSequeceValue();
-  String getSelectedParameterInSequeceName();
+  void selectParameterInSequence(int parameterIndex);
+  void incselectParameterInSequence();
+  void decselectParameterInSequence();
+  int getSelectedParameterInSequenceValue();
+  String getSelectedParameterInSequenceName();
   void incselectPageInSequence();
   void decselectPageInSequence();
   int getSelectedSequenceCurrentPosition();

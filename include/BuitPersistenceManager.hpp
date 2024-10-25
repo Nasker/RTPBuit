@@ -6,6 +6,6 @@ class BuitPersistenceManager{
 public:
     BuitPersistenceManager();
     ~BuitPersistenceManager();
-    void save(RTPEventNoteSequence eventNoteSequence);
-    void load(RTPEventNoteSequence &eventNoteSequence);
+    //void save(RTPEventNoteSequence eventNoteSequence);
+    //void load(RTPEventNoteSequence &eventNoteSequence);
 };

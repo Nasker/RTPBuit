@@ -27,6 +27,9 @@ RTPEventNoteSequence::RTPEventNoteSequence(int midiChannel, int NEvents, int typ
     case POLY_SYNTH:
       setColor(POLY_SYNTH_COLOR);
       break;
+    case CONTROL_TRACK:
+      setColor(CONTROL_TRACK_COLOR);
+      break;
   }
   _baseNote = baseNote;
   _currentPosition = 0;
@@ -40,9 +43,17 @@ RTPEventNoteSequence::RTPEventNoteSequence(int midiChannel, int NEvents, int typ
     RTPEventNotePlus eventNote = RTPEventNotePlus(midiChannel, false, _baseNote , 80); // true, 60, 80
     EventNoteSequence.push_back(eventNote);
   }
+  it = EventNoteSequence.begin();
 }
 
 void RTPEventNoteSequence::fordwardSequence(){
+  if(getType() == CONTROL_TRACK){
+    _currentPosition++;
+    if(_currentPosition >= getSequenceSize())
+      _currentPosition = 0;
+    return;
+  }
+
   _currentPosition++;
   if(_currentPosition >= getSequenceSize())
     _currentPosition = 0;
@@ -104,7 +115,7 @@ int RTPEventNoteSequence::getParameterValue(){
 String RTPEventNoteSequence::getParameterName(){
   return sequenceParameters[_selectedParameter].getName();
 }
-
+/*
 void RTPEventNoteSequence::playCurrentEventNote(){
   pointIterator(_currentPosition);
     it->setMidiChannel(getMidiChannel());
@@ -141,7 +152,7 @@ void RTPEventNoteSequence::playCurrentEventNote(){
     }
   }
 } 
-
+*/
 void RTPEventNoteSequence::setMidiChannel(int midiChannel){
   sequenceParameters[MIDI_CHANNEL].setValue(midiChannel);
 }
@@ -203,7 +214,7 @@ void RTPEventNoteSequence::editNoteInSequence(size_t position, int note, int vel
     it->setEventVelocity(velocity);
   }
 }
-
+/*
 void RTPEventNoteSequence::editNoteInCurrentPosition(ControlCommand command){
   if(command.controlType == THREE_AXIS){ 
     switch(command.commandType){
@@ -229,7 +240,7 @@ void RTPEventNoteSequence::editNoteInCurrentPosition(ControlCommand command){
     } 
   }
 }
-
+*/
 void RTPEventNoteSequence::resizeSequence(size_t newSize){
   if(newSize > EventNoteSequence.size()){
     for(size_t i=EventNoteSequence.size(); i < newSize; i++){

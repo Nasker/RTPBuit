@@ -25,7 +25,7 @@ enum SequenceParametersIndex{
 };
 
 class RTPEventNoteSequence{
-	// vector<RTPEventNotePlus> EventNoteSequence;
+protected:
 	list<RTPEventNotePlus> EventNoteSequence;
 	vector<RTPParameter> sequenceParameters;
 	NotesPlayer& _notesPlayer;
@@ -46,7 +46,8 @@ public:
 	int getCurrentSequencePosition();
 	bool isCurrentSequenceEnabled();
 	void enableSequence(bool state);
-	void playCurrentEventNote();
+	virtual void setTypeSpecificColor() = 0;
+	virtual void playCurrentEventNote() = 0;
 	void setMidiChannel(int midiChannel);
 	int getMidiChannel();
 	void setColor(int color);
@@ -58,19 +59,19 @@ public:
 	bool getNoteStateInSequence(size_t position);
 	int getNoteVelocityInSequence(size_t position);
 	void editNoteInSequence(size_t position, int note, int velocity);
-	void editNoteInCurrentPosition(ControlCommand command);
+	virtual void editNoteInCurrentPosition(ControlCommand command) = 0;
 	void resizeSequence(size_t newSize);
 	void selectParameter(int parameterIndex);
 	void increaseParameterValue();
 	void decreaseParameterValue();
-	void increasePage();
-	void decreasePage();
+	virtual void increasePage();
+	virtual void decreasePage();
 	int getParameterValue();
 	String getParameterName();
 	list<RTPEventNotePlus> getEventNoteSequence();
 	String dumpSequenceToJson();
 	int page();
 	int pageOffset();
-private:
+protected:
 	void pointIterator(int position);
 };

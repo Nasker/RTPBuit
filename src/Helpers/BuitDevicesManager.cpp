@@ -82,16 +82,16 @@ void  BuitDevicesManager::nudgePage(ControlCommand command){
 }
 
 void BuitDevicesManager::selectParameter(ControlCommand command){
-    _sequencer.selectParameterInSequece(command.value);
+    _sequencer.selectParameterInSequence(command.value);
 }
 
 void BuitDevicesManager::rotateParameter(ControlCommand command){
     switch(command.commandType){
         case ROTATING_RIGHT:
-            _sequencer.incselectParameterInSequece();
+            _sequencer.incSelectParameterInSequence();
             break;
         case ROTATING_LEFT:
-            _sequencer.decselectParameterInSequece();
+            _sequencer.decSelectParameterInSequence();
             break;
     }
 }
@@ -116,7 +116,7 @@ void BuitDevicesManager::presentTransport(){
 }
 
 void BuitDevicesManager::presentSequenceSettings(){
-    printToScreen("Settings", _sequencer.getSelectedParameterInSequeceName(), String(_sequencer.getSelectedParameterInSequeceValue()));
+    printToScreen("Settings", _sequencer.getSelectedParameterInSequenceName(), String(_sequencer.getSelectedParameterInSequenceValue()));
     _neoTrellis.writeSequenceSettingsPage(_sequencer.getSelectedSequenceSettings());
 }
 

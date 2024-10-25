@@ -8,7 +8,7 @@
 using namespace std;
 
 class RTPSequencer{
-  vector<RTPScene> Sequencer;
+  vector<RTPScene*> Sequencer; // Change to pointer type
   int _NScenes;
   int _selectedScene;
   NotesPlayer _notesPlayer;
@@ -16,7 +16,7 @@ class RTPSequencer{
 
 public:
   RTPSequencer(int NScenes, MusicManager& musicManager);
-  //void connectMainUnit(RTPMainUnit* mainUnit);
+  ~RTPSequencer(); // Destructor for cleaning up
   void playAndMoveSequencer();
   void stopAndCleanSequencer();
   void pauseSequencer();
@@ -29,13 +29,13 @@ public:
   void decreaseSelectedScene();
   int getSelectScene();
   int getSelectedSequence();
-  void addScene(RTPScene scene);
+  void addScene(RTPScene* scene); // Change to pointer type
   void removeScene(int scene);
-  void selectParameterInSequece(int parameterIndex);
-  void incselectParameterInSequece();
-  void decselectParameterInSequece();
-  int getSelectedParameterInSequeceValue();
-  String getSelectedParameterInSequeceName();
+  void selectParameterInSequence(int parameterIndex);
+  void incSelectParameterInSequence();
+  void decSelectParameterInSequence();
+  int getSelectedParameterInSequenceValue();
+  String getSelectedParameterInSequenceName();
   void toggleSequence(int sequenceIndex);
   RTPSequencesState getSequencesState();
   void selectSequence(int sequenceIndex);
