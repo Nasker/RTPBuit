@@ -18,10 +18,7 @@ RTPSequencer::~RTPSequencer() {
 
 void RTPSequencer::playAndMoveSequencer() {
     for (size_t i = 0; i < Sequencer.size(); i++) { 
-        // print which scene is playing in a line using Serial.printf formatting
-        Serial.printf("Playing scene %d\n", i);
-        Sequencer[i]->playScene(); // Use -> to access members
-        Serial.printf("Forwarding scene %d\n", i);
+        Sequencer[i]->playScene();
         _notesPlayer.playNotes();
         Sequencer[i]->fordwardScene();
         _notesPlayer.decreaseTimeToLive();

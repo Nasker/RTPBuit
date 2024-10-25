@@ -114,44 +114,7 @@ int RTPEventNoteSequence::getParameterValue(){
 String RTPEventNoteSequence::getParameterName(){
   return sequenceParameters[_selectedParameter].getName();
 }
-/*
-void RTPEventNoteSequence::playCurrentEventNote(){
-  pointIterator(_currentPosition);
-    it->setMidiChannel(getMidiChannel());
-  if(isCurrentSequenceEnabled() && it->eventState()){
-    switch (getType()){
-      case CONTROL_TRACK:
-        _musicManager.setCurrentHarmony(0,0,0);
-        return;
-      case DRUM:{
-        it->setLength(1);
-        _notesPlayer.queueNote(*it);
-        return;
-      }
-      case BASS_SYNTH:{
-        _musicManager.setCurrentSteps(it->getEventRead(), BASS_SYNTH);
-        it->setEventNote(_musicManager.getCurrentChordNote());
-        _notesPlayer.queueNote(*it);
-        return;
-      }
-      case MONO_SYNTH:
-        _musicManager.setCurrentSteps(it->getEventRead(), MONO_SYNTH);
-        it->setEventNote(_musicManager.getCurrentChordNote());
-        _notesPlayer.queueNote(*it);
-        return;
-      case POLY_SYNTH:
-        _musicManager.setCurrentSteps(it->getEventRead(), POLY_SYNTH);
-        auto chordNotes = _musicManager.getCurrentChordNotes();
-        while(!chordNotes.empty()){
-          it->setEventNote(chordNotes.front());
-          _notesPlayer.queueNote(*it);
-          chordNotes.pop();
-        }
-        return;
-    }
-  }
-} 
-*/
+
 void RTPEventNoteSequence::setMidiChannel(int midiChannel){
   sequenceParameters[MIDI_CHANNEL].setValue(midiChannel);
 }
@@ -213,33 +176,7 @@ void RTPEventNoteSequence::editNoteInSequence(size_t position, int note, int vel
     it->setEventVelocity(velocity);
   }
 }
-/*
-void RTPEventNoteSequence::editNoteInCurrentPosition(ControlCommand command){
-  if(command.controlType == THREE_AXIS){ 
-    switch(command.commandType){
-      case CHANGE_LEFT:{
-        if (getType()!= DRUM){
-          pointIterator(_currentPosition);
-          it->setEventRead(command.value);
-          return;
-        }
-      }
-      case CHANGE_RIGHT:{
-        pointIterator(_currentPosition);
-        it->setEventVelocity(command.value);
-        return;
-      }
-      case CHANGE_CENTER:{
-        if (getType()!= DRUM){
-          pointIterator(_currentPosition);
-          it->setLength(constrain(remap(command.value, 0, 127, 1, 32),0,16));
-          return;
-        }
-      }
-    } 
-  }
-}
-*/
+
 void RTPEventNoteSequence::resizeSequence(size_t newSize){
   if(newSize > EventNoteSequence.size()){
     for(size_t i=EventNoteSequence.size(); i < newSize; i++){

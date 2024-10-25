@@ -47,29 +47,23 @@ RTPScene::RTPScene(String name, int NSequences, int scene, NotesPlayer& notesPla
 }
 
 void RTPScene::playScene() {
-  for (auto& sequence : SequencerScene) {
-    Serial.printf("Playing sequence %d\n", _selectedSequence);
+  for (auto& sequence : SequencerScene)
     sequence->playCurrentEventNote();
-    Serial.printf("After playing sequence %d\n", _selectedSequence);
-  }
 }
 
 void RTPScene::fordwardScene() {
-  for (auto& sequence : SequencerScene) {
+  for (auto& sequence : SequencerScene)
     sequence->fordwardSequence();
-  }
 }
 
 void RTPScene::backwardScene() {
-  for (auto& sequence : SequencerScene) {
+  for (auto& sequence : SequencerScene)
     sequence->backwardSequence();
-  }
 }
 
 void RTPScene::resetScene() {
-  for (auto& sequence : SequencerScene) {
+  for (auto& sequence : SequencerScene)
     sequence->resetSequence();
-  }
 }
 
 void RTPScene::setSelectedSequence(int selectedSequence) {
@@ -93,9 +87,8 @@ int RTPScene::getSize() {
 }
 
 RTPSequenceNoteStates RTPScene::getSelectedSequenceNoteStates() {
-  for (size_t i = 0; i < SEQ_BLOCK_SIZE; i++) {
+  for (size_t i = 0; i < SEQ_BLOCK_SIZE; i++)
     _seqStates.val[i] = (i < SequencerScene[_selectedSequence]->getSequenceSize()) ? SequencerScene[_selectedSequence]->getNoteStateInSequence(i) : false;
-  }
   return _seqStates;
 }
 
@@ -179,8 +172,7 @@ int RTPScene::getSequenceColor() {
 
 void RTPScene::dumpSequencesToJson() {
   String fileString;
-  for (const auto& sequence : SequencerScene) {
+  for (const auto& sequence : SequencerScene)
     fileString += sequence->dumpSequenceToJson() + "\t\n";
-  }
   writeToFile("sequences.json", fileString);
 }
