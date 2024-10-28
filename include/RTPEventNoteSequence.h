@@ -40,7 +40,7 @@ protected:
 	int _selectedPage;
 public:
 	RTPEventNoteSequence(int midiChannel, int NEvents, int type, int baseNote, NotesPlayer& notesPlayer, MusicManager& musicManager);
-	void fordwardSequence();
+	virtual void fordwardSequence();
 	void backwardSequence();
 	void resetSequence();
 	int getCurrentSequencePosition();

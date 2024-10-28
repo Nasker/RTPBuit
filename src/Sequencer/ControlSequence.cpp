@@ -13,9 +13,8 @@ void ControlSequence::playCurrentEventNote(){
     pointIterator(_currentPosition);
     it->setMidiChannel(getMidiChannel());
     if(isCurrentSequenceEnabled() && it->eventState()){
-        int rootNote = it->getEventRead();
-        int chord  = it->getEventVelocity();
-        _musicManager.setCurrentHarmony(1, rootNote, chord);
+        int read = it->getEventRead();
+        int value  = it->getEventVelocity();
     }
 }
 

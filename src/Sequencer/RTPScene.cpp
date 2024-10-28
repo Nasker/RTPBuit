@@ -4,12 +4,13 @@
 #include "MonoSequence.hpp"
 #include "PolySequence.hpp"
 #include "ControlSequence.hpp"
+#include "HarmonySequence.hpp"
 #include "RTPSDManager.hpp"
 
 int types[N_SCENES][SCENE_BLOCK_SIZE] = {
   {DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART},
   {BASS_SYNTH, BASS_SYNTH, BASS_SYNTH, BASS_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH},
-  {CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK},
+  {CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, HARMONY_TRACK},
 };
 
 int midiChannels[N_SCENES][SCENE_BLOCK_SIZE] = {
@@ -38,6 +39,9 @@ RTPScene::RTPScene(String name, int NSequences, int scene, NotesPlayer& notesPla
                 break;
             case CONTROL_TRACK:
                 sequence = std::make_unique<ControlSequence>(midiChannels[scene][i], SEQ_BLOCK_SIZE * N_PAGES, types[scene][i], baseNote, _notesPlayer, _musicManager);
+                break;
+            case HARMONY_TRACK:
+                sequence = std::make_unique<HarmonySequence>(midiChannels[scene][i], SEQ_BLOCK_SIZE * N_PAGES, types[scene][i], baseNote, _notesPlayer, _musicManager);
                 break;
             default:
                 continue; // Skip if type is unknown

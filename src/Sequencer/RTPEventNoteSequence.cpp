@@ -28,13 +28,6 @@ RTPEventNoteSequence::RTPEventNoteSequence(int midiChannel, int NEvents, int typ
 }
 
 void RTPEventNoteSequence::fordwardSequence(){
-  if(getType() == CONTROL_TRACK){
-    _currentPosition++;
-    if(_currentPosition >= getSequenceSize())
-      _currentPosition = 0;
-    return;
-  }
-
   _currentPosition++;
   if(_currentPosition >= getSequenceSize())
     _currentPosition = 0;

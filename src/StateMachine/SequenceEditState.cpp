@@ -50,5 +50,5 @@ void SequenceEditState::midiNote(ControlCommand command) {
 }
 
 void SequenceEditState::midiCC(ControlCommand command) {
-  //Serial.println("Does nothing here!");
+  _devices.editCurrentNote(command);
 }
