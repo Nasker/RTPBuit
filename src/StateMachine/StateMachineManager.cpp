@@ -47,10 +47,10 @@ void StateMachineManager::handleActions(ControlCommand callbackControlCommand) {
       buitStateMachine.sequencerCallback(callbackControlCommand);
       return;
     case MIDI_CC:
-      //buitStateMachine.midiCC(callbackControlCommand);
+      buitStateMachine.midiCC(callbackControlCommand);
       return;
     case MIDI_NOTE:
-      //buitStateMachine.midiNoteOnOff(callbackControlCommand);
+      buitStateMachine.midiNote(callbackControlCommand);
       return;
   } 
 }

@@ -40,3 +40,11 @@ void SequencePianoRollState::trellisReleased(ControlCommand command) {
 void SequencePianoRollState::sequencerCallback(ControlCommand command) {
   //Serial.println("Does nothing here!");
 }
+
+void SequencePianoRollState::midiNote(ControlCommand command) {
+  //Serial.println("Does nothing here!");
+}
+
+void SequencePianoRollState::midiCC(ControlCommand command) {
+  //Serial.println("Does nothing here!");
+}

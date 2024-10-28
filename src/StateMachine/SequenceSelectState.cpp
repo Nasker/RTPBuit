@@ -46,3 +46,11 @@ void SequenceSelectState::trellisReleased(ControlCommand command) {
 void SequenceSelectState::sequencerCallback(ControlCommand command) {
   //Serial.println("Does nothing here!");
 }
+
+void SequenceSelectState::midiNote(ControlCommand command) {
+  //Serial.println("Does nothing here!");
+}
+
+void SequenceSelectState::midiCC(ControlCommand command) {
+  //Serial.println("Does nothing here!");
+}

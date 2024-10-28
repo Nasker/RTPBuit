@@ -19,7 +19,7 @@ void InitState::doubleClick() {
 
 void InitState::longClick() {
   Serial.println("Going to Transport");
-  _devices.presentBuitCC();
+  _devices.presentBuitCC();    
   _buitMachine.setState(_buitMachine.getTransportState());
 }
 
@@ -44,5 +44,13 @@ void InitState::trellisReleased(ControlCommand command) {
 }
 
 void InitState::sequencerCallback(ControlCommand command) {
+  //Serial.println("Does nothing here!");
+}
+
+void InitState::midiNote(ControlCommand command) {
+  //Serial.println("Does nothing here!");
+}
+
+void InitState::midiCC(ControlCommand command) {
   //Serial.println("Does nothing here!");
 }

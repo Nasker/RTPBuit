@@ -56,6 +56,14 @@ void BuitStateMachine::sequencerCallback(ControlCommand command){
   _state->sequencerCallback(command);
 }
 
+void BuitStateMachine::midiNote(ControlCommand command){
+  _state->midiNote(command);
+}
+
+void BuitStateMachine::midiCC(ControlCommand command){
+  _state->midiCC(command);
+}
+
 void BuitStateMachine::setState(BuitState* state){
   _state = state;
 }

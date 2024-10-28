@@ -40,3 +40,11 @@ void TransportState::trellisReleased(ControlCommand command) {
 void TransportState::sequencerCallback(ControlCommand command) {
   //Serial.println("Does nothing here!");
 }
+
+void TransportState::midiNote(ControlCommand command) {
+  //Serial.println("Does nothing here!");
+}
+
+void TransportState::midiCC(ControlCommand command) {
+  //Serial.println("Does nothing here!");
+}

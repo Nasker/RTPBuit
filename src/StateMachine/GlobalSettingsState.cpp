@@ -40,3 +40,11 @@ void GlobalSettingsState::trellisReleased(ControlCommand command) {
 void GlobalSettingsState::sequencerCallback(ControlCommand command) {
   //Serial.println("Does nothing here!");
 }
+
+void GlobalSettingsState::midiNote(ControlCommand command) {
+  //Serial.println("Does nothing here!");
+}
+
+void GlobalSettingsState::midiCC(ControlCommand command) {
+  //Serial.println("Does nothing here!");
+}

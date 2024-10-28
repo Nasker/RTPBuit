@@ -44,3 +44,11 @@ void SequenceSettingsState::trellisReleased(ControlCommand command) {
 void SequenceSettingsState::sequencerCallback(ControlCommand command) {
   //Serial.println("Does nothing here!");
 }
+
+void SequenceSettingsState::midiNote(ControlCommand command) {
+  //Serial.println("Does nothing here!");
+}
+
+void SequenceSettingsState::midiCC(ControlCommand command) {
+  //Serial.println("Does nothing here!");
+}

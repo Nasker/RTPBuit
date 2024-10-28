@@ -44,3 +44,11 @@ void SequenceEditState::trellisReleased(ControlCommand command) {
 void SequenceEditState::sequencerCallback(ControlCommand command) {
   _devices.displayCursorInSequence(command);
 }
+
+void SequenceEditState::midiNote(ControlCommand command) {
+  //Serial.println("Does nothing here!");
+}
+
+void SequenceEditState::midiCC(ControlCommand command) {
+  //Serial.println("Does nothing here!");
+}
