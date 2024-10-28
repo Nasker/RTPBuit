@@ -50,7 +50,7 @@
 #define RIGHT 2
 
 enum RTPEventNoteSequenceType{
-	DRUM,
+	DRUM_PART,
 	BASS_SYNTH,
 	MONO_SYNTH,
 	POLY_SYNTH,

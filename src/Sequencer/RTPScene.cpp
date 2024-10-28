@@ -7,7 +7,7 @@
 #include "RTPSDManager.hpp"
 
 int types[N_SCENES][SCENE_BLOCK_SIZE] = {
-  {DRUM, DRUM, DRUM, DRUM, DRUM, DRUM, DRUM, DRUM, DRUM, DRUM, DRUM, DRUM, DRUM, DRUM, DRUM, DRUM},
+  {DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART},
   {BASS_SYNTH, BASS_SYNTH, BASS_SYNTH, BASS_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH},
   {CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK},
 };
@@ -21,10 +21,10 @@ int midiChannels[N_SCENES][SCENE_BLOCK_SIZE] = {
 RTPScene::RTPScene(String name, int NSequences, int scene, NotesPlayer& notesPlayer, MusicManager& musicManager) 
   : _name(name), _NSequences(NSequences), _selectedSequence(0), _notesPlayer(notesPlayer), _musicManager(musicManager) {
   for (int i = 0; i < _NSequences; i++) {
-    int baseNote = (types[scene][i] == DRUM) ? 36 + i : 60;
+    int baseNote = (types[scene][i] == DRUM_PART) ? 36 + i : 60;
         std::unique_ptr<RTPEventNoteSequence> sequence;
         switch (types[scene][i]) {
-            case DRUM:
+            case DRUM_PART:
                 sequence = std::make_unique<DrumSequence>(midiChannels[scene][i], SEQ_BLOCK_SIZE * N_PAGES, types[scene][i], baseNote, _notesPlayer, _musicManager);
                 break;
             case BASS_SYNTH:
