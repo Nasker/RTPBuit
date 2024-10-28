@@ -33,4 +33,5 @@ public:
   void actOnControlsCallback(ControlCommand answer);
   void actOnSequencerCallback(ControlCommand answer);
   void routeControlChange(byte channel, byte control, byte value);
+  void routeNoteOnOff(byte channel, byte note, byte velocity);
 };

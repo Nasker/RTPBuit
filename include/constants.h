@@ -14,6 +14,7 @@
 #define PUSH_BUTTON 4
 #define SEQUENCER 5
 #define MIDI_CC 6
+#define MIDI_NOTE 7
 
 #define CHANGE_LEFT 0
 #define CHANGE_CENTER 1
