@@ -95,6 +95,10 @@ int RTPSequencer::getSelectedSequence() {
     return Sequencer[_selectedScene]->getSelectedSequence();
 }
 
+int RTPSequencer::getSelectedSequenceMidiChannel(){
+    return Sequencer[_selectedScene]->getSelectedSequenceMidiChannel();
+}
+
 void RTPSequencer::selectParameterInSequence(int parameterIndex) {
     Sequencer[_selectedScene]->selectParameterInSequence(parameterIndex);
 }

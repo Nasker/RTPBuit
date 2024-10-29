@@ -15,6 +15,10 @@ void TransportState::doubleClick() {
   _buitMachine.setState(_buitMachine.getSceneEditState());
 }
 
+void TransportState::tripleClick() {
+  //Serial.println("Does nothing here!");
+}
+
 void TransportState::longClick() {
   Serial.println("Going to Global Settings!");
   _devices.printToScreen("Global Settings", "","");

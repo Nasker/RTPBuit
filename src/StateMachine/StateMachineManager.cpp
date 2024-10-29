@@ -11,7 +11,7 @@ void StateMachineManager::setInitialState() {
   buitStateMachine.setState(buitStateMachine.getSceneEditState());
 }
 
-void StateMachineManager::handleActions(ControlCommand callbackControlCommand) {
+void StateMachineManager::handleActions(ControlCommand callbackControlCommand, int extraValue=0) {
   switch(callbackControlCommand.controlType){
     case PUSH_BUTTON:
       switch (callbackControlCommand.commandType) {
@@ -20,6 +20,9 @@ void StateMachineManager::handleActions(ControlCommand callbackControlCommand) {
             return;
           case DOUBLE_CLICK:
             buitStateMachine.doubleClick();
+            return;
+          case TRIPLE_CLICK:
+            buitStateMachine.tripleClick();
             return;
           case LONG_CLICK:
             buitStateMachine.longClick();
@@ -50,6 +53,7 @@ void StateMachineManager::handleActions(ControlCommand callbackControlCommand) {
       buitStateMachine.midiCC(callbackControlCommand);
       return;
     case MIDI_NOTE:
+      callbackControlCommand.controlType = extraValue;
       buitStateMachine.midiNote(callbackControlCommand);
       return;
   } 

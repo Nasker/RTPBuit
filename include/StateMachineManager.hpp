@@ -12,5 +12,5 @@ class StateMachineManager{
     StateMachineManager(BuitDevicesManager& devices);
     ~StateMachineManager();
     void setInitialState();
-    void handleActions(ControlCommand callbackControlCommand);
+    void handleActions(ControlCommand callbackControlCommand, int extraValue=0);
 };

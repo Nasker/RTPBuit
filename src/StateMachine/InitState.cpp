@@ -17,6 +17,10 @@ void InitState::doubleClick() {
   _buitMachine.setState(_buitMachine.getTransportState());
 }
 
+void InitState::tripleClick() {
+ // Serial.println("Does nothing here!");
+}
+
 void InitState::longClick() {
   Serial.println("Going to Transport");
   _devices.presentBuitCC();    

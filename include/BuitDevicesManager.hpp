@@ -47,6 +47,8 @@ public:
     void editBuitCC(ControlCommand command);
     void sendBuitCC(ControlCommand command);
 
+    int getSelectedSequenceMidichannel();
+
     void dumpSequencesToJson();
 private:
     void writeSequenceToNeoTrellis(RTPSequenceNoteStates sequenceStates, int color);

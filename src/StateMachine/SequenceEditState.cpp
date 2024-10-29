@@ -17,6 +17,10 @@ void SequenceEditState::doubleClick() {
   _buitMachine.setState(_buitMachine.getSceneEditState());
 }
 
+void SequenceEditState::tripleClick() {
+  Serial.println("Toggle Recording!");
+}
+
 void SequenceEditState::longClick() {
   Serial.println("Going to Sequence Settings!");
   _devices.presentSequenceSettings();
@@ -46,7 +50,8 @@ void SequenceEditState::sequencerCallback(ControlCommand command) {
 }
 
 void SequenceEditState::midiNote(ControlCommand command) {
-  //Serial.println("Does nothing here!");
+  int midiChannel = _devices.getSelectedSequenceMidichannel();
+  usbMIDI.sendNoteOn(command.commandType, command.value, midiChannel);
 }
 
 void SequenceEditState::midiCC(ControlCommand command) {

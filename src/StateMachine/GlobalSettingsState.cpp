@@ -17,6 +17,10 @@ void GlobalSettingsState::doubleClick() {
   _buitMachine.setState(_buitMachine.getTransportState());
 }
 
+void GlobalSettingsState::tripleClick() {
+  //Serial.println("Does nothing here!");
+}
+
 void GlobalSettingsState::longClick() {
   //Serial.println("Does nothing here!");
 }

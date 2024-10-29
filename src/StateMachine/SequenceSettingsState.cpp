@@ -18,6 +18,10 @@ void SequenceSettingsState::doubleClick() {
   _buitMachine.setState(_buitMachine.getSequenceEditState());
 }
 
+void SequenceSettingsState::tripleClick() {
+  //Serial.println("Does nothing here!");
+}
+
 void SequenceSettingsState::longClick() {
   //Serial.println("Does nothing here!");
 }

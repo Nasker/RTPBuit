@@ -19,6 +19,7 @@ public:
 	BuitStateMachine(BuitDevicesManager& outDevices);
 	void singleClick();
 	void doubleClick();
+	void tripleClick();
 	void longClick();
 	void rotaryTurned(ControlCommand command);
 	void threeAxisChanged(ControlCommand command);

@@ -29,6 +29,7 @@ public:
   void decreaseSelectedScene();
   int getSelectScene();
   int getSelectedSequence();
+  int getSelectedSequenceMidiChannel();
   void addScene(RTPScene* scene); // Change to pointer type
   void removeScene(int scene);
   void selectParameterInSequence(int parameterIndex);

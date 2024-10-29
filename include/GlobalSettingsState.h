@@ -6,6 +6,7 @@ public:
   GlobalSettingsState (BuitStateMachine& voidMachine, BuitDevicesManager& devices);
   void singleClick();
   void doubleClick();
+  void tripleClick();
   void longClick();
   void rotaryTurned(ControlCommand command);
   void threeAxisChanged(ControlCommand command);

@@ -24,6 +24,7 @@ public:
   int getSelectedSequence();
   int getSelectedSequencePageOffset();
   int getSelectedSequencePage();
+  int getSelectedSequenceMidiChannel();
   int getSize();
   RTPSequenceNoteStates getSelectedSequenceNoteStates();
   RTPSequencesState getSequencesState();

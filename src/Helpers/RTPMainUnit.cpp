@@ -40,14 +40,12 @@ void RTPMainUnit::linkToSequencerManager(byte realtimebyte){
 }
 
 void RTPMainUnit::routeControlChange(byte channel, byte control, byte value) {
-  Serial.printf("Control change: %d %d %d\n", channel, control, value);
   musicManager.setCurrentHarmony(channel, control, value);
   ControlCommand command = ControlCommand{MIDI_CC, control, value};
   stateMachineManager.handleActions(command);
 }
 
 void RTPMainUnit::routeNoteOnOff(byte channel, byte note, byte velocity){
-  Serial.printf("Note: %d %d %d\n", channel, note, velocity);
   ControlCommand command = ControlCommand{MIDI_NOTE, note, velocity};
-  stateMachineManager.handleActions(command);
+  stateMachineManager.handleActions(command, channel);
 }

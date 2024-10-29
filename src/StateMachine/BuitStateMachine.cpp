@@ -32,6 +32,10 @@ void BuitStateMachine::doubleClick(){
   _state->doubleClick();
 }
 
+void BuitStateMachine::tripleClick(){
+  _state->tripleClick();
+}
+
 void BuitStateMachine::longClick(){
   _state->longClick();
 }

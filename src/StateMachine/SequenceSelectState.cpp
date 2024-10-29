@@ -20,6 +20,10 @@ void SequenceSelectState::doubleClick() {
   _buitMachine.setState(_buitMachine.getSceneEditState());
 }
 
+void SequenceSelectState::tripleClick() {
+  //Serial.println("Does nothing here!");
+}
+
 void SequenceSelectState::longClick() {
   //Serial.println("Does nothing here!");
 }

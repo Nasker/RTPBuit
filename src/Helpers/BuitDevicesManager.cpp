@@ -142,6 +142,10 @@ void BuitDevicesManager::sendBuitCC(ControlCommand command){
     _matrixBuitCC.updateAndSend(command);
 }
 
+int BuitDevicesManager::getSelectedSequenceMidichannel(){
+    return _sequencer.getSelectedSequenceMidiChannel();
+}
+
 void BuitDevicesManager::dumpSequencesToJson(){
     _sequencer.dumpSequencesToJson();
 }

@@ -24,12 +24,12 @@ void routeControlChange(byte channel, byte control, byte value){
 
 void routeNoteOn(byte channel, byte note, byte velocity) {
   mUnit.routeNoteOnOff(channel, note, velocity);
-  usbMIDI.sendNoteOn(note, velocity, channel);
+  //usbMIDI.sendNoteOn(note, velocity, channel);
 }
 
 void routeNoteOff(byte channel, byte note, byte velocity) {
-  mUnit.routeNoteOnOff(channel, note, velocity);
-  usbMIDI.sendNoteOff(note, velocity, channel);
+  mUnit.routeNoteOnOff(channel, note, 0);
+  //usbMIDI.sendNoteOff(note, velocity, channel);
 }
 
 void setup() {

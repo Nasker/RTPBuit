@@ -18,6 +18,10 @@ void SceneEditState::doubleClick() {
   _buitMachine.setState(_buitMachine.getTransportState());
 }
 
+void SceneEditState::tripleClick() {
+ // Serial.println("Does nothing here!");
+}
+
 void SceneEditState::longClick() {
   Serial.println("Going to Scene Settings!");
   _devices.printToScreen("Scene Settings", "","");
@@ -44,7 +48,7 @@ void SceneEditState::sequencerCallback(ControlCommand command) {
 }
 
 void SceneEditState::midiNote(ControlCommand command) {
-  //Serial.println("Does nothing here!");
+  usbMIDI.sendNoteOn(command.commandType, command.value, command.controlType);
 }
 
 void SceneEditState::midiCC(ControlCommand command) {

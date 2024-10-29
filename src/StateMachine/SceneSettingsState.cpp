@@ -17,6 +17,10 @@ void SceneSettingsState::doubleClick() {
   _buitMachine.setState(_buitMachine.getSceneEditState());
 }
 
+void SceneSettingsState::tripleClick() {
+  //Serial.println("Does nothing here!");
+}
+
 void SceneSettingsState::longClick() {
   _devices.printToScreen("Dump Data", "DumpingData","");
   _devices.dumpSequencesToJson();

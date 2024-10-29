@@ -17,6 +17,10 @@ void SequencePianoRollState::doubleClick() {
   _buitMachine.setState(_buitMachine.getSequenceEditState());
 }
 
+void SequencePianoRollState::tripleClick() {
+  //Serial.println("Does nothing here!");
+}
+
 void SequencePianoRollState::longClick() {
   //Serial.println("Does nothing here!");
 }
