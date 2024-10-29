@@ -26,6 +26,8 @@ public:
   int getSelectedSequencePage();
   int getSelectedSequenceMidiChannel();
   int getSize();
+  bool isSelectedSequenceRecording();
+  void toggleSelectedSequenceRecording();
   RTPSequenceNoteStates getSelectedSequenceNoteStates();
   RTPSequencesState getSequencesState();
   SequenceSettings getSelectedSequenceSettings();

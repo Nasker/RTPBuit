@@ -45,6 +45,8 @@ public:
 	void resetSequence();
 	int getCurrentSequencePosition();
 	bool isCurrentSequenceEnabled();
+	bool isRecording();
+	void toggleRecording();
 	void enableSequence(bool state);
 	virtual void setTypeSpecificColor() = 0;
 	virtual void playCurrentEventNote() = 0;

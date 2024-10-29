@@ -94,6 +94,14 @@ int RTPScene::getSize() {
   return SequencerScene.size();
 }
 
+bool RTPScene::isSelectedSequenceRecording() {
+  return SequencerScene[_selectedSequence]->isRecording();
+}
+
+void RTPScene::toggleSelectedSequenceRecording() {
+  SequencerScene[_selectedSequence]->toggleRecording();
+}
+
 RTPSequenceNoteStates RTPScene::getSelectedSequenceNoteStates() {
   for (size_t i = 0; i < SEQ_BLOCK_SIZE; i++)
     _seqStates.val[i] = (i < SequencerScene[_selectedSequence]->getSequenceSize()) ? SequencerScene[_selectedSequence]->getNoteStateInSequence(i) : false;

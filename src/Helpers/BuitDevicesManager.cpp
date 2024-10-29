@@ -146,6 +146,14 @@ int BuitDevicesManager::getSelectedSequenceMidichannel(){
     return _sequencer.getSelectedSequenceMidiChannel();
 }
 
+bool BuitDevicesManager::isSelectedSequenceRecording(){
+    return _sequencer.isSelectedSequenceRecording();
+}
+
+void BuitDevicesManager::toggleSelectedSequenceRecording(){
+    _sequencer.toggleSelectedSequenceRecording();
+}
+
 void BuitDevicesManager::dumpSequencesToJson(){
     _sequencer.dumpSequencesToJson();
 }

@@ -18,7 +18,8 @@ void SequenceEditState::doubleClick() {
 }
 
 void SequenceEditState::tripleClick() {
-  Serial.println("Toggle Recording!");
+  Serial.println("Toggling Sequence Recording!");
+  _devices.toggleSelectedSequenceRecording();
 }
 
 void SequenceEditState::longClick() {
@@ -33,7 +34,8 @@ void SequenceEditState::rotaryTurned(ControlCommand command) {
 }
 
 void SequenceEditState::threeAxisChanged(ControlCommand command) {
-  _devices.editCurrentNote(command);
+  if(_devices.isSelectedSequenceRecording())
+    _devices.editCurrentNote(command);
 }
 
 void SequenceEditState::trellisPressed(ControlCommand command) {
@@ -52,6 +54,8 @@ void SequenceEditState::sequencerCallback(ControlCommand command) {
 void SequenceEditState::midiNote(ControlCommand command) {
   int midiChannel = _devices.getSelectedSequenceMidichannel();
   usbMIDI.sendNoteOn(command.commandType, command.value, midiChannel);
+  if(!_devices.isSelectedSequenceRecording())
+    _devices.editCurrentNote(command);
 }
 
 void SequenceEditState::midiCC(ControlCommand command) {

@@ -33,6 +33,8 @@ void HarmonySequence::playCurrentEventNote(){
 
 void HarmonySequence::editNoteInCurrentPosition(ControlCommand command){
     if(command.controlType == MIDI_CC){
+        if(command.commandType > 11)
+            return;
         Serial.printf("<<<<<<Editting Harmony with %d %d\n\r", command.commandType,
         command.value);
         pointIterator(_currentPosition);

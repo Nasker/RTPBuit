@@ -39,5 +39,12 @@ void BassSequence::editNoteInCurrentPosition(ControlCommand command){
           return;
       }
     } 
+  } 
+  if(command.controlType == MIDI_NOTE){
+    pointIterator(_currentPosition);
+    it->setEventState(true);
+    it->setEventNote(command.commandType);
+    it->setEventVelocity(command.value);
+    return;
   }
 }

@@ -51,6 +51,14 @@ bool RTPEventNoteSequence::isCurrentSequenceEnabled(){
   return _isEnabled;
 }
 
+bool RTPEventNoteSequence::isRecording(){
+  return _isRecording;
+}
+
+void RTPEventNoteSequence::toggleRecording(){
+  _isRecording = !_isRecording;
+}
+
 void RTPEventNoteSequence::enableSequence(bool state){
   _isEnabled = state;
 }

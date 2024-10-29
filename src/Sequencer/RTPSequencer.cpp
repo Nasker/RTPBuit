@@ -47,6 +47,14 @@ int RTPSequencer::getSelectedSequencePage() {
     return Sequencer[_selectedScene]->getSelectedSequencePage();
 }
 
+bool RTPSequencer::isSelectedSequenceRecording() {
+    return Sequencer[_selectedScene]->isSelectedSequenceRecording();
+}
+
+void RTPSequencer::toggleSelectedSequenceRecording() {
+    Sequencer[_selectedScene]->toggleSelectedSequenceRecording();
+}
+
 void RTPSequencer::selectScene(int scene) {
     _selectedScene = scene;
 }

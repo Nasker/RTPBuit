@@ -48,6 +48,8 @@ public:
     void sendBuitCC(ControlCommand command);
 
     int getSelectedSequenceMidichannel();
+    bool isSelectedSequenceRecording();
+    void toggleSelectedSequenceRecording();
 
     void dumpSequencesToJson();
 private:

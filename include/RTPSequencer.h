@@ -23,6 +23,8 @@ public:
   int getSelectedSequencePosition();
   int getSelectedSequencePageOffset();
   int getSelectedSequencePage();
+  bool isSelectedSequenceRecording();
+  void toggleSelectedSequenceRecording();
   SequenceSettings getSelectedSequenceSettings();
   void selectScene(int scene);
   void increaseSelectedScene();
