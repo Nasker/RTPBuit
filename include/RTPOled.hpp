@@ -2,17 +2,13 @@
 
 #include "Arduino.h"
 #include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+#include <U8g2lib.h>
 #include "ControlCommand.h"
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-#define SCREEN_ADDRESS 0x3C
 #define TEXT_SIZE 2
 
 class RTPOled{
-    Adafruit_SSD1306 display{SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, SCREEN_ADDRESS};
+    U8G2_SH1106_128X64_NONAME_F_HW_I2C display{U8G2_R0, /* reset=*/ U8X8_PIN_NONE};
     String lastLines = "";
 public:
     RTPOled();
