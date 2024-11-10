@@ -3,10 +3,8 @@
 RTPOled::RTPOled(){}
 
 void RTPOled::init(){
-  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    while(true);
-  }
+  display.begin(SH1106_SWITCHCAPVCC, SCREEN_ADDRESS);
+  display.setRotation(2);
 }
 
 void RTPOled::introAnimation(int &x, String text){
@@ -22,8 +20,8 @@ void RTPOled::printToScreen(String firstLine, String secondLine, String thirdLin
   if (lastLines != firstLine+secondLine+thirdLine){
     display.clearDisplay();
     display.setTextSize(TEXT_SIZE); // Draw 2X-scale text
-    display.setTextColor(SSD1306_WHITE);
-    display.drawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SSD1306_WHITE);
+    display.setTextColor(WHITE);
+    display.drawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
     display.setCursor(calcOffsetToCenterText(firstLine), 0);
     display.println(firstLine);
     display.setCursor(calcOffsetToCenterText(secondLine), TEXT_SIZE * 10);
