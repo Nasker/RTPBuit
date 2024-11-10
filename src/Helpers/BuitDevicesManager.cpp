@@ -5,7 +5,9 @@ _neoTrellis(nT),
 _sequencer(seq){}
 
 void BuitDevicesManager::initSetup(){
-    _oled.init();
+    Serial.println("OLED init");
+    delay(2000);
+    //_oled.init();
     initBuitSD();
     introAnimations();
 }

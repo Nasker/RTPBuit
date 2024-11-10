@@ -7,22 +7,22 @@ void RTPOled::init(){
     Serial.println(F("SH1106 allocation failed"));
     while(true);
   }
-  display.setDisplayRotation(U8G2_R2);
 }
 
 void RTPOled::introAnimation(int &x, String text){
-  display.clearBuffer();
+  /*display.clearBuffer();
   display.setCursor(x, 0);
   //display.setTextSize(8);
   display.print(text);
   display.sendBuffer();
+  */
   x -= 10;
 }
 
 void RTPOled::printToScreen(String firstLine, String secondLine, String thirdLine){
   if (lastLines != firstLine+secondLine+thirdLine){
-    display.clearDisplay();
-    display.setCursor(calcOffsetToCenterText(firstLine), 0);
+    /*sdisplay.clearDisplay();
+    ssdisplay.setCursor(calcOffsetToCenterText(firstLine), 0);
     display.println(firstLine);
     display.setCursor(calcOffsetToCenterText(secondLine), TEXT_SIZE * 10);
     display.println(secondLine);
@@ -30,6 +30,7 @@ void RTPOled::printToScreen(String firstLine, String secondLine, String thirdLin
     display.println(thirdLine);
     display.display();
     lastLines = firstLine+secondLine+thirdLine;
+    */
   }
 }
 
