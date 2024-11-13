@@ -1,40 +1,45 @@
 #include "RTPOled.hpp"
-#include "Fonts/all_fonts.h"
 
 RTPOled::RTPOled(){}
 
 void RTPOled::init(){
-  display.begin(SH1106_SWITCHCAPVCC, SCREEN_ADDRESS);
-  display.setRotation(2);
-  display.setTextSize(TEXT_SIZE);
-  display.setFont(&FreeSansBold24pt7b);
-  display.setTextColor(WHITE);
+  Wire.end();
+  display.begin();
+  Wire.begin();
+  display.setFont(u8g2_font_fub35_tf);
 }
 
 void RTPOled::introAnimation(int &x, String text){
-  display.clearDisplay();
-  display.setCursor(x, -10);
-  display.print(text);
-  display.display();
+  Wire.end();
+  display.firstPage();
+  do {
+    display.setCursor(x, 55);
+    display.print(text);
+  } while (display.nextPage());
   x -= 10;
+  Wire.begin();
 }
 
 void RTPOled::setAfterIntro(){
-  display.setFont(&FreeSans9pt7b);
+  display.setFont(u8g2_font_DigitalDisco_tf);
 }
 
 void RTPOled::printToScreen(String firstLine, String secondLine, String thirdLine){
   if (lastLines != firstLine+secondLine+thirdLine){
-    display.clearDisplay();
-    display.drawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
-    display.setCursor(calcOffsetToCenterText(firstLine), TEXT_SIZE * 15);
-    display.println(firstLine);
-    display.setCursor(calcOffsetToCenterText(secondLine), TEXT_SIZE * 30);
-    display.println(secondLine);
-    display.setCursor(calcOffsetToCenterText(thirdLine), TEXT_SIZE * 45);
-    display.println(thirdLine);
-    display.display();
+    Wire.end();
+    display.firstPage();
+    do {
+      //display.drawFrame(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+      display.setCursor(calcOffsetToCenterText(firstLine), 10);
+      display.println(firstLine);
+      display.drawHLine(0, 15, SCREEN_WIDTH);
+      display.setCursor(calcOffsetToCenterText(secondLine), 30);
+      display.println(secondLine);
+      display.setCursor(calcOffsetToCenterText(thirdLine), 45);
+      display.println(thirdLine);
+    } while (display.nextPage());
     lastLines = firstLine+secondLine+thirdLine;
+    Wire.begin();
   }
 }
 
@@ -43,6 +48,6 @@ void RTPOled::printToScreen(ControlCommand command){
 }
 
 int RTPOled::calcOffsetToCenterText(String textLine){
-  int textWidth = textLine.length() * TEXT_SIZE * 12;
+  int textWidth = textLine.length() * 10; // Adjust based on font width
   return (SCREEN_WIDTH - textWidth) / 2;
 }

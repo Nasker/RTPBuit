@@ -14,7 +14,7 @@ void BuitDevicesManager::initSetup(){
 void BuitDevicesManager::introAnimations(){
     int x = 128;
     String text = "I'm RTP's BUIT!!";
-    for (int i = 0; i < 35; i++) {
+    for (int i = 0; i < 55; i++) {
         _oled.introAnimation(x, text);
         _neoTrellis.introAnimation();
     }
