@@ -8,15 +8,17 @@ void BuitDevicesManager::initSetup(){
     _oled.init();
     initBuitSD();
     introAnimations();
+
 }
 
 void BuitDevicesManager::introAnimations(){
     int x = 128;
     String text = "I'm RTP's BUIT!!";
-    for (int i = 0; i < 90; i++) {
+    for (int i = 0; i < 35; i++) {
         _oled.introAnimation(x, text);
         _neoTrellis.introAnimation();
     }
+    _oled.setAfterIntro();
 }
 
 void BuitDevicesManager::printToScreen(String firstLine, String secondLine, String thirdLine){

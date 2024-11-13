@@ -9,7 +9,7 @@
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define SCREEN_ADDRESS 0x3C
-#define TEXT_SIZE 2
+#define TEXT_SIZE 1
 #define OLED_RESET 4
 
 class RTPOled{
@@ -19,6 +19,7 @@ class RTPOled{
 public:
     RTPOled();
     void init();
+    void setAfterIntro();
     void introAnimation(int &x, String text);
     void printToScreen(String firstLine, String secondLine, String thirdLine);
     void printToScreen(ControlCommand command);
