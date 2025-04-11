@@ -23,8 +23,16 @@ RTPEventNoteSequence::RTPEventNoteSequence(int midiChannel, int NEvents, int typ
   _pages = ceil(NEvents / SEQ_BLOCK_SIZE);
   for(int i=0; i < NEvents; i++){
     RTPEventNotePlus eventNote = RTPEventNotePlus(midiChannel, false, _baseNote , 80); // true, 60, 80
-    EventNoteSequence.push_back(eventNote);
+    addEventNote(eventNote);
   }
+}
+
+void RTPEventNoteSequence::clearSequence(){
+  EventNoteSequence.clear();
+}
+
+void RTPEventNoteSequence::addEventNote(RTPEventNotePlus eventNote){
+  EventNoteSequence.push_back(eventNote);
 }
 
 void RTPEventNoteSequence::fordwardSequence(){

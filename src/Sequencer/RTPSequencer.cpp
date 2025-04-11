@@ -1,4 +1,5 @@
 #include "RTPSequencer.h"
+#include "BuitPersistenceManager.hpp"
 
 RTPSequencer::RTPSequencer(int NScenes, MusicManager& musicManager)
     : _musicManager(musicManager), _NScenes(NScenes), _selectedScene(0) {
@@ -155,6 +156,9 @@ int RTPSequencer::getSelectedSequenceColor() {
 }
 
 void RTPSequencer::dumpSequencesToJson() {
-    for (size_t i = 0; i < Sequencer.size(); i++)
-        Sequencer[i]->dumpSequencesToJson();
+    // Create persistence manager and use it to save the sequences
+    BuitPersistenceManager persistenceManager;
+    persistenceManager.saveSequencerToFile(*this);
+    
+    Serial.println("Saved sequences using BuitPersistenceManager");
 }

@@ -48,4 +48,8 @@ public:
   void editNoteInCurrentPosition(ControlCommand command);
   int getSelectedSequenceColor();
   void dumpSequencesToJson();
+  
+  // For persistence manager
+  int getNumScenes() const { return _NScenes; }
+  RTPScene* getScene(int index) const { return (index >= 0 && index < Sequencer.size()) ? Sequencer[index] : nullptr; }
 };

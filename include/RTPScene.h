@@ -46,4 +46,8 @@ public:
   RTPSequenceNoteStates getSequenceNoteStates();
   int getSequenceColor();
   void dumpSequencesToJson();
+  
+  // For persistence manager
+  RTPEventNoteSequence* getSequence(int index);
+  const RTPEventNoteSequence* getSequence(int index) const;
 };

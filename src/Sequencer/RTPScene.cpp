@@ -192,3 +192,19 @@ void RTPScene::dumpSequencesToJson() {
     fileString += sequence->dumpSequenceToJson() + "\t\n";
   writeToFile("sequences.json", fileString);
 }
+
+// For persistence manager - Non-const version
+RTPEventNoteSequence* RTPScene::getSequence(int index) {
+  if (index >= 0 && index < SequencerScene.size()) {
+    return SequencerScene[index].get();
+  }
+  return nullptr;
+}
+
+// For persistence manager - Const version
+const RTPEventNoteSequence* RTPScene::getSequence(int index) const {
+  if (index >= 0 && index < SequencerScene.size()) {
+    return SequencerScene[index].get();
+  }
+  return nullptr;
+}
