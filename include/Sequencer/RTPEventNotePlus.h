@@ -1,6 +1,6 @@
 #pragma once
 
-#include <RTPEventNote.h>
+#include "Sequencer/RTPEventNote.hpp"
 #include "Arduino.h"
 
 

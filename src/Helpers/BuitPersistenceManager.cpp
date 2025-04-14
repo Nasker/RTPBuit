@@ -118,13 +118,8 @@ bool BuitPersistenceManager::loadSequenceFromJson(RTPEventNoteSequence* sequence
         int length = noteObj["len"];
         
         // Create a new event note with the loaded data
-        RTPEventNotePlus eventNote;
-        eventNote.setEventRead(read);
-        eventNote.setEventVelocity(velocity);
-        eventNote.setLength(length);
+        RTPEventNotePlus eventNote(midiChannel, read, velocity, length);
         eventNote.setEventState(velocity > 0);
-        
-        // Add it to the sequence
         sequence->addEventNote(eventNote);
     }
     

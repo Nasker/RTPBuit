@@ -1,5 +1,5 @@
 
-#include "RTPEventNote.h"
+#include "RTPEventNote.hpp"
 
 RTPEventNote::RTPEventNote(bool state, int note){
 	_state = state;
