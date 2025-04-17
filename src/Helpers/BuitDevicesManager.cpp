@@ -156,6 +156,9 @@ void BuitDevicesManager::toggleSelectedSequenceRecording(){
     _sequencer.toggleSelectedSequenceRecording();
 }
 
-void BuitDevicesManager::dumpSequencesToJson(){
-    _sequencer.dumpSequencesToJson();
+void BuitDevicesManager::saveSequencer(const String& fileName){
+    if(_persistenceManager.saveSequencerToFile(_sequencer, fileName))
+        printToScreen("Saved", fileName, "");
+    else
+        printToScreen("Failed to save", fileName, "");
 }

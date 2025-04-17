@@ -7,11 +7,14 @@
 #include "Structs.h"
 #include "RTPTypeColors.h"
 #include "RTPSDManager.hpp"
+#include "BuitPersistenceManager.hpp"
+
 
 class BuitDevicesManager {
     RTPOled _oled;
     RTPNeoTrellis& _neoTrellis;
     RTPSequencer& _sequencer;
+    BuitPersistenceManager _persistenceManager;
     MatrixBuitControlChanger _matrixBuitCC;
 
 public:
@@ -51,7 +54,7 @@ public:
     bool isSelectedSequenceRecording();
     void toggleSelectedSequenceRecording();
 
-    void dumpSequencesToJson();
+    void saveSequencer(const String& fileName);
 private:
     void writeSequenceToNeoTrellis(RTPSequenceNoteStates sequenceStates, int color);
     void writeSceneToNeoTrellis(RTPSequencesState sequencesState);

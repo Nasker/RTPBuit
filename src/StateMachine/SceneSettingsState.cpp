@@ -23,7 +23,7 @@ void SceneSettingsState::tripleClick() {
 
 void SceneSettingsState::longClick() {
   _devices.printToScreen("Dump Data", "DumpingData","");
-  _devices.dumpSequencesToJson();
+  _devices.saveSequencer("scenes.json");
 }
 
 void SceneSettingsState::rotaryTurned(ControlCommand command) {
