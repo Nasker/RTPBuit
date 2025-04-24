@@ -18,7 +18,8 @@ void SceneSettingsState::doubleClick() {
 }
 
 void SceneSettingsState::tripleClick() {
-  //Serial.println("Does nothing here!");
+  _devices.printToScreen("Load Data", "LoadingData","");
+  _devices.loadSequencer("scenes.json");
 }
 
 void SceneSettingsState::longClick() {

@@ -22,7 +22,7 @@ public:
     bool saveSequenceToFile(const RTPEventNoteSequence* sequence, const String& fileName);
     
     // Loading methods
-    bool loadSequencesFromFile(RTPSequencer& sequencer, const String& fileName = "sequences.json");
+    bool loadSequencerFromFile(RTPSequencer& sequencer, const String& fileName = "sequences.json");
     bool parseAndLoadSequences(RTPSequencer& sequencer, const String& jsonData);
     bool loadSequenceFromJson(RTPEventNoteSequence* sequence, const JsonObject& seqObj);
 };

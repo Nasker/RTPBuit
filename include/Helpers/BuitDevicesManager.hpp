@@ -55,6 +55,7 @@ public:
     void toggleSelectedSequenceRecording();
 
     void saveSequencer(const String& fileName);
+    void loadSequencer(const String& fileName);
 private:
     void writeSequenceToNeoTrellis(RTPSequenceNoteStates sequenceStates, int color);
     void writeSceneToNeoTrellis(RTPSequencesState sequencesState);

@@ -162,3 +162,11 @@ void BuitDevicesManager::saveSequencer(const String& fileName){
     else
         printToScreen("Failed to save", fileName, "");
 }
+
+void BuitDevicesManager::loadSequencer(const String& fileName){
+    if(_persistenceManager.loadSequencerFromFile(_sequencer, fileName))
+        printToScreen("Loaded", fileName, "");
+    else
+        printToScreen("Failed to load", fileName, "");
+}
+    
