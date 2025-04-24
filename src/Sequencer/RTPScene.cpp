@@ -178,7 +178,9 @@ void RTPScene::editNoteInCurrentPosition(ControlCommand command) {
 RTPSequenceNoteStates RTPScene::getSequenceNoteStates() {
   for (size_t i = 0; i < SEQ_BLOCK_SIZE; i++) {
     _seqStates.val[i] = SequencerScene[_selectedSequence]->getNoteStateInSequence(i);
-    _seqStates.velocity[i] = SequencerScene[_selectedSequence]->getNoteVelocityInSequence(i);
+	_seqStates.velocity[i] = SequencerScene[_selectedSequence]->getNoteVelocityInSequence(i);
+    if(_seqStates.val[i] && !_seqStates.velocity[i])
+    	_seqStates.velocity[i] = 60;
   }
   return _seqStates;
 }

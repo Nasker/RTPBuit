@@ -112,26 +112,11 @@ bool BuitPersistenceManager::loadSequenceFromJson(RTPEventNoteSequence* sequence
 
     JsonArray notesArray = seqObj["s"];
     for (JsonObject noteObj : notesArray) {
-        int readOrNote = noteObj["r"];
+        int read = noteObj["r"];
         int velocity = noteObj["v"];
         int length = noteObj["l"];
-        
-        // Determine note and read values based on sequence type
-        uint8_t note;
-        bool read;
-        
-        if (type == DRUM_PART) {
-            // For drum parts, the "r" field contains the note value
-            note = readOrNote;
-            read = true; // Default read value for drum parts
-        } else {
-            // For other parts, "r" is the read value and note is default
-            note = 60; // Default base note for non-drum parts
-            read = readOrNote;
-        }
-        
         bool isActive = velocity > 0;
-        RTPEventNotePlus eventNote(midiChannel, false, note, 0);
+        RTPEventNotePlus eventNote(midiChannel, false, read, 0);
         eventNote.setEventRead(read);
         eventNote.setEventState(isActive);
         eventNote.setLength(length);
@@ -158,9 +143,7 @@ bool BuitPersistenceManager::loadSequencerFromFile(RTPSequencer& sequencer, cons
 
 bool BuitPersistenceManager::parseAndLoadSequences(RTPSequencer& sequencer, const String& jsonData) {
     sequencer.stopAndCleanSequencer();
-    int sizeOfData = jsonData.length() * 2;
-    Serial.printf("Size of Document: %d\n", sizeOfData);
-    DynamicJsonDocument doc(512000);
+    JsonDocument doc;
     DeserializationError error = deserializeJson(doc, jsonData);
     
     if (error) {
