@@ -7,6 +7,11 @@ int RTPEventNotePlus::getMidiChannel(){
     return _midiChannel;
 }
 
+// Const version for JSON serialization
+int RTPEventNotePlus::getMidiChannel() const {
+    return _midiChannel;
+}
+
 void RTPEventNotePlus::setMidiChannel(int midiChannel){
     _midiChannel = midiChannel;
 }
@@ -27,6 +32,11 @@ void RTPEventNotePlus::setLength(int length){
 }
 
 int RTPEventNotePlus::getLength(){
+    return _length;
+}
+
+// Const version for JSON serialization
+int RTPEventNotePlus::getLength() const {
     return _length;
 }
 

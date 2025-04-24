@@ -9,7 +9,8 @@ void initBuitSD(){
 }
 
 bool writeToFile(String fileName, String data){
-    File file = SD.open(fileName.c_str(), FILE_WRITE);
+    // Use FILE_WRITE_BEGIN to truncate the file if it exists or create a new one
+    File file = SD.open(fileName.c_str(), FILE_WRITE_BEGIN);
     if (file)
         Serial.println("File opened");
     else {
@@ -17,6 +18,7 @@ bool writeToFile(String fileName, String data){
         return false;
     }
     Serial.println("Writing To File");
+    Serial.println(data);
     file.print(data);
     file.close();
     Serial.println("done.");

@@ -54,10 +54,12 @@ public:
 	virtual void playCurrentEventNote() = 0;
 	void setMidiChannel(int midiChannel);
 	int getMidiChannel();
+	int getMidiChannel() const;  // Const version for JSON serialization
 	void setColor(int color);
 	int getColor();
 	void setType(int type);
 	int getType();
+	int getType() const;  // Const version for JSON serialization
 	size_t getSequenceSize();
 	void editNoteInSequence(size_t position, bool eventState);
 	bool getNoteStateInSequence(size_t position);
@@ -73,6 +75,7 @@ public:
 	int getParameterValue();
 	String getParameterName();
 	list<RTPEventNotePlus> getEventNoteSequence();
+	const list<RTPEventNotePlus>& getEventNoteSequence() const;  // Const version for JSON serialization
 	String dumpSequenceToJson();
 	int page();
 	int pageOffset();

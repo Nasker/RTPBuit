@@ -15,11 +15,13 @@ class RTPEventNotePlus: public RTPEventNote{
         _timeToLive = _length;
   }
     int getMidiChannel();
+    int getMidiChannel() const;  // Const version for JSON serialization
     void setMidiChannel(int midiChannel);
     void playNoteOn();
     void playNoteOff();
     void setLength(int length);
     int getLength();
+    int getLength() const;  // Const version for JSON serialization
     int getTimeToLive();
     bool decreaseTimeToLive();
 };

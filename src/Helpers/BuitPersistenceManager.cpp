@@ -7,29 +7,29 @@ BuitPersistenceManager::~BuitPersistenceManager() {}
 // Convert an individual sequence to JSON string
 String BuitPersistenceManager::sequenceToJson(const RTPEventNoteSequence* sequence) {
     String noteSeqString;
-    StaticJsonDocument<1536> doc;
+    StaticJsonDocument<4096> doc;
     
-    doc["type"] = sequence->getType();
-    doc["ch"] = sequence->getMidiChannel();
+    doc["t"] = sequence->getType();
+    doc["c"] = sequence->getMidiChannel();
     
-    JsonArray seq = doc.createNestedArray("seq");
+    JsonArray seq = doc.createNestedArray("s");
     for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
         JsonObject note = seq.createNestedObject();
-        note["read"] = eventNote.getEventRead();
-        note["vel"] = eventNote.eventState() ? eventNote.getEventVelocity() : 0;
-        note["len"] = eventNote.getLength();
+        note["r"] = eventNote.getEventRead();
+        note["v"] = eventNote.eventState() ? eventNote.getEventVelocity() : 0;
+        note["l"] = eventNote.getLength();
     }
     
-    serializeJsonPretty(doc, noteSeqString);
+    serializeJson(doc, noteSeqString);
     return noteSeqString;
 }
 
 // Convert all sequences in a scene to JSON string
 String BuitPersistenceManager::sceneToJson(const RTPScene* scene) {
     String sceneString;
-    DynamicJsonDocument doc(8192);  // Adjust size based on your scene complexity
+    DynamicJsonDocument doc(32768);  // Adjust size based on your scene complexity
     
-    JsonArray sequencesArray = doc.createNestedArray("sequences");
+    JsonArray sequencesArray = doc.createNestedArray("q");
     
     // Get number of sequences in the scene
     int numSequences = scene->getSize();
@@ -42,7 +42,7 @@ String BuitPersistenceManager::sceneToJson(const RTPScene* scene) {
             JsonObject seqObj = sequencesArray.createNestedObject();
             
             // Parse the sequence JSON and add it to the scene object
-            StaticJsonDocument<1536> seqDoc;
+            StaticJsonDocument<4096> seqDoc;
             deserializeJson(seqDoc, seqJson);
             seqObj.set(seqDoc.as<JsonObject>());
         }
@@ -55,28 +55,62 @@ String BuitPersistenceManager::sceneToJson(const RTPScene* scene) {
 // Convert the entire sequencer to JSON string
 String BuitPersistenceManager::sequencerToJson(const RTPSequencer& sequencer) {
     String sequencerString;
-    DynamicJsonDocument doc(32768);  // Large document for all scenes
+    DynamicJsonDocument doc(262144);  // Increased to 256KB
     
-    JsonArray scenesArray = doc.createNestedArray("scenes");
+    JsonArray scenesArray = doc.createNestedArray("sc");
     
     // Get number of scenes in the sequencer
     int numScenes = sequencer.getNumScenes();
+    Serial.print("Number of scenes to serialize: ");
+    Serial.println(numScenes);
     
     // Add each scene as a JSON object
     for (int i = 0; i < numScenes; i++) {
         const RTPScene* scene = sequencer.getScene(i);
         if (scene) {
-            String sceneJson = sceneToJson(scene);
+            Serial.print("Processing scene ");
+            Serial.println(i);
             
-            // Parse the scene JSON and add it to the sequencer object
-            DynamicJsonDocument sceneDoc(8192);
-            deserializeJson(sceneDoc, sceneJson);
+            // Create a scene object directly
             JsonObject sceneObj = scenesArray.createNestedObject();
-            sceneObj.set(sceneDoc.as<JsonObject>());
+            
+            // Create sequences array
+            JsonArray sequencesArray = sceneObj.createNestedArray("q");
+            
+            // Get number of sequences in the scene
+            int numSequences = scene->getSize();
+            Serial.print("Number of sequences in scene: ");
+            Serial.println(numSequences);
+            
+            // Add each sequence to the scene
+            for (int j = 0; j < numSequences; j++) {
+                const RTPEventNoteSequence* sequence = scene->getSequence(j);
+                if (sequence) {
+                    // Create a sequence object
+                    JsonObject seqObj = sequencesArray.createNestedObject();
+                    
+                    // Add sequence properties
+                    seqObj["t"] = sequence->getType();
+                    seqObj["c"] = sequence->getMidiChannel();
+                    
+                    // Create sequence array
+                    JsonArray seqArray = seqObj.createNestedArray("s");
+                    
+                    // Add each note to the sequence
+                    for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
+                        JsonObject noteObj = seqArray.createNestedObject();
+                        noteObj["r"] = eventNote.getEventRead();
+                        noteObj["v"] = eventNote.eventState() ? eventNote.getEventVelocity() : 0;
+                        noteObj["l"] = eventNote.getLength();
+                    }
+                }
+            }
         }
     }
-    
-    serializeJsonPretty(doc, sequencerString);
+    doc.shrinkToFit();
+    size_t len = serializeJson(doc, sequencerString);
+    Serial.print("JSON size: ");
+    Serial.println(len);
     return sequencerString;
 }
 
@@ -102,8 +136,8 @@ bool BuitPersistenceManager::saveSequencerToFile(const RTPSequencer& sequencer, 
 // Load a sequence from JSON object
 bool BuitPersistenceManager::loadSequenceFromJson(RTPEventNoteSequence* sequence, const JsonObject& seqObj) {
     // Extract basic properties
-    int type = seqObj["type"];
-    int midiChannel = seqObj["ch"];
+    int type = seqObj["t"];
+    int midiChannel = seqObj["c"];
     
     // Update sequence properties
     sequence->setType(type);
@@ -111,11 +145,11 @@ bool BuitPersistenceManager::loadSequenceFromJson(RTPEventNoteSequence* sequence
     sequence->clearSequence();
     
     // Load all the notes
-    JsonArray notesArray = seqObj["seq"];
+    JsonArray notesArray = seqObj["s"];
     for (JsonObject noteObj : notesArray) {
-        bool read = noteObj["read"];
-        int velocity = noteObj["vel"];
-        int length = noteObj["len"];
+        bool read = noteObj["r"];
+        int velocity = noteObj["v"];
+        int length = noteObj["l"];
         
         // Create a new event note with the loaded data
         RTPEventNotePlus eventNote(midiChannel, read, velocity, length);
@@ -146,7 +180,7 @@ bool BuitPersistenceManager::parseAndLoadSequences(RTPSequencer& sequencer, cons
     sequencer.stopAndCleanSequencer();
     
     // Create a JSON document large enough for your sequences
-    DynamicJsonDocument doc(32768); // Adjust size as needed
+    DynamicJsonDocument doc(262144); // Adjust size as needed
     DeserializationError error = deserializeJson(doc, jsonData);
     
     if (error) {
@@ -156,7 +190,7 @@ bool BuitPersistenceManager::parseAndLoadSequences(RTPSequencer& sequencer, cons
     }
     
     // Process each scene in the sequencer
-    JsonArray scenesArray = doc["scenes"].as<JsonArray>();
+    JsonArray scenesArray = doc["sc"].as<JsonArray>();
     int numScenes = sequencer.getNumScenes();
     
     // Make sure we don't exceed the array bounds
@@ -164,7 +198,7 @@ bool BuitPersistenceManager::parseAndLoadSequences(RTPSequencer& sequencer, cons
     
     for (int sceneIdx = 0; sceneIdx < scenesToProcess; sceneIdx++) {
         JsonObject sceneObj = scenesArray[sceneIdx];
-        JsonArray sequencesArray = sceneObj["sequences"].as<JsonArray>();
+        JsonArray sequencesArray = sceneObj["q"].as<JsonArray>();
         
         // Get a handle to the current scene
         RTPScene* scene = sequencer.getScene(sceneIdx);

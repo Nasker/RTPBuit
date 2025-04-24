@@ -114,6 +114,10 @@ int RTPEventNoteSequence::getMidiChannel(){
   return sequenceParameters[MIDI_CHANNEL].getValue();
 }
 
+int RTPEventNoteSequence::getMidiChannel() const {
+  return sequenceParameters[MIDI_CHANNEL].getValue();
+}
+
 void RTPEventNoteSequence::setColor(int color){
   sequenceParameters[COLOR].setValue(color);
 }
@@ -126,6 +130,10 @@ void RTPEventNoteSequence::setType(int type){
   sequenceParameters[TYPE].setValue(type);
 }
 int RTPEventNoteSequence::getType(){
+  return sequenceParameters[TYPE].getValue();
+}
+
+int RTPEventNoteSequence::getType() const {
   return sequenceParameters[TYPE].getValue();
 }
 
@@ -190,6 +198,10 @@ int RTPEventNoteSequence::page(){
 }
 
 list<RTPEventNotePlus> RTPEventNoteSequence::getEventNoteSequence(){
+  return EventNoteSequence;
+}
+
+const list<RTPEventNotePlus>& RTPEventNoteSequence::getEventNoteSequence() const {
   return EventNoteSequence;
 }
 

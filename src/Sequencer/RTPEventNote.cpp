@@ -1,4 +1,3 @@
-
 #include "RTPEventNote.hpp"
 
 RTPEventNote::RTPEventNote(bool state, int note){
@@ -19,7 +18,17 @@ bool RTPEventNote::eventState(){
 	return _state;
 }
 
+// Const version for JSON serialization
+bool RTPEventNote::eventState() const {
+	return _state;
+}
+
 int RTPEventNote::getEventNote(){
+	return _note;
+}
+
+// Const version for JSON serialization
+int RTPEventNote::getEventNote() const {
 	return _note;
 }
 
@@ -27,7 +36,17 @@ int RTPEventNote::getEventRead(){
 	return _read;
 }
 
+// Const version for JSON serialization
+int RTPEventNote::getEventRead() const {
+	return _read;
+}
+
 int RTPEventNote::getEventVelocity(){
+	return _velocity;
+}
+
+// Const version for JSON serialization
+int RTPEventNote::getEventVelocity() const {
 	return _velocity;
 }
 
@@ -50,4 +69,3 @@ void RTPEventNote::setEventVelocity(int velocity){
 void RTPEventNote::switchState(){
 	_state = !_state;
 }
-
