@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include "RTPEventNotePlus.h"
 #include "RTPParameter.hpp"
 #include "NotesPlayer.hpp"
@@ -31,54 +32,54 @@ protected:
 	NotesPlayer& _notesPlayer;
 	MusicManager& _musicManager;
 	list<RTPEventNotePlus>::iterator it;
-	int _baseNote;
+	uint8_t _baseNote;
 	bool _isEnabled;
 	bool _isRecording;
 	size_t _currentPosition;
-	int _selectedParameter;
-	int _pages;
-	int _selectedPage;
+	uint8_t _selectedParameter;
+	uint8_t _pages;
+	uint8_t _selectedPage;
 public:
-	RTPEventNoteSequence(int midiChannel, int NEvents, int type, int baseNote, NotesPlayer& notesPlayer, MusicManager& musicManager);
+	RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents, uint8_t type, uint8_t baseNote, NotesPlayer& notesPlayer, MusicManager& musicManager);
 	void clearSequence();
 	void addEventNote(RTPEventNotePlus eventNote);
 	virtual void fordwardSequence();
 	void backwardSequence();
 	void resetSequence();
-	int getCurrentSequencePosition();
+	uint16_t getCurrentSequencePosition();
 	bool isCurrentSequenceEnabled();
 	bool isRecording();
 	void toggleRecording();
 	void enableSequence(bool state);
 	virtual void setTypeSpecificColor() = 0;
 	virtual void playCurrentEventNote() = 0;
-	void setMidiChannel(int midiChannel);
-	int getMidiChannel();
-	int getMidiChannel() const;  // Const version for JSON serialization
-	void setColor(int color);
-	int getColor();
-	void setType(int type);
-	int getType();
-	int getType() const;  // Const version for JSON serialization
+	void setMidiChannel(uint8_t midiChannel);
+	uint8_t getMidiChannel();
+	uint8_t getMidiChannel() const;  // Const version for JSON serialization
+	void setColor(uint32_t color);
+	uint32_t getColor();
+	void setType(uint8_t type);
+	uint8_t getType();
+	uint8_t getType() const;  // Const version for JSON serialization
 	size_t getSequenceSize();
 	void editNoteInSequence(size_t position, bool eventState);
 	bool getNoteStateInSequence(size_t position);
-	int getNoteVelocityInSequence(size_t position);
-	void editNoteInSequence(size_t position, int note, int velocity);
+	uint8_t getNoteVelocityInSequence(size_t position);
+	void editNoteInSequence(size_t position, uint8_t note, uint8_t velocity);
 	virtual void editNoteInCurrentPosition(ControlCommand command) = 0;
 	void resizeSequence(size_t newSize);
-	void selectParameter(int parameterIndex);
+	void selectParameter(uint8_t parameterIndex);
 	void increaseParameterValue();
 	void decreaseParameterValue();
 	virtual void increasePage();
 	virtual void decreasePage();
-	int getParameterValue();
+	uint8_t getParameterValue();
 	String getParameterName();
 	list<RTPEventNotePlus> getEventNoteSequence();
 	const list<RTPEventNotePlus>& getEventNoteSequence() const;  // Const version for JSON serialization
 	String dumpSequenceToJson();
-	int page();
-	int pageOffset();
+	uint8_t page();
+	uint16_t pageOffset();
 protected:
-	void pointIterator(int position);
+	void pointIterator(uint16_t position);
 };

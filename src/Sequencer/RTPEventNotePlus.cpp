@@ -3,16 +3,16 @@
 
 //MIDI_CREATE_DEFAULT_INSTANCE();
 
-int RTPEventNotePlus::getMidiChannel(){
+uint8_t RTPEventNotePlus::getMidiChannel(){
     return _midiChannel;
 }
 
 // Const version for JSON serialization
-int RTPEventNotePlus::getMidiChannel() const {
+uint8_t RTPEventNotePlus::getMidiChannel() const {
     return _midiChannel;
 }
 
-void RTPEventNotePlus::setMidiChannel(int midiChannel){
+void RTPEventNotePlus::setMidiChannel(uint8_t midiChannel){
     _midiChannel = midiChannel;
 }
 
@@ -26,21 +26,21 @@ void RTPEventNotePlus::playNoteOff(){
     //MIDI.sendNoteOff(getEventNote(), 0, getMidiChannel());
 }
 
-void RTPEventNotePlus::setLength(int length){
+void RTPEventNotePlus::setLength(uint8_t length){
     _length = length;
     _timeToLive = _length;
 }
 
-int RTPEventNotePlus::getLength(){
+uint8_t RTPEventNotePlus::getLength(){
     return _length;
 }
 
 // Const version for JSON serialization
-int RTPEventNotePlus::getLength() const {
+uint8_t RTPEventNotePlus::getLength() const {
     return _length;
 }
 
-int RTPEventNotePlus::getTimeToLive(){
+uint8_t RTPEventNotePlus::getTimeToLive(){
     return _timeToLive;
 }
 

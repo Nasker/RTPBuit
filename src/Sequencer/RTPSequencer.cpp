@@ -1,10 +1,11 @@
 #include "RTPSequencer.h"
 #include "BuitPersistenceManager.hpp"
+#include <cstdint>
 
-RTPSequencer::RTPSequencer(int NScenes, MusicManager& musicManager)
+RTPSequencer::RTPSequencer(uint8_t NScenes, MusicManager& musicManager)
     : _musicManager(musicManager), _NScenes(NScenes), _selectedScene(0) {
     Serial.println("CREATING RTPSequencer");
-    for (int i = 0; i < _NScenes; i++) {
+    for (uint8_t i = 0; i < _NScenes; i++) {
         RTPScene* scene = new RTPScene("Scene", SCENE_BLOCK_SIZE, i, _notesPlayer, _musicManager);
         Sequencer.push_back(scene);
     }
@@ -36,15 +37,15 @@ void RTPSequencer::pauseSequencer() {
     _notesPlayer.killAllNotes();
 }
 
-int RTPSequencer::getSelectedSequencePosition() {
+uint16_t RTPSequencer::getSelectedSequencePosition() {
     return Sequencer[_selectedScene]->getSelectedSequenceCurrentPosition();
 }
 
-int RTPSequencer::getSelectedSequencePageOffset() {
+uint16_t RTPSequencer::getSelectedSequencePageOffset() {
     return Sequencer[_selectedScene]->getSelectedSequencePageOffset();
 }
 
-int RTPSequencer::getSelectedSequencePage() {
+uint8_t RTPSequencer::getSelectedSequencePage() {
     return Sequencer[_selectedScene]->getSelectedSequencePage();
 }
 
@@ -56,23 +57,21 @@ void RTPSequencer::toggleSelectedSequenceRecording() {
     Sequencer[_selectedScene]->toggleSelectedSequenceRecording();
 }
 
-void RTPSequencer::selectScene(int scene) {
+void RTPSequencer::selectScene(uint8_t scene) {
     _selectedScene = scene;
 }
 
 void RTPSequencer::increaseSelectedScene() {
-    _selectedScene++;
-    if (_selectedScene >= _NScenes - 1)
-        _selectedScene = _NScenes - 1;
+    if (_selectedScene < _NScenes - 1)
+        _selectedScene++;
 }
 
 void RTPSequencer::decreaseSelectedScene() {
-    _selectedScene--;
-    if (_selectedScene <= 0)
-        _selectedScene = 0;
+    if (_selectedScene > 0)
+        _selectedScene--;
 }
 
-int RTPSequencer::getSelectScene() {
+uint8_t RTPSequencer::getSelectScene() {
     return _selectedScene;
 }
 
@@ -80,15 +79,15 @@ void RTPSequencer::addScene(RTPScene* scene) { // Change to pointer type
     Sequencer.push_back(scene);
 }
 
-void RTPSequencer::removeScene(int scene) {
+void RTPSequencer::removeScene(uint8_t scene) {
     // Implement if needed
 }
 
-void RTPSequencer::toggleNoteInSceneInSelectedSequence(int position) {
+void RTPSequencer::toggleNoteInSceneInSelectedSequence(uint16_t position) {
     Sequencer[_selectedScene]->toggleNoteInSequence(position);
 }
 
-void RTPSequencer::toggleSequence(int sequenceIndex) {
+void RTPSequencer::toggleSequence(uint8_t sequenceIndex) {
     Sequencer[_selectedScene]->toggleSequence(sequenceIndex);
 }
 
@@ -96,19 +95,19 @@ RTPSequencesState RTPSequencer::getSequencesState() {
     return Sequencer[_selectedScene]->getSequencesState();
 }
 
-void RTPSequencer::selectSequence(int sequenceIndex) {
+void RTPSequencer::selectSequence(uint8_t sequenceIndex) {
     Sequencer[_selectedScene]->setSelectedSequence(sequenceIndex);
 }
 
-int RTPSequencer::getSelectedSequence() {
+uint8_t RTPSequencer::getSelectedSequence() {
     return Sequencer[_selectedScene]->getSelectedSequence();
 }
 
-int RTPSequencer::getSelectedSequenceMidiChannel(){
+uint8_t RTPSequencer::getSelectedSequenceMidiChannel(){
     return Sequencer[_selectedScene]->getSelectedSequenceMidiChannel();
 }
 
-void RTPSequencer::selectParameterInSequence(int parameterIndex) {
+void RTPSequencer::selectParameterInSequence(uint8_t parameterIndex) {
     Sequencer[_selectedScene]->selectParameterInSequence(parameterIndex);
 }
 
@@ -151,7 +150,7 @@ void RTPSequencer::editNoteInCurrentPosition(ControlCommand command) {
     Sequencer[_selectedScene]->editNoteInCurrentPosition(command);
 }
 
-int RTPSequencer::getSelectedSequenceColor() {
+uint32_t RTPSequencer::getSelectedSequenceColor() {
     return Sequencer[_selectedScene]->getSequenceColor();
 }
 

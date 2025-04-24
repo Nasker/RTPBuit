@@ -2,9 +2,10 @@
 #include "RTPEventNotePlus.h"
 #include "RTPTypeColors.h"
 #include "ReMap.hpp"
+#include <cstdint>
 
 
-RTPEventNoteSequence::RTPEventNoteSequence(int midiChannel, int NEvents, int type, int baseNote, NotesPlayer& notesPlayer, MusicManager& musicManager):
+RTPEventNoteSequence::RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents, uint8_t type, uint8_t baseNote, NotesPlayer& notesPlayer, MusicManager& musicManager):
  _notesPlayer(notesPlayer), _musicManager(musicManager){
   RTPParameter parameterType = RTPParameter(0, N_TYPES-1, type, "Type");
   RTPParameter parameterMidiChannel = RTPParameter(1, N_MIDI_CHANNELS, midiChannel, "Midi CH");
@@ -21,7 +22,7 @@ RTPEventNoteSequence::RTPEventNoteSequence(int midiChannel, int NEvents, int typ
   _selectedParameter = 0;
   _selectedPage = 0;
   _pages = ceil(NEvents / SEQ_BLOCK_SIZE);
-  for(int i=0; i < NEvents; i++){
+  for(uint16_t i=0; i < NEvents; i++){
     RTPEventNotePlus eventNote = RTPEventNotePlus(midiChannel, false, _baseNote , 80); // true, 60, 80
     addEventNote(eventNote);
   }
@@ -51,7 +52,7 @@ void RTPEventNoteSequence::resetSequence(){
   _currentPosition = 0;
 }
 
-int RTPEventNoteSequence::getCurrentSequencePosition(){
+uint16_t RTPEventNoteSequence::getCurrentSequencePosition(){
   return _currentPosition;
 }
 
@@ -71,7 +72,7 @@ void RTPEventNoteSequence::enableSequence(bool state){
   _isEnabled = state;
 }
 
-void RTPEventNoteSequence::selectParameter(int parameterIndex){
+void RTPEventNoteSequence::selectParameter(uint8_t parameterIndex){
   if(parameterIndex >= 3)
     parameterIndex = 3;
   _selectedParameter = parameterIndex;
@@ -87,18 +88,16 @@ void RTPEventNoteSequence::decreaseParameterValue(){
 }
 
 void RTPEventNoteSequence::increasePage(){
-  _selectedPage++;
-  if(_selectedPage >= _pages)
-    _selectedPage = _pages - 1;
+  if(_selectedPage < _pages - 1)
+    _selectedPage++;
 }
 
 void RTPEventNoteSequence::decreasePage(){
-  _selectedPage--;
-  if(_selectedPage < 0)
-    _selectedPage = 0;
+  if(_selectedPage > 0)
+    _selectedPage--;
 }
 
-int RTPEventNoteSequence::getParameterValue(){
+uint8_t RTPEventNoteSequence::getParameterValue(){
   return sequenceParameters[_selectedParameter].getValue();
 }
 
@@ -106,34 +105,34 @@ String RTPEventNoteSequence::getParameterName(){
   return sequenceParameters[_selectedParameter].getName();
 }
 
-void RTPEventNoteSequence::setMidiChannel(int midiChannel){
+void RTPEventNoteSequence::setMidiChannel(uint8_t midiChannel){
   sequenceParameters[MIDI_CHANNEL].setValue(midiChannel);
 }
 
-int RTPEventNoteSequence::getMidiChannel(){
+uint8_t RTPEventNoteSequence::getMidiChannel(){
   return sequenceParameters[MIDI_CHANNEL].getValue();
 }
 
-int RTPEventNoteSequence::getMidiChannel() const {
+uint8_t RTPEventNoteSequence::getMidiChannel() const {
   return sequenceParameters[MIDI_CHANNEL].getValue();
 }
 
-void RTPEventNoteSequence::setColor(int color){
+void RTPEventNoteSequence::setColor(uint32_t color){
   sequenceParameters[COLOR].setValue(color);
 }
 	
-int RTPEventNoteSequence::getColor(){
+uint32_t RTPEventNoteSequence::getColor(){
   return sequenceParameters[COLOR].getValue();
 }
 
-void RTPEventNoteSequence::setType(int type){
+void RTPEventNoteSequence::setType(uint8_t type){
   sequenceParameters[TYPE].setValue(type);
 }
-int RTPEventNoteSequence::getType(){
+uint8_t RTPEventNoteSequence::getType(){
   return sequenceParameters[TYPE].getValue();
 }
 
-int RTPEventNoteSequence::getType() const {
+uint8_t RTPEventNoteSequence::getType() const {
   return sequenceParameters[TYPE].getValue();
 }
 
@@ -155,19 +154,19 @@ bool RTPEventNoteSequence::getNoteStateInSequence(size_t position){
     pointIterator(position);
     return it->eventState();
   } 
-  return NULL;
+  return false;
 }
 
-int RTPEventNoteSequence::getNoteVelocityInSequence(size_t position){
+uint8_t RTPEventNoteSequence::getNoteVelocityInSequence(size_t position){
   position = position + pageOffset();
   if(position < EventNoteSequence.size()){
     pointIterator(position);
     return it->getEventVelocity();
   } 
-  return NULL;
+  return 0;
 }
 
-void RTPEventNoteSequence::editNoteInSequence(size_t position, int note, int velocity){
+void RTPEventNoteSequence::editNoteInSequence(size_t position, uint8_t note, uint8_t velocity){
   position = position + pageOffset();
   if(position < EventNoteSequence.size()){
     pointIterator(position);
@@ -189,11 +188,11 @@ void RTPEventNoteSequence::resizeSequence(size_t newSize){
   }
 }
 
-int RTPEventNoteSequence::pageOffset(){
+uint16_t RTPEventNoteSequence::pageOffset(){
   return _selectedPage * SEQ_BLOCK_SIZE;
 }
 
-int RTPEventNoteSequence::page(){
+uint8_t RTPEventNoteSequence::page(){
   return _selectedPage;
 }
 
@@ -222,7 +221,7 @@ String RTPEventNoteSequence::dumpSequenceToJson(){
   return noteSeqString;
 }
 
-void RTPEventNoteSequence::pointIterator(int position){
+void RTPEventNoteSequence::pointIterator(uint16_t position){
   it = EventNoteSequence.begin();
   advance(it, position);
 }

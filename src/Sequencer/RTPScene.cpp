@@ -6,23 +6,24 @@
 #include "ControlSequence.hpp"
 #include "HarmonySequence.hpp"
 #include "RTPSDManager.hpp"
+#include <cstdint>
 
-int types[N_SCENES][SCENE_BLOCK_SIZE] = {
+uint8_t types[N_SCENES][SCENE_BLOCK_SIZE] = {
   {HARMONY_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK},
   {DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART},
   {BASS_SYNTH, BASS_SYNTH, BASS_SYNTH, BASS_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH},
 };
 
-int midiChannels[N_SCENES][SCENE_BLOCK_SIZE] = {
+uint8_t midiChannels[N_SCENES][SCENE_BLOCK_SIZE] = {
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
   {1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16},
 };
 
-RTPScene::RTPScene(String name, int NSequences, int scene, NotesPlayer& notesPlayer, MusicManager& musicManager) 
+RTPScene::RTPScene(String name, uint8_t NSequences, uint8_t scene, NotesPlayer& notesPlayer, MusicManager& musicManager) 
   : _name(name), _NSequences(NSequences), _selectedSequence(0), _notesPlayer(notesPlayer), _musicManager(musicManager) {
-  for (int i = 0; i < _NSequences; i++) {
-    int baseNote = (types[scene][i] == DRUM_PART) ? 36 + i : 60;
+  for (uint8_t i = 0; i < _NSequences; i++) {
+    uint8_t baseNote = (types[scene][i] == DRUM_PART) ? 36 + i : 60;
         std::unique_ptr<RTPEventNoteSequence> sequence;
         switch (types[scene][i]) {
             case DRUM_PART:
@@ -70,27 +71,27 @@ void RTPScene::resetScene() {
     sequence->resetSequence();
 }
 
-void RTPScene::setSelectedSequence(int selectedSequence) {
+void RTPScene::setSelectedSequence(uint8_t selectedSequence) {
   _selectedSequence = selectedSequence;
 }
 
-int RTPScene::getSelectedSequence() {
+uint8_t RTPScene::getSelectedSequence() {
   return _selectedSequence;
 }
 
-int RTPScene::getSelectedSequencePageOffset() {
+uint16_t RTPScene::getSelectedSequencePageOffset() {
   return SequencerScene[_selectedSequence]->pageOffset();
 }
 
-int RTPScene::getSelectedSequencePage() {
+uint8_t RTPScene::getSelectedSequencePage() {
   return SequencerScene[_selectedSequence]->page();
 }
 
-int RTPScene::getSelectedSequenceMidiChannel(){
+uint8_t RTPScene::getSelectedSequenceMidiChannel(){
   return SequencerScene[_selectedSequence]->getMidiChannel();
 }
 
-int RTPScene::getSize() {
+uint8_t RTPScene::getSize() {
   return SequencerScene.size();
 }
 
@@ -126,11 +127,11 @@ SequenceSettings RTPScene::getSelectedSequenceSettings() {
   return settings;
 }
 
-int RTPScene::getSequenceType(int sequenceIndex) {
+uint8_t RTPScene::getSequenceType(uint8_t sequenceIndex) {
   return SequencerScene[sequenceIndex]->getType();
 }
 
-void RTPScene::selectParameterInSequence(int parameterIndex) {
+void RTPScene::selectParameterInSequence(uint8_t parameterIndex) {
   SequencerScene[_selectedSequence]->selectParameter(parameterIndex);
 }
 
@@ -158,15 +159,15 @@ void RTPScene::decselectPageInSequence() {
   SequencerScene[_selectedSequence]->decreasePage();
 }
 
-int RTPScene::getSelectedSequenceCurrentPosition() {
+uint16_t RTPScene::getSelectedSequenceCurrentPosition() {
   return SequencerScene[_selectedSequence]->getCurrentSequencePosition();
 }
 
-void RTPScene::toggleSequence(int sequenceIndex) {
+void RTPScene::toggleSequence(uint8_t sequenceIndex) {
   SequencerScene[sequenceIndex]->enableSequence(!SequencerScene[sequenceIndex]->isCurrentSequenceEnabled());
 }
 
-void RTPScene::toggleNoteInSequence(int position) {
+void RTPScene::toggleNoteInSequence(uint16_t position) {
   SequencerScene[_selectedSequence]->editNoteInSequence(position, !SequencerScene[_selectedSequence]->getNoteStateInSequence(position));
 }
 
@@ -182,7 +183,7 @@ RTPSequenceNoteStates RTPScene::getSequenceNoteStates() {
   return _seqStates;
 }
 
-int RTPScene::getSequenceColor() {
+uint32_t RTPScene::getSequenceColor() {
   return SequencerScene[_selectedSequence]->getColor();
 }
 
@@ -194,7 +195,7 @@ void RTPScene::dumpSequencesToJson() {
 }
 
 // For persistence manager - Non-const version
-RTPEventNoteSequence* RTPScene::getSequence(int index) {
+RTPEventNoteSequence* RTPScene::getSequence(uint8_t index) {
   if (index >= 0 && index < SequencerScene.size()) {
     return SequencerScene[index].get();
   }

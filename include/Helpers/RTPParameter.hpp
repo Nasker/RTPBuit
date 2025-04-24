@@ -36,10 +36,12 @@ public:
     void setValue(int value){
         _value = value;
     }
-    void setName(String name){
+    
+    void setName(String name) {
         _name = name;
     }
-    String getName(){
+    
+    String getName() {
         return _name;
     }
 };
