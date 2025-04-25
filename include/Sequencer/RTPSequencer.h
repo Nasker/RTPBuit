@@ -33,6 +33,7 @@ public:
   uint8_t getSelectScene();
   uint8_t getSelectedSequence();
   uint8_t getSelectedSequenceMidiChannel();
+  String getSelectedSequenceTypeName();
   void addScene(RTPScene* scene); // Change to pointer type
   void removeScene(uint8_t scene);
   void selectParameterInSequence(uint8_t parameterIndex);

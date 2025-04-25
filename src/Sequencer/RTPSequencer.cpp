@@ -107,6 +107,30 @@ uint8_t RTPSequencer::getSelectedSequenceMidiChannel(){
     return Sequencer[_selectedScene]->getSelectedSequenceMidiChannel();
 }
 
+String RTPSequencer::getSelectedSequenceTypeName() {
+    // Get the sequence type as an integer
+    SequenceSettings settings = getSelectedSequenceSettings();
+    int typeValue = settings.type;
+    
+    // Map the type value to a meaningful name
+    switch (typeValue) {
+        case 0:
+            return "Drum";
+        case 1:
+            return "Bass";
+        case 2:
+            return "Lead";
+        case 3:
+            return "Polyphonic";
+        case 4:
+            return "Automation";
+        case 5:
+            return "Harmony";
+        default:
+            return "Type " + String(typeValue);
+    }
+}
+
 void RTPSequencer::selectParameterInSequence(uint8_t parameterIndex) {
     Sequencer[_selectedScene]->selectParameterInSequence(parameterIndex);
 }

@@ -20,7 +20,8 @@ public:
     void setAfterIntro();
     void introAnimation(int &x, String text);
     void printToScreen(String firstLine, String secondLine, String thirdLine);
+    void printToScreen(String firstLine, String secondLine, String thirdLine, String fourthLine, bool isRecording = false);
     void printToScreen(ControlCommand command);
 private:
-    int calcOffsetToCenterText(String textLine);
+    u8g2_int_t calcOffsetToCenterText(String textLine);
 };

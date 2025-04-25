@@ -11,8 +11,8 @@ void TransportState::singleClick() {
 
 void TransportState::doubleClick() {
   Serial.println("Going to Scene Edit!");
-  _devices.presentScene();
   _buitMachine.setState(_buitMachine.getSceneEditState());
+  _devices.presentScene();
 }
 
 void TransportState::tripleClick() {
@@ -21,8 +21,8 @@ void TransportState::tripleClick() {
 
 void TransportState::longClick() {
   Serial.println("Going to Global Settings!");
-  _devices.printToScreen("Global Settings", "","");
   _buitMachine.setState(_buitMachine.getGlobalSettingsState());
+  _devices.printToScreen("Global Settings", "","");
 }
 
 void TransportState::rotaryTurned(ControlCommand command) {

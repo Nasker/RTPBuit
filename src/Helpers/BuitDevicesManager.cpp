@@ -79,8 +79,8 @@ void BuitDevicesManager::changeScene(ControlCommand command){
 
 void  BuitDevicesManager::nudgePage(ControlCommand command){
     _sequencer.nudgePageInSelectedSequence(command);
-    writeSequenceToNeoTrellis(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor());
-    printToScreen("Sequence "+ String(_sequencer.getSelectedSequence()+1),"", "Page "+ String(_sequencer.getSelectedSequencePage()+1));
+    // Call showSequence to ensure consistent display with recording status
+    showSequence();
 }
 
 void BuitDevicesManager::selectParameter(ControlCommand command){
@@ -104,11 +104,30 @@ void BuitDevicesManager::presentScene(){
 }
 
 void BuitDevicesManager::presentSequence(){
-    printToScreen("Sequence "+ String(_sequencer.getSelectedSequence()+1),"","Page "+ String(_sequencer.getSelectedSequencePage()+1));
-    writeSequenceToNeoTrellis(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor()); 
+    // Call showSequence to ensure consistent display with recording status
+    showSequence();
 }
 
 void BuitDevicesManager::showSequence(){
+    // Get the sequence type name
+    String sequenceType = _sequencer.getSelectedSequenceTypeName();
+    
+    // Get the sequence MIDI channel
+    int midiChannel = _sequencer.getSelectedSequenceMidiChannel();
+    
+    // Get the current page and total pages (assuming 4 pages total)
+    int currentPage = _sequencer.getSelectedSequencePage() + 1; // +1 for 1-based display
+    int totalPages = 4; // Assuming 4 pages total
+    
+    // Use the new four-line display method with recording status
+    _oled.printToScreen(
+        sequenceType,
+        "Sequence "+ String(_sequencer.getSelectedSequence()+1),
+        "Page "+ String(currentPage) + " of " + String(totalPages),
+        "Ch " + String(midiChannel),
+        _sequencer.isSelectedSequenceRecording() // Pass recording status
+    );
+    
     writeSequenceToNeoTrellis(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor()); 
 }
 
@@ -154,6 +173,8 @@ bool BuitDevicesManager::isSelectedSequenceRecording(){
 
 void BuitDevicesManager::toggleSelectedSequenceRecording(){
     _sequencer.toggleSelectedSequenceRecording();
+    // Update display to show the new recording status
+    showSequence();
 }
 
 void BuitDevicesManager::saveSequencer(const String& fileName){

@@ -13,9 +13,8 @@ void SequenceSettingsState::singleClick() {
 
 void SequenceSettingsState::doubleClick() {
   Serial.println("Going to Sequence Edit!");
-  _devices.printToScreen("State:", "Sequence Edit!","");
-  _devices.presentSequence();
   _buitMachine.setState(_buitMachine.getSequenceEditState());
+  _devices.showSequence();
 }
 
 void SequenceSettingsState::tripleClick() {

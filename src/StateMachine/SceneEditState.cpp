@@ -8,14 +8,14 @@ SceneEditState::SceneEditState (BuitStateMachine& buitMachine, BuitDevicesManage
 
 void SceneEditState::singleClick() {
   Serial.println("Going to Sequence Select!");
-  _devices.printToScreen("Select a", "Sequence", "");
   _buitMachine.setState(_buitMachine.getSequenceSelectState());
+  _devices.printToScreen("Select a", "Sequence", "");
 }
 
 void SceneEditState::doubleClick() {
   Serial.println("Going to Transport");
-  _devices.presentBuitCC();
   _buitMachine.setState(_buitMachine.getTransportState());
+  _devices.presentBuitCC();
 }
 
 void SceneEditState::tripleClick() {
@@ -24,8 +24,8 @@ void SceneEditState::tripleClick() {
 
 void SceneEditState::longClick() {
   Serial.println("Going to Scene Settings!");
-  _devices.printToScreen("Scene Settings", "","");
   _buitMachine.setState(_buitMachine.getSceneSettingsState());
+  _devices.printToScreen("Scene Settings", "","");
 }
 
 void SceneEditState::rotaryTurned(ControlCommand command) {
@@ -48,7 +48,7 @@ void SceneEditState::sequencerCallback(ControlCommand command) {
 }
 
 void SceneEditState::midiNote(ControlCommand command) {
-  usbMIDI.sendNoteOn(command.commandType, command.value, command.controlType);
+  //usbMIDI.sendNoteOn(command.commandType, command.value, command.controlType);
 }
 
 void SceneEditState::midiCC(ControlCommand command) {

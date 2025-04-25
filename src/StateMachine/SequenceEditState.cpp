@@ -13,8 +13,8 @@ void SequenceEditState::singleClick() {
 
 void SequenceEditState::doubleClick() {
   Serial.println("Going to Scene Edit!");
-  _devices.presentScene();
   _buitMachine.setState(_buitMachine.getSceneEditState());
+  _devices.presentScene();
 }
 
 void SequenceEditState::tripleClick() {
@@ -24,8 +24,8 @@ void SequenceEditState::tripleClick() {
 
 void SequenceEditState::longClick() {
   Serial.println("Going to Sequence Settings!");
-  _devices.presentSequenceSettings();
   _buitMachine.setState(_buitMachine.getSequenceSettingsState());
+  _devices.presentSequenceSettings();
 }
 
 void SequenceEditState::rotaryTurned(ControlCommand command) {

@@ -13,8 +13,8 @@ void SceneSettingsState::singleClick() {
 
 void SceneSettingsState::doubleClick() {
   Serial.println("Going to Scene Edit!");
-  _devices.printToScreen("State:", "Scene Edit!","");
   _buitMachine.setState(_buitMachine.getSceneEditState());
+  _devices.presentScene();
 }
 
 void SceneSettingsState::tripleClick() {
