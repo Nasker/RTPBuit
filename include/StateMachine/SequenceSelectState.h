@@ -14,5 +14,6 @@ public:
   void trellisReleased(ControlCommand command);
   void sequencerCallback(ControlCommand command);
   void midiNote(ControlCommand command);
+  void midiNoteOff(ControlCommand command);
   void midiCC(ControlCommand command);
 };

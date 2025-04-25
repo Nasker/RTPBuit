@@ -46,6 +46,11 @@ void RTPMainUnit::routeControlChange(byte channel, byte control, byte value) {
 }
 
 void RTPMainUnit::routeNoteOnOff(byte channel, byte note, byte velocity){
-  ControlCommand command = ControlCommand{MIDI_NOTE, note, velocity};
+  // Create a control command with different control types for note-on and note-off
+  // For note-on: controlType = MIDI_NOTE (7)
+  // For note-off: controlType = MIDI_NOTE + 100 (107)
+  int controlType = (velocity > 0) ? MIDI_NOTE : MIDI_NOTE + 100;
+  
+  ControlCommand command = ControlCommand{controlType, note, velocity};
   stateMachineManager.handleActions(command, channel);
 }

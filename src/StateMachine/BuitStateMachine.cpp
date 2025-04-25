@@ -64,6 +64,10 @@ void BuitStateMachine::midiNote(ControlCommand command){
   _state->midiNote(command);
 }
 
+void BuitStateMachine::midiNoteOff(ControlCommand command){
+  _state->midiNoteOff(command);
+}
+
 void BuitStateMachine::midiCC(ControlCommand command){
   _state->midiCC(command);
 }

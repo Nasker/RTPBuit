@@ -53,8 +53,14 @@ void StateMachineManager::handleActions(ControlCommand callbackControlCommand, i
       buitStateMachine.midiCC(callbackControlCommand);
       return;
     case MIDI_NOTE:
-      callbackControlCommand.controlType = extraValue;
+      // Handle note-on events (controlType = MIDI_NOTE)
+      // The note value is in commandType and velocity is in value
       buitStateMachine.midiNote(callbackControlCommand);
+      return;
+    case MIDI_NOTE + 100:
+      // Handle note-off events (controlType = MIDI_NOTE + 100)
+      // The note value is in commandType and velocity is 0
+      buitStateMachine.midiNoteOff(callbackControlCommand);
       return;
   } 
 }

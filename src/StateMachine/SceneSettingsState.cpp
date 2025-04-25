@@ -51,6 +51,11 @@ void SceneSettingsState::midiNote(ControlCommand command) {
   //Serial.println("Does nothing here!");
 }
 
+void SceneSettingsState::midiNoteOff(ControlCommand command) {
+  // Simple implementation - just ignore note-off events
+  // No need to do anything here
+}
+
 void SceneSettingsState::midiCC(ControlCommand command) {
   //Serial.println("Does nothing here!");
 }

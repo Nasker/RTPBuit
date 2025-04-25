@@ -18,6 +18,8 @@ public:
     RTPSequencerManager(RTPSequencer& sequencer);
     void begin(RTPMainUnit* _mainUnit);
     void handleRealTimeSystem(byte realtimebyte);
+    byte getCurrentCounter() { return counter; }
+    int getNearestStepPosition();
 private:
     void gridClockUp(byte realtimebyte);
     void increaseCounter();

@@ -50,3 +50,24 @@ void RTPSequencerManager::increaseCounter(){
 void RTPSequencerManager::resetCounter(){
     counter = 0;
 }
+
+int RTPSequencerManager::getNearestStepPosition() {
+    // Calculate the current position in the sequence
+    int currentPos = _sequencer.getSelectedSequencePosition();
+    
+    // Calculate the position within the current step (0 to CLOCK_GRID-1)
+    int positionInStep = counter % CLOCK_GRID;
+    
+    // If we're in the first half of the step, quantize to the current step
+    // If we're in the second half, quantize to the next step
+    if (positionInStep < CLOCK_GRID / 2) {
+        return currentPos;
+    } else {
+        // Calculate the next position, wrapping around if needed
+        int nextPos = currentPos + 1;
+        if (nextPos >= _sequencer.getSelectedSequenceSize()) {
+            nextPos = 0;
+        }
+        return nextPos;
+    }
+}

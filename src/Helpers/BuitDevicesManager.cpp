@@ -54,6 +54,8 @@ void BuitDevicesManager::editCurrentNote(ControlCommand command){
     _sequencer.editNoteInCurrentPosition(command);
 }
 
+
+
 void BuitDevicesManager::displayCursorInSequence(ControlCommand command){
     int cursorPos = _sequencer.getSelectedSequencePosition() - _sequencer.getSelectedSequencePageOffset();
     if (cursorPos >= 0 && cursorPos < SEQ_BLOCK_SIZE){
@@ -176,6 +178,8 @@ void BuitDevicesManager::toggleSelectedSequenceRecording(){
     // Update display to show the new recording status
     showSequence();
 }
+
+
 
 void BuitDevicesManager::saveSequencer(const String& fileName){
     if(_persistenceManager.saveSequencerToFile(_sequencer, fileName))

@@ -51,6 +51,11 @@ void SceneEditState::midiNote(ControlCommand command) {
   //usbMIDI.sendNoteOn(command.commandType, command.value, command.controlType);
 }
 
+void SceneEditState::midiNoteOff(ControlCommand command) {
+  // Simple implementation - just ignore note-off events
+  // No need to do anything here
+}
+
 void SceneEditState::midiCC(ControlCommand command) {
   //Serial.println("Does nothing here!");
 }

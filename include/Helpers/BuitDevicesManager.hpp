@@ -3,6 +3,7 @@
 #include "RTPOled.hpp"
 #include "RTPNeoTrellis.hpp"
 #include "RTPSequencer.h"
+#include "RTPSequencerManager.hpp"
 #include "MatrixBuitControlChanger.hpp"
 #include "Structs.h"
 #include "RTPTypeColors.h"
@@ -47,6 +48,7 @@ public:
     void selectParameter(ControlCommand command);
     void rotateParameter(ControlCommand command);
 
+    void editCurrentNote(ControlCommand command);
     void editBuitCC(ControlCommand command);
     void sendBuitCC(ControlCommand command);
 

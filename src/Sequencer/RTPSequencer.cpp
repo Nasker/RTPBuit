@@ -174,9 +174,15 @@ void RTPSequencer::editNoteInCurrentPosition(ControlCommand command) {
     Sequencer[_selectedScene]->editNoteInCurrentPosition(command);
 }
 
+uint16_t RTPSequencer::getSelectedSequenceSize() {
+    return Sequencer[_selectedScene]->getSelectedSequenceSize();
+}
+
 uint32_t RTPSequencer::getSelectedSequenceColor() {
     return Sequencer[_selectedScene]->getSequenceColor();
 }
+
+
 
 void RTPSequencer::dumpSequencesToJson() {
     // Create persistence manager and use it to save the sequences

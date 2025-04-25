@@ -48,6 +48,7 @@ public:
   void toggleNoteInSceneInSelectedSequence(uint16_t position);
   void nudgePageInSelectedSequence(ControlCommand command);
   void editNoteInCurrentPosition(ControlCommand command);
+  uint16_t getSelectedSequenceSize();
   uint32_t getSelectedSequenceColor();
   void dumpSequencesToJson();
   

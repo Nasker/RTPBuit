@@ -163,6 +163,10 @@ uint16_t RTPScene::getSelectedSequenceCurrentPosition() {
   return SequencerScene[_selectedSequence]->getCurrentSequencePosition();
 }
 
+uint16_t RTPScene::getSelectedSequenceSize() {
+  return SequencerScene[_selectedSequence]->getSequenceSize();
+}
+
 void RTPScene::toggleSequence(uint8_t sequenceIndex) {
   SequencerScene[sequenceIndex]->enableSequence(!SequencerScene[sequenceIndex]->isCurrentSequenceEnabled());
 }

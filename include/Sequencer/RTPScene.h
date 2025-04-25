@@ -40,6 +40,7 @@ public:
   void incselectPageInSequence();
   void decselectPageInSequence();
   uint16_t getSelectedSequenceCurrentPosition();
+  uint16_t getSelectedSequenceSize();
   uint8_t getSequenceType(uint8_t sequenceIndex);
   void toggleSequence(uint8_t sequenceIndex);
   void toggleNoteInSequence(uint16_t position);

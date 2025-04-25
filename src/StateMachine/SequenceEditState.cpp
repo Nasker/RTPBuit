@@ -52,12 +52,30 @@ void SequenceEditState::sequencerCallback(ControlCommand command) {
 }
 
 void SequenceEditState::midiNote(ControlCommand command) {
+  // Always play the note via MIDI
   int midiChannel = _devices.getSelectedSequenceMidichannel();
   usbMIDI.sendNoteOn(command.commandType, command.value, midiChannel);
-  if(!_devices.isSelectedSequenceRecording())
+  
+  // Only record the note if recording is active
+  if(_devices.isSelectedSequenceRecording()) {
+    // Edit the note at the current sequencer position
+    // This allows for real-time note recording quantized to 1/16th notes
     _devices.editCurrentNote(command);
+    
+    // Store the note-on time for calculating note length later
+    // This would be implemented if we want to track note lengths
+  }
+}
+
+void SequenceEditState::midiNoteOff(ControlCommand command) {
+  // Send MIDI note-off message
+  int midiChannel = _devices.getSelectedSequenceMidichannel();
+  usbMIDI.sendNoteOff(command.commandType, 0, midiChannel);
+  
+  // If recording is active, we could calculate the note length here
+  // For now, we'll just use the default note length based on sequence type
 }
 
 void SequenceEditState::midiCC(ControlCommand command) {
   _devices.editCurrentNote(command);
-}
+} 

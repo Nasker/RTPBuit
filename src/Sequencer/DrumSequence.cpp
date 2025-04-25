@@ -31,6 +31,7 @@ void DrumSequence::editNoteInCurrentPosition(ControlCommand command){
             pointIterator(_currentPosition);
             it->setEventState(true);
             it->setEventVelocity(command.value);
+            Serial.printf("DrumSequence::editNoteInCurrentPosition: %d\n", command.value);
             return;
     }
 }

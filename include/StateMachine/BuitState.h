@@ -17,5 +17,6 @@ public:
 	virtual void trellisReleased(ControlCommand command) = 0;
 	virtual void sequencerCallback(ControlCommand command) = 0;
 	virtual void midiNote(ControlCommand command) = 0;
+	virtual void midiNoteOff(ControlCommand command) = 0;
 	virtual void midiCC(ControlCommand command) = 0;
 };

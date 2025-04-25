@@ -55,6 +55,11 @@ void InitState::midiNote(ControlCommand command) {
   //Serial.println("Does nothing here!");
 }
 
+void InitState::midiNoteOff(ControlCommand command) {
+  // Simple implementation - just ignore note-off events
+  // No need to do anything here
+}
+
 void InitState::midiCC(ControlCommand command) {
   //Serial.println("Does nothing here!");
 }
