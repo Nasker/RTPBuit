@@ -48,7 +48,6 @@ public:
     void selectParameter(ControlCommand command);
     void rotateParameter(ControlCommand command);
 
-    void editCurrentNote(ControlCommand command);
     void editBuitCC(ControlCommand command);
     void sendBuitCC(ControlCommand command);
 

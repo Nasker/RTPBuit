@@ -26,8 +26,7 @@ void HarmonySequence::playCurrentEventNote(){
         int rootNote = it->getEventRead();
         int chord  = it->getEventVelocity();
         _musicManager.setCurrentHarmony(1, rootNote, chord);
-        Serial.printf(">>>>>>Setting Harmony with %d %d\n\r", rootNote,
-        chord);
+        usbMIDI.sendControlChange(rootNote, chord, 13);
     }
 }
 
