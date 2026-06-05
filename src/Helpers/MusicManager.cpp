@@ -2,7 +2,7 @@
 
 MusicManager::MusicManager(){}
 
-void MusicManager::setCurrentHarmony(byte channel, byte control, byte value){
+void MusicManager::setCurrentHarmony(uint8_t channel, uint8_t control, uint8_t value){
     if(channel == 1 && control>=0 && control<=15 && value<=15){ 
         mControl.setCurrentRootNote(control);
         mControl.setCurrentScale(value);

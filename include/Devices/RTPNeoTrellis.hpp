@@ -16,7 +16,7 @@ class RTPNeoTrellis{
     void introAnimation();
     static TrellisCallback blink(keyEvent evt);
     void read();
-    void writeSequenceStates(RTPSequenceNoteStates seqStates, int color, boolean show=true);
+    void writeSequenceStates(RTPSequenceNoteStates seqStates, int color, bool show=true);
     void writeSceneStates(RTPSequencesState sceneStates);
     void writeBuitCCStates(RTPSequencesState buitCCStates, int color);
     void writeSequenceSettingsPage(SequenceSettings sequenceSettings);
