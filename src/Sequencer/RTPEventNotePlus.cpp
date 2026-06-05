@@ -44,6 +44,14 @@ uint8_t RTPEventNotePlus::getTimeToLive(){
     return _timeToLive;
 }
 
+bool RTPEventNotePlus::isLiteralPitch() const {
+    return _literalPitch;
+}
+
+void RTPEventNotePlus::setLiteralPitch(bool literal) {
+    _literalPitch = literal;
+}
+
 bool RTPEventNotePlus::decreaseTimeToLive(){
     _timeToLive--;
     if(_timeToLive <= 0){

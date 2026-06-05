@@ -14,9 +14,13 @@ void MonoSequence::playCurrentEventNote(){
     pointIterator(_currentPosition);
     it->setMidiChannel(getMidiChannel());
     if(isCurrentSequenceEnabled() && it->eventState()){
-        _musicManager.setCurrentSteps(it->getEventRead(), MONO_SYNTH);
-        it->setEventNote(_musicManager.getCurrentChordNote());
-        _notesPlayer.queueNote(*it);
+        if(it->isLiteralPitch()){
+            _notesPlayer.queueNote(*it);
+        } else {
+            _musicManager.setCurrentSteps(it->getEventRead(), MONO_SYNTH);
+            it->setEventNote(_musicManager.getCurrentChordNote());
+            _notesPlayer.queueNote(*it);
+        }
     }
 }
 

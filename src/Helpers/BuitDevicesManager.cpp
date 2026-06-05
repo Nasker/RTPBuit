@@ -198,32 +198,36 @@ void BuitDevicesManager::recorderNoteOff(uint8_t note) {
 }
 
 void BuitDevicesManager::recorderAdvanceTick() {
-    if (_notesRecorder.isRecording()) {
-        _notesRecorder.advanceTick();
-        if (_notesRecorder.isEndOfSequence()) {
-            _notesRecorder.stopRecording();
-            recorderDumpToSequence();
-            _sequencer.toggleSelectedSequenceRecording();
-            uint16_t seqSize = _sequencer.getSelectedSequenceSize();
-            uint8_t midiChannel = _sequencer.getSelectedSequenceMidiChannel();
-            _notesRecorder.startRecording(seqSize, midiChannel);
-            _sequencer.toggleSelectedSequenceRecording();
-            showSequence();
-        }
+    if (!_notesRecorder.isRecording()) return;
+    _notesRecorder.advanceTick();
+    if (_notesRecorder.isEndOfSequence()) {
+        _notesRecorder.stopRecording();
+        recorderDumpToSequence();
+        uint16_t seqSize = _sequencer.getSelectedSequenceSize();
+        uint8_t midiChannel = _sequencer.getSelectedSequenceMidiChannel();
+        _notesRecorder.startRecording(seqSize, midiChannel);
+        showSequence();
     }
 }
 
 void BuitDevicesManager::recorderDumpToSequence() {
     auto notes = _notesRecorder.dumpRecordedSequence();
+    if (notes.empty()) return;
     RTPScene* scene = _sequencer.getScene(_sequencer.getSelectScene());
     if (!scene) return;
     RTPEventNoteSequence* seq = scene->getSequence(_sequencer.getSelectedSequence());
     if (!seq) return;
+    uint16_t seqSize = _notesRecorder.getSequenceLength();
     seq->clearSequence();
+    seq->resizeSequence(seqSize);
     for (auto& note : notes) {
-        seq->addEventNote(note);
+        uint16_t pos = note.getEventRead();
+        if (pos < seqSize) {
+            seq->editNoteInSequence(pos, note.getEventNote(), note.getEventVelocity(),
+                                    note.getLength(), note.isLiteralPitch());
+            seq->editNoteInSequence(pos, true);
+        }
     }
-    showSequence();
 }
 
 

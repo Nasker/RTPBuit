@@ -2,7 +2,7 @@
 
 NotesRecorder::NotesRecorder() {
     _tickCounter = 0;
-    _quantizeGrid = 4; // Default to 16th note quantization (assuming 96 PPQN)
+    _quantizeGrid = 1; // 1 tick = 1 step (grid ticks are already quantized to steps)
     _isRecording = false;
     _sequenceLength = 0;
     _currentChannel = 1; // Default to MIDI channel 1
@@ -53,7 +53,8 @@ void NotesRecorder::recordNoteOn(uint8_t note, uint8_t velocity) {
     // Create the note (state true for note-on)
     RTPEventNotePlus newNote(_currentChannel, true, note, velocity);
     newNote.setEventRead(quantizedPosition);
-    newNote.setLength(1); // Start with minimum length
+    newNote.setLength(1); // Start with minimum length, grows on each tick
+    newNote.setLiteralPitch(true); // Keyboard note: play as-is, skip harmony remapping
     
     // Store in active notes map using the note number as the key
     _activeNotes[note] = newNote;
@@ -129,6 +130,10 @@ uint8_t NotesRecorder::getQuantizeGrid() const {
     return _quantizeGrid;
 }
 
+uint16_t NotesRecorder::getSequenceLength() const {
+    return _sequenceLength;
+}
+
 uint16_t NotesRecorder::quantizeTick(uint32_t tick) const {
     // Quantize the tick to the nearest grid position
     // This assumes a certain PPQN (Pulses Per Quarter Note) value
@@ -149,7 +154,7 @@ void NotesRecorder::clearRecordedNotes() {
 }
 
 bool NotesRecorder::isEndOfSequence() const {
-    // Check if we've reached the end of the sequence
+    if (_sequenceLength == 0) return false;
     return (_tickCounter % _sequenceLength) == 0 && _tickCounter > 0;
 }
 

@@ -73,6 +73,9 @@ public:
     const vector<RTPEventNotePlus>& getRecordedNotes() const;
     void clearRecordedNotes();
     
+    // Sequence length
+    uint16_t getSequenceLength() const;
+    
     // End of sequence handling
     bool isEndOfSequence() const;
     vector<RTPEventNotePlus> dumpRecordedSequence();
