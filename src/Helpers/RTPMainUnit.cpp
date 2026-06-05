@@ -32,6 +32,7 @@ void RTPMainUnit::actOnControlsCallback(ControlCommand callbackCommand){
 
 void RTPMainUnit::actOnSequencerCallback(ControlCommand callbackCommand){
   //Serial.printf("Seq Callback  TYPE: %d  VALUE: %d\n", callbackCommand.commandType, callbackCommand.value);
+  devicesManager.recorderAdvanceTick();
   stateMachineManager.handleActions(callbackCommand);
 }
 

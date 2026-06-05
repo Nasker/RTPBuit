@@ -9,6 +9,7 @@
 #include "RTPTypeColors.h"
 #include "RTPSDManager.hpp"
 #include "BuitPersistenceManager.hpp"
+#include "Helpers/NotesRecorder.hpp"
 
 
 class BuitDevicesManager {
@@ -17,6 +18,7 @@ class BuitDevicesManager {
     RTPSequencer& _sequencer;
     BuitPersistenceManager _persistenceManager;
     MatrixBuitControlChanger _matrixBuitCC;
+    NotesRecorder _notesRecorder;
 
 public:
     BuitDevicesManager(RTPNeoTrellis& neoTrellis, RTPSequencer& sequencer);
@@ -54,6 +56,11 @@ public:
     int getSelectedSequenceMidichannel();
     bool isSelectedSequenceRecording();
     void toggleSelectedSequenceRecording();
+
+    void recorderNoteOn(uint8_t note, uint8_t velocity);
+    void recorderNoteOff(uint8_t note);
+    void recorderAdvanceTick();
+    void recorderDumpToSequence();
 
     void saveSequencer(const String& fileName);
     void loadSequencer(const String& fileName);

@@ -1,4 +1,5 @@
 #include "BuitDevicesManager.hpp"
+#include "Sequencer/RTPEventNoteSequence.h"
 
 BuitDevicesManager::BuitDevicesManager(RTPNeoTrellis& nT, RTPSequencer& seq):
 _neoTrellis(nT),
@@ -175,7 +176,53 @@ bool BuitDevicesManager::isSelectedSequenceRecording(){
 
 void BuitDevicesManager::toggleSelectedSequenceRecording(){
     _sequencer.toggleSelectedSequenceRecording();
-    // Update display to show the new recording status
+    if (_sequencer.isSelectedSequenceRecording()) {
+        uint16_t seqSize = _sequencer.getSelectedSequenceSize();
+        uint8_t midiChannel = _sequencer.getSelectedSequenceMidiChannel();
+        _notesRecorder.startRecording(seqSize, midiChannel);
+    } else {
+        _notesRecorder.stopRecording();
+        recorderDumpToSequence();
+    }
+    showSequence();
+}
+
+void BuitDevicesManager::recorderNoteOn(uint8_t note, uint8_t velocity) {
+    if (_notesRecorder.isRecording())
+        _notesRecorder.recordNoteOn(note, velocity);
+}
+
+void BuitDevicesManager::recorderNoteOff(uint8_t note) {
+    if (_notesRecorder.isRecording())
+        _notesRecorder.recordNoteOff(note);
+}
+
+void BuitDevicesManager::recorderAdvanceTick() {
+    if (_notesRecorder.isRecording()) {
+        _notesRecorder.advanceTick();
+        if (_notesRecorder.isEndOfSequence()) {
+            _notesRecorder.stopRecording();
+            recorderDumpToSequence();
+            _sequencer.toggleSelectedSequenceRecording();
+            uint16_t seqSize = _sequencer.getSelectedSequenceSize();
+            uint8_t midiChannel = _sequencer.getSelectedSequenceMidiChannel();
+            _notesRecorder.startRecording(seqSize, midiChannel);
+            _sequencer.toggleSelectedSequenceRecording();
+            showSequence();
+        }
+    }
+}
+
+void BuitDevicesManager::recorderDumpToSequence() {
+    auto notes = _notesRecorder.dumpRecordedSequence();
+    RTPScene* scene = _sequencer.getScene(_sequencer.getSelectScene());
+    if (!scene) return;
+    RTPEventNoteSequence* seq = scene->getSequence(_sequencer.getSelectedSequence());
+    if (!seq) return;
+    seq->clearSequence();
+    for (auto& note : notes) {
+        seq->addEventNote(note);
+    }
     showSequence();
 }
 

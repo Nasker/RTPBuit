@@ -184,7 +184,7 @@ std::map<uint8_t, vector<RTPEventNotePlus>> NotesRecorder::dumpDrumSequences() {
     // Process each recorded note
     for (const auto& note : _recordedNotes) {
         // Calculate sequence index by subtracting base note from note value
-        uint8_t noteValue = note.getNote();
+        uint8_t noteValue = note.getEventNote();
         
         // Only process notes at or above the base note
         if (noteValue >= _baseNote) {

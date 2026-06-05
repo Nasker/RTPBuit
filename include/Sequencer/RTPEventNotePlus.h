@@ -10,6 +10,11 @@ class RTPEventNotePlus: public RTPEventNote{
     uint8_t _length;
     uint8_t _timeToLive;
   public:
+    RTPEventNotePlus():RTPEventNote(false, 0, 0){
+        _midiChannel = 0;
+        _length = 1;
+        _timeToLive = 1;
+    }
     RTPEventNotePlus(uint8_t midiChannel, bool state, uint8_t note, uint8_t velocity):RTPEventNote(state, note, velocity){
         _midiChannel = midiChannel;
         _length = 1;
