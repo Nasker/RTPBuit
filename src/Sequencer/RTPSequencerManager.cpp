@@ -13,7 +13,7 @@ void RTPSequencerManager::begin(RTPMainUnit* _mainUnit){
 }
 
 
-void RTPSequencerManager::handleRealTimeSystem(byte realtimebyte){
+void RTPSequencerManager::handleRealTimeSystem(uint8_t realtimebyte){
 	switch (realtimebyte) {
         case STOP:
             _sequencer.stopAndCleanSequencer();
@@ -28,7 +28,7 @@ void RTPSequencerManager::handleRealTimeSystem(byte realtimebyte){
 	}
 }
 
-void RTPSequencerManager::gridClockUp(byte realtimebyte){
+void RTPSequencerManager::gridClockUp(uint8_t realtimebyte){
     if (counter % CLOCK_GRID == 0){
         _sequencer.playAndMoveSequencer();
         ControlCommand callbackCommand;
