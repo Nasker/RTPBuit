@@ -206,7 +206,6 @@ void BuitDevicesManager::recorderAdvanceTick() {
         uint16_t seqSize = _sequencer.getSelectedSequenceSize();
         uint8_t midiChannel = _sequencer.getSelectedSequenceMidiChannel();
         _notesRecorder.startRecording(seqSize, midiChannel);
-        showSequence();
     }
 }
 
