@@ -3,14 +3,16 @@
 NotesRecorder::NotesRecorder() {
     _tickCounter = 0;
     _quantizeGrid = 1; // 1 tick = 1 step (grid ticks are already quantized to steps)
+    _quantizeStrength = 50; // Default: nearest grid (100% = snap to nearest)
     _isRecording = false;
+    _waitingToStart = false;
     _sequenceLength = 0;
     _currentChannel = 1; // Default to MIDI channel 1
     _drumMode = false;
     _baseNote = 36; // Default to C1 (36) as base note for drum mapping
 }
 
-void NotesRecorder::startRecording(uint16_t sequenceLength, uint8_t midiChannel) {
+void NotesRecorder::startRecording(uint16_t sequenceLength, uint8_t midiChannel, uint16_t startPosition) {
     // Clear any previously recorded notes
     _recordedNotes.clear();
     
@@ -18,13 +20,28 @@ void NotesRecorder::startRecording(uint16_t sequenceLength, uint8_t midiChannel)
     _activeNotes.clear();
     
     _sequenceLength = sequenceLength;
-    _tickCounter = 0;
+    // Start one tick behind so that after the first advanceTick() increment,
+    // we're exactly at startPosition. This ensures notes at position 0 quantize to 0.
+    _tickCounter = (startPosition == 0) ? (_sequenceLength - 1) : (startPosition - 1);
     _currentChannel = midiChannel;
-    _isRecording = true;
+    
+    // If not at position 0, wait until we loop back to start
+    if (startPosition == 0) {
+        _isRecording = true;
+        _waitingToStart = false;
+    } else {
+        _isRecording = false;  // Not actually recording yet
+        _waitingToStart = true; // Armed, waiting for position 0
+    }
+}
+
+bool NotesRecorder::isWaiting() const {
+    return _waitingToStart;
 }
 
 void NotesRecorder::stopRecording() {
     _isRecording = false;
+    _waitingToStart = false;
     
     // Finalize any still-active notes
     for (auto it = _activeNotes.begin(); it != _activeNotes.end(); ++it) {
@@ -44,8 +61,14 @@ bool NotesRecorder::isRecording() const {
     return _isRecording;
 }
 
+bool NotesRecorder::isStartOfSequence() const {
+    if (_sequenceLength == 0) return false;
+    return (_tickCounter % _sequenceLength) == 0;
+}
+
 void NotesRecorder::recordNoteOn(uint8_t note, uint8_t velocity) {
-    if (!_isRecording) return;
+    // Only record when actually active (not when waiting to start)
+    if (!_isRecording || _waitingToStart) return;
     
     // Create a new note with the current quantized position
     uint16_t quantizedPosition = quantizeTick(_tickCounter);
@@ -61,7 +84,8 @@ void NotesRecorder::recordNoteOn(uint8_t note, uint8_t velocity) {
 }
 
 void NotesRecorder::recordNoteOff(uint8_t note) {
-    if (!_isRecording) return;
+    // Only process when actually active (not when waiting to start)
+    if (!_isRecording || _waitingToStart) return;
     
     // Find the note in the active notes map
     auto it = _activeNotes.find(note);
@@ -95,6 +119,18 @@ void NotesRecorder::recordNoteOff(uint8_t note) {
 }
 
 void NotesRecorder::advanceTick() {
+    // If waiting to start, check if we've reached position 0
+    if (_waitingToStart) {
+        _tickCounter++;
+        if (isStartOfSequence()) {
+            // Transition from waiting to active recording
+            _waitingToStart = false;
+            _isRecording = true;
+        }
+        return;
+    }
+    
+    // Normal active recording
     if (!_isRecording) return;
     
     _tickCounter++;
@@ -130,19 +166,48 @@ uint8_t NotesRecorder::getQuantizeGrid() const {
     return _quantizeGrid;
 }
 
+void NotesRecorder::setQuantizeStrength(uint8_t strength) {
+    _quantizeStrength = constrain(strength, 0, 100);
+}
+
+uint8_t NotesRecorder::getQuantizeStrength() const {
+    return _quantizeStrength;
+}
+
 uint16_t NotesRecorder::getSequenceLength() const {
     return _sequenceLength;
 }
 
 uint16_t NotesRecorder::quantizeTick(uint32_t tick) const {
-    // Quantize the tick to the nearest grid position
-    // This assumes a certain PPQN (Pulses Per Quarter Note) value
+    if (_sequenceLength == 0) return 0;
     
-    // Calculate the nearest grid position
-    uint16_t position = (tick / _quantizeGrid) * _quantizeGrid;
+    // Wrap tick to sequence bounds first
+    tick = tick % _sequenceLength;
     
-    // Ensure position is within sequence bounds
-    return position % _sequenceLength;
+    // Find previous and next grid positions
+    uint16_t prevGrid = (tick / _quantizeGrid) * _quantizeGrid;
+    uint16_t nextGrid = (prevGrid + _quantizeGrid) % _sequenceLength;
+    
+    // Calculate distances (handling wrap-around)
+    uint16_t distPrev = (tick >= prevGrid) ? (tick - prevGrid) : (tick + _sequenceLength - prevGrid);
+    uint16_t distNext = (nextGrid >= tick) ? (nextGrid - tick) : (nextGrid + _sequenceLength - tick);
+    
+    // Determine nearest grid
+    uint16_t nearestGrid = (distPrev <= distNext) ? prevGrid : nextGrid;
+    uint16_t distNearest = min(distPrev, distNext);
+    
+    // Apply strength threshold: snap if within window, else use conservative (prevGrid)
+    // Strength 0: always use prevGrid (truncate down)
+    // Strength 50: snap if within 50% of grid = nearest (normal feel)
+    // Strength 100: snap if within 100% of grid = always nearest (max forgiveness)
+    uint16_t threshold = (_quantizeGrid * _quantizeStrength) / 100;
+    
+    if (distNearest <= threshold) {
+        return nearestGrid;
+    } else {
+        // In the "dead zone" - fall back to conservative (previous grid)
+        return prevGrid;
+    }
 }
 
 const vector<RTPEventNotePlus>& NotesRecorder::getRecordedNotes() const {
@@ -155,7 +220,9 @@ void NotesRecorder::clearRecordedNotes() {
 
 bool NotesRecorder::isEndOfSequence() const {
     if (_sequenceLength == 0) return false;
-    return (_tickCounter % _sequenceLength) == 0 && _tickCounter > 0;
+    // Trigger at the LAST tick of the sequence (position sequenceLength-1)
+    // This ensures dump happens at the END of the loop, not at start of next loop
+    return (_tickCounter % _sequenceLength) == (_sequenceLength - 1);
 }
 
 vector<RTPEventNotePlus> NotesRecorder::dumpRecordedSequence() {

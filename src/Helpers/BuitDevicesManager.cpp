@@ -179,7 +179,8 @@ void BuitDevicesManager::toggleSelectedSequenceRecording(){
     if (_sequencer.isSelectedSequenceRecording()) {
         uint16_t seqSize = _sequencer.getSelectedSequenceSize();
         uint8_t midiChannel = _sequencer.getSelectedSequenceMidiChannel();
-        _notesRecorder.startRecording(seqSize, midiChannel);
+        uint16_t currentPos = _sequencer.getSelectedSequencePosition();
+        _notesRecorder.startRecording(seqSize, midiChannel, currentPos);
     } else {
         _notesRecorder.stopRecording();
         recorderDumpToSequence();
@@ -198,14 +199,42 @@ void BuitDevicesManager::recorderNoteOff(uint8_t note) {
 }
 
 void BuitDevicesManager::recorderAdvanceTick() {
-    if (!_notesRecorder.isRecording()) return;
+    // Advance tick if recording OR waiting to start
+    if (!_notesRecorder.isRecording() && !_notesRecorder.isWaiting()) return;
+    
     _notesRecorder.advanceTick();
-    if (_notesRecorder.isEndOfSequence()) {
+    
+    // Check for end of one-shot recording
+    if (_notesRecorder.isRecording() && _notesRecorder.isEndOfSequence()) {
         _notesRecorder.stopRecording();
-        recorderDumpToSequence();
-        uint16_t seqSize = _sequencer.getSelectedSequenceSize();
-        uint8_t midiChannel = _sequencer.getSelectedSequenceMidiChannel();
-        _notesRecorder.startRecording(seqSize, midiChannel);
+        
+        // Only dump if we actually recorded something
+        auto notes = _notesRecorder.dumpRecordedSequence();
+        if (!notes.empty()) {
+            // Apply to sequence
+            RTPScene* scene = _sequencer.getScene(_sequencer.getSelectScene());
+            if (scene) {
+                RTPEventNoteSequence* seq = scene->getSequence(_sequencer.getSelectedSequence());
+                if (seq) {
+                    uint16_t seqSize = _notesRecorder.getSequenceLength();
+                    seq->clearSequence();
+                    seq->resizeSequence(seqSize);
+                    for (auto& note : notes) {
+                        uint16_t pos = note.getEventRead();
+                        if (pos < seqSize) {
+                            seq->editNoteInSequence(pos, note.getEventNote(), note.getEventVelocity(),
+                                                    note.getLength(), note.isLiteralPitch());
+                            seq->editNoteInSequence(pos, true);
+                        }
+                    }
+                }
+            }
+        }
+        // else: empty recording, don't overwrite existing pattern
+        
+        // Turn off recording mode and update display
+        _sequencer.toggleSelectedSequenceRecording();
+        showSequence();
     }
 }
 

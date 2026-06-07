@@ -29,8 +29,14 @@ class NotesRecorder {
     // Quantization grid resolution (in ticks)
     uint8_t _quantizeGrid;
     
+    // Quantization strength 0-100 (snap window as % of grid)
+    uint8_t _quantizeStrength;
+    
     // Flag to indicate if recording is active
     bool _isRecording;
+    
+    // Flag to indicate we're waiting to start at position 0
+    bool _waitingToStart;
     
     // Current sequence length in ticks
     uint16_t _sequenceLength;
@@ -39,9 +45,12 @@ public:
     NotesRecorder();
     
     // Start/stop recording
-    void startRecording(uint16_t sequenceLength, uint8_t midiChannel);
+    // startPosition: where we are in the sequence when REC is pressed
+    // If not at 0, recording waits until next loop start
+    void startRecording(uint16_t sequenceLength, uint8_t midiChannel, uint16_t startPosition = 0);
     void stopRecording();
     bool isRecording() const;
+    bool isWaiting() const;  // Armed but waiting for position 0
     uint8_t getCurrentChannel() const;
     
     // Drum mode settings
@@ -65,6 +74,8 @@ public:
     // Quantization settings
     void setQuantizeGrid(uint8_t grid);
     uint8_t getQuantizeGrid() const;
+    void setQuantizeStrength(uint8_t strength); // 0-100, 0=strict(truncate), 50=nearest(default), 100=max forgiveness
+    uint8_t getQuantizeStrength() const;
     
     // Get quantized position for a tick
     uint16_t quantizeTick(uint32_t tick) const;
@@ -78,6 +89,7 @@ public:
     
     // End of sequence handling
     bool isEndOfSequence() const;
+    bool isStartOfSequence() const;  // True at position 0
     vector<RTPEventNotePlus> dumpRecordedSequence();
     
     // Drum mode sequence mapping

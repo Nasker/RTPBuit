@@ -11,6 +11,9 @@ void PolySequence::setTypeSpecificColor(){
 }
 
 void PolySequence::playCurrentEventNote(){
+    // Mute sequence playback during recording - only monitor input
+    if(isRecording()) return;
+    
     pointIterator(_currentPosition);
     it->setMidiChannel(getMidiChannel());
     if(isCurrentSequenceEnabled() && it->eventState()){
