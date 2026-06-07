@@ -22,4 +22,19 @@ class RTPNeoTrellis{
     void writeSequenceSettingsPage(SequenceSettings sequenceSettings);
     void writeTransportPage(int color);
     void moveCursor(int cursorPos);
+    
+    // Individual button control for transport state
+    void setButtonColor(int buttonIndex, uint32_t color);
+    void clearButton(int buttonIndex);
+    void clearAllButtons();
+    void show();
+    
+    // Color helpers
+    static uint32_t colorGreen();
+    static uint32_t colorRed();
+    static uint32_t colorYellow();
+    static uint32_t colorBlue();
+    static uint32_t colorWhite();
+    static uint32_t colorOff();
+    static uint32_t colorDim(uint32_t color, uint8_t brightness);
 };

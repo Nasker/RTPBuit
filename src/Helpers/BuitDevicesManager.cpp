@@ -39,7 +39,47 @@ void BuitDevicesManager::writeSceneToNeoTrellis(RTPSequencesState sequencesState
 }
 
 void BuitDevicesManager::writeTransportPage(){
-    _neoTrellis.writeTransportPage(TRANSPORT_COLOR);
+    // Light up transport control buttons on trellis
+    // Layout: [Play][Stop][Rec][Tap][Mode] on first row
+    // Colors: Play=Green, Stop=Blue, Rec=Red, Tap=Yellow, Mode=White
+    _neoTrellis.clearAllButtons();
+    
+    // Play button (0) - Green if playing, dim green if stopped
+    if (_sequencer.isPlaying()) {
+        _neoTrellis.setButtonColor(0, _neoTrellis.colorGreen());
+    } else {
+        _neoTrellis.setButtonColor(0, _neoTrellis.colorDim(_neoTrellis.colorGreen(), 128));
+    }
+    
+    // Stop button (1) - Blue when stopped, dim when playing
+    if (!_sequencer.isPlaying()) {
+        _neoTrellis.setButtonColor(1, _neoTrellis.colorBlue());
+    } else {
+        _neoTrellis.setButtonColor(1, _neoTrellis.colorDim(_neoTrellis.colorBlue(), 128));
+    }
+    
+    // Rec button (2) - Red when recording, yellow when waiting
+    if (isSelectedSequenceRecording()) {
+        if (isSelectedSequenceWaiting()) {
+            _neoTrellis.setButtonColor(2, _neoTrellis.colorYellow()); // Waiting
+        } else {
+            _neoTrellis.setButtonColor(2, _neoTrellis.colorRed()); // Recording
+        }
+    } else {
+        _neoTrellis.setButtonColor(2, _neoTrellis.colorDim(_neoTrellis.colorRed(), 64));
+    }
+    
+    // Tap button (3) - Yellow
+    _neoTrellis.setButtonColor(3, _neoTrellis.colorYellow());
+    
+    // Mode button (4) - White for internal, dim white for external
+    if (getSyncMode() == rtp::SyncMode::Internal) {
+        _neoTrellis.setButtonColor(4, _neoTrellis.colorWhite());
+    } else {
+        _neoTrellis.setButtonColor(4, _neoTrellis.colorDim(_neoTrellis.colorWhite(), 128));
+    }
+    
+    _neoTrellis.show();
 }
 
 void BuitDevicesManager::editScene(ControlCommand command){
@@ -153,7 +193,21 @@ void BuitDevicesManager::showSequence(){
 }
 
 void BuitDevicesManager::presentTransport(){
-    printToScreen("Transport", "", "");
+    String modeStr = (getSyncMode() == rtp::SyncMode::Internal) ? "INT" : "EXT";
+    String playState = _sequencer.isPlaying() ? "Playing" : "Stopped";
+    String bpmStr = (getSyncMode() == rtp::SyncMode::Internal) ? String(getCurrentBPM(), 0) + " BPM" : "";
+    
+    SequenceDisplayState state = _sequencer.isPlaying() ? SequenceDisplayState::Playing : SequenceDisplayState::Stopped;
+    
+    _oled.printToScreen(
+        "Transport",
+        playState + "  " + modeStr,
+        bpmStr,
+        "Scene " + String(_sequencer.getSelectScene() + 1),
+        state,
+        false
+    );
+    
     writeTransportPage();
 }
 
@@ -308,4 +362,72 @@ void BuitDevicesManager::loadSequencer(const String& fileName){
     else
         printToScreen("Failed to load", fileName, "");
 }
-    
+
+// Transport control methods
+bool BuitDevicesManager::isInternalClock() const {
+    return _clockGenerator && _clockGenerator->getMode() == rtp::SyncMode::Internal;
+}
+
+void BuitDevicesManager::transportPlay() {
+    if (!_clockGenerator) return;
+    _clockGenerator->start();
+}
+
+void BuitDevicesManager::transportStop() {
+    if (!_clockGenerator) return;
+    _clockGenerator->stop();
+}
+
+void BuitDevicesManager::transportTapTempo() {
+    if (!_clockGenerator) return;
+    _clockGenerator->tapTempo();
+}
+
+void BuitDevicesManager::transportToggleMode() {
+    if (!_clockGenerator) return;
+    _clockGenerator->toggleMode();
+}
+
+void BuitDevicesManager::transportIncrementBPM(float delta) {
+    if (!_clockGenerator) return;
+    _clockGenerator->incrementBPM(delta);
+}
+
+float BuitDevicesManager::getCurrentBPM() const {
+    if (!_clockGenerator) return 120.0f;
+    return _clockGenerator->getBPM();
+}
+
+SyncMode BuitDevicesManager::getSyncMode() const {
+    if (!_clockGenerator) return rtp::SyncMode::External;
+    return _clockGenerator->getMode();
+}
+
+void BuitDevicesManager::transportSetBPM(float bpm) {
+    if (!_clockGenerator) return;
+    _clockGenerator->setBPM(bpm);
+}
+
+void BuitDevicesManager::incrementSwing(int delta) {
+    _swingAmount += delta;
+    if (_swingAmount < 0) _swingAmount = 0;
+    if (_swingAmount > 100) _swingAmount = 100;
+}
+
+void BuitDevicesManager::setQuantizeStrength(int strength) {
+    _quantizeStrength = strength;
+    if (_quantizeStrength < 0) _quantizeStrength = 0;
+    if (_quantizeStrength > 100) _quantizeStrength = 100;
+    _notesRecorder.setQuantizeStrength(_quantizeStrength);
+}
+
+void BuitDevicesManager::incrementQuantizeStrength(int delta) {
+    setQuantizeStrength(_quantizeStrength + delta);
+}
+
+void BuitDevicesManager::incrementMasterVolume(int delta) {
+    _masterVolume += delta;
+    if (_masterVolume < 0) _masterVolume = 0;
+    if (_masterVolume > 100) _masterVolume = 100;
+    // Future: apply master volume to all output
+}

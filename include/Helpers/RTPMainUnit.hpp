@@ -11,6 +11,7 @@
 #include "RTPSequencer.h"
 #include "RTPSequencerManager.hpp"
 #include "MusicManager.hpp"
+#include "Helpers/RTPClockGenerator.hpp"
 #include "constants.h"
   
 class RTPMainUnit{
@@ -22,6 +23,7 @@ class RTPMainUnit{
   BuitDevicesManager devicesManager{rtpTrellis, Sequencer};
   StateMachineManager stateMachineManager{devicesManager};
   RTPSequencerManager SequencerManager{Sequencer};
+  RTPClockGenerator clockGenerator;
   
 public:
   RTPMainUnit();
@@ -29,6 +31,7 @@ public:
   void update();
   void updatePeriodically();
   void linkToSequencerManager(uint8_t realtimebyte);
+  void updateClockGenerator();  // Call from main loop
   void actOnThreeAxisCallback(String callbackString, int rangeValue);
   void actOnControlsCallback(ControlCommand answer);
   void actOnSequencerCallback(ControlCommand answer);

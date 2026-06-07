@@ -10,6 +10,7 @@
 #include "RTPSDManager.hpp"
 #include "BuitPersistenceManager.hpp"
 #include "Helpers/NotesRecorder.hpp"
+#include "Helpers/RTPClockGenerator.hpp"
 
 
 class BuitDevicesManager {
@@ -19,6 +20,7 @@ class BuitDevicesManager {
     BuitPersistenceManager _persistenceManager;
     MatrixBuitControlChanger _matrixBuitCC;
     NotesRecorder _notesRecorder;
+    RTPClockGenerator* _clockGenerator = nullptr;  // Set by RTPMainUnit after creation
 
 public:
     BuitDevicesManager(RTPNeoTrellis& neoTrellis, RTPSequencer& sequencer);
@@ -66,8 +68,40 @@ public:
 
     void saveSequencer(const String& fileName);
     void loadSequencer(const String& fileName);
+
+    // Sequencer access
+    RTPSequencer& getSequencer() { return _sequencer; }
+
+    // Clock generator access (set by RTPMainUnit)
+    void setClockGenerator(RTPClockGenerator& clockGenerator) { _clockGenerator = &clockGenerator; }
+    
+    // Transport control (delegate to clock generator if available)
+    bool isInternalClock() const;
+    void transportPlay();
+    void transportStop();
+    void transportTapTempo();
+    void transportToggleMode();
+    void transportIncrementBPM(float delta);
+    void transportSetBPM(float bpm);
+    float getCurrentBPM() const;
+    SyncMode getSyncMode() const;
+    
+    // Parameter adjustments for transport rotary control
+    void incrementSwing(int delta);
+    void setQuantizeStrength(int strength);
+    void incrementQuantizeStrength(int delta);
+    void incrementMasterVolume(int delta);
+    
+    // Get current parameter values for display
+    int getSwing() const { return _swingAmount; }
+    int getQuantizeStrength() const { return _quantizeStrength; }
+    int getMasterVolume() const { return _masterVolume; }
+    
 private:
     uint8_t _displayBlinkCounter = 0; // For blinking waiting indicator
+    int _swingAmount = 0;               // 0-100%
+    int _quantizeStrength = 50;         // 0-100%
+    int _masterVolume = 100;            // 0-100%
     void writeSequenceToNeoTrellis(RTPSequenceNoteStates sequenceStates, int color);
     void writeSceneToNeoTrellis(RTPSequencesState sequencesState);
     void writeTransportPage();

@@ -40,6 +40,10 @@
 #define TRANSPORT_START 1
 #define TRANSPORT_STOP 2
 
+// Rotary encoder command values
+#define ROTATING_RIGHT 1
+#define ROTATING_LEFT 2
+
 #define SENSOR_1_PIN 2
 #define SENSOR_2_PIN 3
 #define SENSOR_3_PIN 4

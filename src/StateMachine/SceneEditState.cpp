@@ -16,7 +16,7 @@ void SceneEditState::singleClick() {
 void SceneEditState::doubleClick() {
   Serial.println("Going to Transport");
   _buitMachine.setState(_buitMachine.getTransportState());
-  _devices.presentBuitCC();
+  _devices.presentTransport();
 }
 
 void SceneEditState::tripleClick() {

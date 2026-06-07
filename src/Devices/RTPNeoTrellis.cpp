@@ -102,3 +102,64 @@ void RTPNeoTrellis::moveCursor(int cursorPos){
   myTrellis.pixels.setPixelColor(convertMatrix[cursorPos], CURSOR_COLOR);
   myTrellis.pixels.show();
 }
+
+// Individual button control for transport state
+void RTPNeoTrellis::setButtonColor(int buttonIndex, uint32_t color){
+  if(buttonIndex >= 0 && buttonIndex < NEO_TRELLIS_NUM_KEYS){
+    myTrellis.pixels.setPixelColor(convertMatrix[buttonIndex], color);
+  }
+}
+
+void RTPNeoTrellis::clearButton(int buttonIndex){
+  if(buttonIndex >= 0 && buttonIndex < NEO_TRELLIS_NUM_KEYS){
+    myTrellis.pixels.setPixelColor(convertMatrix[buttonIndex], 0);
+  }
+}
+
+void RTPNeoTrellis::clearAllButtons(){
+  for(int i=0; i<NEO_TRELLIS_NUM_KEYS; i++){
+    myTrellis.pixels.setPixelColor(i, 0);
+  }
+}
+
+void RTPNeoTrellis::show(){
+  myTrellis.pixels.show();
+}
+
+// Color helpers - using NeoPixel color format (GRB)
+uint32_t RTPNeoTrellis::colorGreen(){
+  return myTrellis.pixels.Color(0, 255, 0);  // GRB format
+}
+
+uint32_t RTPNeoTrellis::colorRed(){
+  return myTrellis.pixels.Color(255, 0, 0);  // GRB format
+}
+
+uint32_t RTPNeoTrellis::colorYellow(){
+  return myTrellis.pixels.Color(255, 255, 0);  // GRB format
+}
+
+uint32_t RTPNeoTrellis::colorBlue(){
+  return myTrellis.pixels.Color(0, 0, 255);  // GRB format
+}
+
+uint32_t RTPNeoTrellis::colorWhite(){
+  return myTrellis.pixels.Color(255, 255, 255);  // GRB format
+}
+
+uint32_t RTPNeoTrellis::colorOff(){
+  return 0;
+}
+
+uint32_t RTPNeoTrellis::colorDim(uint32_t color, uint8_t brightness){
+  // brightness is 0-255
+  uint8_t r = (uint8_t)(color >> 16) & 0xFF;
+  uint8_t g = (uint8_t)(color >> 8) & 0xFF;
+  uint8_t b = (uint8_t)color & 0xFF;
+  
+  r = (r * brightness) / 255;
+  g = (g * brightness) / 255;
+  b = (b * brightness) / 255;
+  
+  return myTrellis.pixels.Color(r, g, b);
+}
