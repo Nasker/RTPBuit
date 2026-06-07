@@ -19,6 +19,7 @@ RTPSequencer::~RTPSequencer() {
 }
 
 void RTPSequencer::playAndMoveSequencer() {
+    _isPlaying = true;
     for (size_t i = 0; i < Sequencer.size(); i++) { 
         Sequencer[i]->playScene();
         _notesPlayer.playNotes();
@@ -28,13 +29,19 @@ void RTPSequencer::playAndMoveSequencer() {
 }
 
 void RTPSequencer::stopAndCleanSequencer() {
+    _isPlaying = false;
     for (size_t i = 0; i < Sequencer.size(); i++)
         Sequencer[i]->resetScene();
     _notesPlayer.killAllNotes();
 }
 
 void RTPSequencer::pauseSequencer() {
+    _isPlaying = false;
     _notesPlayer.killAllNotes();
+}
+
+bool RTPSequencer::isPlaying() const {
+    return _isPlaying;
 }
 
 uint16_t RTPSequencer::getSelectedSequencePosition() {

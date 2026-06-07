@@ -55,6 +55,8 @@ public:
 
     int getSelectedSequenceMidichannel();
     bool isSelectedSequenceRecording();
+    bool isSelectedSequenceWaiting();
+    SequenceDisplayState getSequenceDisplayState();
     void toggleSelectedSequenceRecording();
 
     void recorderNoteOn(uint8_t note, uint8_t velocity);
@@ -65,6 +67,7 @@ public:
     void saveSequencer(const String& fileName);
     void loadSequencer(const String& fileName);
 private:
+    uint8_t _displayBlinkCounter = 0; // For blinking waiting indicator
     void writeSequenceToNeoTrellis(RTPSequenceNoteStates sequenceStates, int color);
     void writeSceneToNeoTrellis(RTPSequencesState sequencesState);
     void writeTransportPage();

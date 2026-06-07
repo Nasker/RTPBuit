@@ -15,9 +15,17 @@ void RTPSequencerManager::begin(RTPMainUnit* _mainUnit){
 
 void RTPSequencerManager::handleRealTimeSystem(uint8_t realtimebyte){
 	switch (realtimebyte) {
+        case START:
+        case CONTINUE:
+            _sequencer.playAndMoveSequencer(); // Initialize playback immediately
+            // Notify UI that transport has started
+            sendTransportCallback(TRANSPORT_START);
+            break;
         case STOP:
             _sequencer.stopAndCleanSequencer();
             resetCounter();
+            // Notify UI that transport has stopped
+            sendTransportCallback(TRANSPORT_STOP);
             break;
         case CLOCK:
             gridClockUp(realtimebyte);
@@ -26,6 +34,14 @@ void RTPSequencerManager::handleRealTimeSystem(uint8_t realtimebyte){
             // Serial.printf("RealTimeSystem: %d\n", realtimebyte);
             break;
 	}
+}
+
+void RTPSequencerManager::sendTransportCallback(uint8_t transportCommand){
+    ControlCommand callbackCommand;
+    callbackCommand.controlType = SEQUENCER;
+    callbackCommand.commandType = transportCommand;
+    callbackCommand.value = 0;
+    mainUnit->actOnSequencerCallback(callbackCommand);
 }
 
 void RTPSequencerManager::gridClockUp(uint8_t realtimebyte){

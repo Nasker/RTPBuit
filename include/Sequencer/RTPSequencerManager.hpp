@@ -22,6 +22,7 @@ public:
     int getNearestStepPosition();
 private:
     void gridClockUp(uint8_t realtimebyte);
+    void sendTransportCallback(uint8_t transportCommand);
     void increaseCounter();
     void resetCounter();
 };

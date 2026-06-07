@@ -102,7 +102,17 @@ void BuitDevicesManager::rotateParameter(ControlCommand command){
 }
 
 void BuitDevicesManager::presentScene(){
-    printToScreen("Scene",_sequencer.getSelectScene(),"");
+    // Determine scene display state based on sequencer playing status
+    SequenceDisplayState state = _sequencer.isPlaying() ? SequenceDisplayState::Playing : SequenceDisplayState::Stopped;
+    
+    _oled.printToScreen(
+        "Scene",
+        "Scene " + String(_sequencer.getSelectScene() + 1),
+        "",
+        "",
+        state,
+        false  // No blink needed for play/stop
+    );
     writeSceneToNeoTrellis(_sequencer.getSequencesState());
 }
 
@@ -122,13 +132,21 @@ void BuitDevicesManager::showSequence(){
     int currentPage = _sequencer.getSelectedSequencePage() + 1; // +1 for 1-based display
     int totalPages = 4; // Assuming 4 pages total
     
-    // Use the new four-line display method with recording status
+    // Determine display state
+    SequenceDisplayState state = getSequenceDisplayState();
+    
+    // Update blink counter for waiting state (toggle every 8 calls ~ 133ms at 60fps)
+    _displayBlinkCounter++;
+    bool blinkState = (_displayBlinkCounter / 8) % 2 == 0;
+    
+    // Use the state-based display method
     _oled.printToScreen(
         sequenceType,
         "Sequence "+ String(_sequencer.getSelectedSequence()+1),
         "Page "+ String(currentPage) + " of " + String(totalPages),
         "Ch " + String(midiChannel),
-        _sequencer.isSelectedSequenceRecording() // Pass recording status
+        state,
+        blinkState
     );
     
     writeSequenceToNeoTrellis(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor()); 
@@ -172,6 +190,23 @@ int BuitDevicesManager::getSelectedSequenceMidichannel(){
 
 bool BuitDevicesManager::isSelectedSequenceRecording(){
     return _sequencer.isSelectedSequenceRecording();
+}
+
+bool BuitDevicesManager::isSelectedSequenceWaiting(){
+    return _notesRecorder.isWaiting();
+}
+
+SequenceDisplayState BuitDevicesManager::getSequenceDisplayState(){
+    if (_notesRecorder.isRecording()) {
+        return SequenceDisplayState::Recording;
+    } else if (_notesRecorder.isWaiting()) {
+        return SequenceDisplayState::Waiting;
+    } else if (_sequencer.isSelectedSequenceRecording()) {
+        // Sequencer thinks it's recording but recorder is not yet active (shouldn't happen, but handle it)
+        return SequenceDisplayState::Waiting;
+    } else {
+        return SequenceDisplayState::Playing;
+    }
 }
 
 void BuitDevicesManager::toggleSelectedSequenceRecording(){

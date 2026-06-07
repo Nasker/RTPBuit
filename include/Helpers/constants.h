@@ -37,6 +37,8 @@
 #define ROT_RIGHT_PIN 12
 
 #define GRID_TICK 0
+#define TRANSPORT_START 1
+#define TRANSPORT_STOP 2
 
 #define SENSOR_1_PIN 2
 #define SENSOR_2_PIN 3

@@ -1,6 +1,7 @@
 #include "Arduino.h"
 
 #include "SceneEditState.h"
+#include "constants.h"
 
 SceneEditState::SceneEditState (BuitStateMachine& buitMachine, BuitDevicesManager& devices) : BuitState(devices), _buitMachine(buitMachine) {
   Serial.println("SceneEditState");
@@ -44,7 +45,10 @@ void SceneEditState::trellisReleased(ControlCommand command) {
 }
 
 void SceneEditState::sequencerCallback(ControlCommand command) {
-  //Serial.println("Does nothing here!");
+  // Handle transport state changes to update display
+  if (command.commandType == TRANSPORT_START || command.commandType == TRANSPORT_STOP) {
+    _devices.presentScene();
+  }
 }
 
 void SceneEditState::midiNote(ControlCommand command) {
