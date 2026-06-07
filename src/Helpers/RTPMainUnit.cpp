@@ -32,20 +32,21 @@ void RTPMainUnit::actOnControlsCallback(ControlCommand callbackCommand){
 
 void RTPMainUnit::actOnSequencerCallback(ControlCommand callbackCommand){
   //Serial.printf("Seq Callback  TYPE: %d  VALUE: %d\n", callbackCommand.commandType, callbackCommand.value);
+  devicesManager.recorderAdvanceTick();
   stateMachineManager.handleActions(callbackCommand);
 }
 
-void RTPMainUnit::linkToSequencerManager(byte realtimebyte){
+void RTPMainUnit::linkToSequencerManager(uint8_t realtimebyte){
   SequencerManager.handleRealTimeSystem(realtimebyte);
 }
 
-void RTPMainUnit::routeControlChange(byte channel, byte control, byte value) {
+void RTPMainUnit::routeControlChange(uint8_t channel, uint8_t control, uint8_t value) {
   musicManager.setCurrentHarmony(channel, control, value);
   ControlCommand command = ControlCommand{MIDI_CC, control, value};
   stateMachineManager.handleActions(command);
 }
 
-void RTPMainUnit::routeNoteOnOff(byte channel, byte note, byte velocity){
+void RTPMainUnit::routeNoteOnOff(uint8_t channel, uint8_t note, uint8_t velocity){
   // Create a control command with different control types for note-on and note-off
   // For note-on: controlType = MIDI_NOTE (7)
   // For note-off: controlType = MIDI_NOTE + 100 (107)

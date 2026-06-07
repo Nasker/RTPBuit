@@ -66,6 +66,7 @@ public:
 	bool getNoteStateInSequence(size_t position);
 	uint8_t getNoteVelocityInSequence(size_t position);
 	void editNoteInSequence(size_t position, uint8_t note, uint8_t velocity);
+	void editNoteInSequence(size_t position, uint8_t note, uint8_t velocity, uint8_t length, bool literalPitch);
 	virtual void editNoteInCurrentPosition(ControlCommand command) = 0;
 	void resizeSequence(size_t newSize);
 	void selectParameter(uint8_t parameterIndex);

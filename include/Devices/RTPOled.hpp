@@ -4,6 +4,7 @@
 #include <Wire.h>
 #include <U8g2lib.h>
 #include "ControlCommand.h"
+#include "Structs.h"
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -21,6 +22,7 @@ public:
     void introAnimation(int &x, String text);
     void printToScreen(String firstLine, String secondLine, String thirdLine);
     void printToScreen(String firstLine, String secondLine, String thirdLine, String fourthLine, bool isRecording = false);
+    void printToScreen(String firstLine, String secondLine, String thirdLine, String fourthLine, SequenceDisplayState state, bool blinkState = false);
     void printToScreen(ControlCommand command);
 private:
     u8g2_int_t calcOffsetToCenterText(String textLine);

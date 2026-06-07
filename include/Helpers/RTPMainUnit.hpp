@@ -28,10 +28,10 @@ public:
   void begin();
   void update();
   void updatePeriodically();
-  void linkToSequencerManager(byte realtimebyte);
+  void linkToSequencerManager(uint8_t realtimebyte);
   void actOnThreeAxisCallback(String callbackString, int rangeValue);
   void actOnControlsCallback(ControlCommand answer);
   void actOnSequencerCallback(ControlCommand answer);
-  void routeControlChange(byte channel, byte control, byte value);
-  void routeNoteOnOff(byte channel, byte note, byte velocity);
+  void routeControlChange(uint8_t channel, uint8_t control, uint8_t value);
+  void routeNoteOnOff(uint8_t channel, uint8_t note, uint8_t velocity);
 };

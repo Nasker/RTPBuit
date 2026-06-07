@@ -14,6 +14,7 @@ class RTPSequencer{
   uint8_t _selectedScene;
   NotesPlayer _notesPlayer;
   MusicManager& _musicManager;
+  bool _isPlaying = false;
 
 public:
   RTPSequencer(uint8_t NScenes, MusicManager& musicManager);
@@ -21,6 +22,7 @@ public:
   void playAndMoveSequencer();
   void stopAndCleanSequencer();
   void pauseSequencer();
+  bool isPlaying() const;
   uint16_t getSelectedSequencePosition();
   uint16_t getSelectedSequencePageOffset();
   uint8_t getSelectedSequencePage();

@@ -175,6 +175,17 @@ void RTPEventNoteSequence::editNoteInSequence(size_t position, uint8_t note, uin
   }
 }
 
+void RTPEventNoteSequence::editNoteInSequence(size_t position, uint8_t note, uint8_t velocity, uint8_t length, bool literalPitch){
+  position = position + pageOffset();
+  if(position < EventNoteSequence.size()){
+    pointIterator(position);
+    it->setEventNote(note);
+    it->setEventVelocity(velocity);
+    it->setLength(length);
+    it->setLiteralPitch(literalPitch);
+  }
+}
+
 void RTPEventNoteSequence::resizeSequence(size_t newSize){
   if(newSize > EventNoteSequence.size()){
     for(size_t i=EventNoteSequence.size(); i < newSize; i++){

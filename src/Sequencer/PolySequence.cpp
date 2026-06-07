@@ -11,15 +11,22 @@ void PolySequence::setTypeSpecificColor(){
 }
 
 void PolySequence::playCurrentEventNote(){
+    // Mute sequence playback during recording - only monitor input
+    if(isRecording()) return;
+    
     pointIterator(_currentPosition);
     it->setMidiChannel(getMidiChannel());
     if(isCurrentSequenceEnabled() && it->eventState()){
-        _musicManager.setCurrentSteps(it->getEventRead(), POLY_SYNTH);
-        auto chordNotes = _musicManager.getCurrentChordNotes();
-        while(!chordNotes.empty()){
-            it->setEventNote(chordNotes.front());
+        if(it->isLiteralPitch()){
             _notesPlayer.queueNote(*it);
-            chordNotes.pop();
+        } else {
+            _musicManager.setCurrentSteps(it->getEventRead(), POLY_SYNTH);
+            auto chordNotes = _musicManager.getCurrentChordNotes();
+            while(!chordNotes.empty()){
+                it->setEventNote(chordNotes.front());
+                _notesPlayer.queueNote(*it);
+                chordNotes.pop();
+            }
         }
     }
 }

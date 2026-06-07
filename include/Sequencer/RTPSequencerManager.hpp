@@ -13,15 +13,16 @@ class RTPMainUnit;
 class RTPSequencerManager{
     static RTPMainUnit* mainUnit;
     RTPSequencer& _sequencer;
-    byte counter;
+    uint8_t counter;
 public:
     RTPSequencerManager(RTPSequencer& sequencer);
     void begin(RTPMainUnit* _mainUnit);
-    void handleRealTimeSystem(byte realtimebyte);
-    byte getCurrentCounter() { return counter; }
+    void handleRealTimeSystem(uint8_t realtimebyte);
+    uint8_t getCurrentCounter() { return counter; }
     int getNearestStepPosition();
 private:
-    void gridClockUp(byte realtimebyte);
+    void gridClockUp(uint8_t realtimebyte);
+    void sendTransportCallback(uint8_t transportCommand);
     void increaseCounter();
     void resetCounter();
 };

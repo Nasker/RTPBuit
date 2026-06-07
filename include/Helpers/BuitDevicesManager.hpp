@@ -9,6 +9,7 @@
 #include "RTPTypeColors.h"
 #include "RTPSDManager.hpp"
 #include "BuitPersistenceManager.hpp"
+#include "Helpers/NotesRecorder.hpp"
 
 
 class BuitDevicesManager {
@@ -17,6 +18,7 @@ class BuitDevicesManager {
     RTPSequencer& _sequencer;
     BuitPersistenceManager _persistenceManager;
     MatrixBuitControlChanger _matrixBuitCC;
+    NotesRecorder _notesRecorder;
 
 public:
     BuitDevicesManager(RTPNeoTrellis& neoTrellis, RTPSequencer& sequencer);
@@ -48,17 +50,24 @@ public:
     void selectParameter(ControlCommand command);
     void rotateParameter(ControlCommand command);
 
-    void editCurrentNote(ControlCommand command);
     void editBuitCC(ControlCommand command);
     void sendBuitCC(ControlCommand command);
 
     int getSelectedSequenceMidichannel();
     bool isSelectedSequenceRecording();
+    bool isSelectedSequenceWaiting();
+    SequenceDisplayState getSequenceDisplayState();
     void toggleSelectedSequenceRecording();
+
+    void recorderNoteOn(uint8_t note, uint8_t velocity);
+    void recorderNoteOff(uint8_t note);
+    void recorderAdvanceTick();
+    void recorderDumpToSequence();
 
     void saveSequencer(const String& fileName);
     void loadSequencer(const String& fileName);
 private:
+    uint8_t _displayBlinkCounter = 0; // For blinking waiting indicator
     void writeSequenceToNeoTrellis(RTPSequenceNoteStates sequenceStates, int color);
     void writeSceneToNeoTrellis(RTPSequencesState sequencesState);
     void writeTransportPage();

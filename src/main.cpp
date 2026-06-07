@@ -14,20 +14,20 @@ void actOnPeriodicUpdate(String callbackString){
   mUnit.updatePeriodically();
 }
 
-void linkToSequencerManager(byte realtimebyte){
+void linkToSequencerManager(uint8_t realtimebyte){
   mUnit.linkToSequencerManager(realtimebyte);
 }
 
-void routeControlChange(byte channel, byte control, byte value){
+void routeControlChange(uint8_t channel, uint8_t control, uint8_t value){
   mUnit.routeControlChange(channel, control, value);
 }
 
-void routeNoteOn(byte channel, byte note, byte velocity) {
+void routeNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
   mUnit.routeNoteOnOff(channel, note, velocity);
   //usbMIDI.sendNoteOn(note, velocity, channel);
 }
 
-void routeNoteOff(byte channel, byte note, byte velocity) {
+void routeNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
   mUnit.routeNoteOnOff(channel, note, 0);
   //usbMIDI.sendNoteOff(note, velocity, channel);
 }

@@ -21,7 +21,7 @@ class MusicManager{
     RTPSmartRange polyRange{POLY_OCTAVES, 7, N_MIDI_NOTES};
 public:
     MusicManager();
-    void setCurrentHarmony(byte channel, byte control, byte value);
+    void setCurrentHarmony(uint8_t channel, uint8_t control, uint8_t value);
     void setCurrentSteps(int rangeReading, int type);
     int getCurrentChordNote();
     queue<int> getCurrentChordNotes();
