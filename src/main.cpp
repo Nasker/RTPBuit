@@ -54,7 +54,6 @@ void setup() {
 void loop() {
   usbMIDI.read();
   mUnit.update();
-  mUnit.updateClockGenerator();  // Process internal clock when in internal mode
   myusb.Task();
 	midi1.read();
   

@@ -31,7 +31,6 @@ public:
   void update();
   void updatePeriodically();
   void linkToSequencerManager(uint8_t realtimebyte);
-  void updateClockGenerator();  // Call from main loop
   void actOnThreeAxisCallback(String callbackString, int rangeValue);
   void actOnControlsCallback(ControlCommand answer);
   void actOnSequencerCallback(ControlCommand answer);

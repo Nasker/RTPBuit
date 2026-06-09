@@ -13,25 +13,50 @@ void RTPSequencerManager::begin(RTPMainUnit* _mainUnit){
 }
 
 
+void RTPSequencerManager::update(){
+    if (!_clockGenerator || _clockGenerator->getMode() != rtp::SyncMode::Internal) return;
+
+    if (_clockGenerator->update()) {
+        dispatchRealTime(MIDI_RT_CLOCK);
+        _clockGenerator->clearPendingClock();
+    }
+
+    if (_clockGenerator->shouldSendStart()) {
+        dispatchRealTime(MIDI_RT_START);
+        _clockGenerator->clearPendingStart();
+        dispatchRealTime(MIDI_RT_CLOCK);  // Immediate clock - eliminates first-step delay
+    }
+
+    if (_clockGenerator->shouldSendStop()) {
+        dispatchRealTime(MIDI_RT_STOP);
+        _clockGenerator->clearPendingStop();
+    }
+}
+
+void RTPSequencerManager::dispatchRealTime(uint8_t realtimebyte){
+    handleRealTimeSystem(realtimebyte);
+    if (_clockGenerator && _clockGenerator->isSendingMidiRealtime()) {
+        usbMIDI.sendRealTime(realtimebyte);
+        Serial1.write(realtimebyte);
+    }
+}
+
 void RTPSequencerManager::handleRealTimeSystem(uint8_t realtimebyte){
 	switch (realtimebyte) {
-        case START:
-        case CONTINUE:
-            _sequencer.playAndMoveSequencer(); // Initialize playback immediately
-            // Notify UI that transport has started
+        case MIDI_RT_START:
+        case MIDI_RT_CONTINUE:
+            _sequencer.playAndMoveSequencer();
             sendTransportCallback(TRANSPORT_START);
             break;
-        case STOP:
+        case MIDI_RT_STOP:
             _sequencer.stopAndCleanSequencer();
             resetCounter();
-            // Notify UI that transport has stopped
             sendTransportCallback(TRANSPORT_STOP);
             break;
-        case CLOCK:
+        case MIDI_RT_CLOCK:
             gridClockUp(realtimebyte);
             break;
         default:
-            // Serial.printf("RealTimeSystem: %d\n", realtimebyte);
             break;
 	}
 }

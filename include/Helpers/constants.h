@@ -23,6 +23,12 @@
 #define ROTATING_LEFT 0
 #define ROTATING_RIGHT 1
 
+// MIDI Real-Time message bytes
+#define MIDI_RT_CLOCK    0xF8
+#define MIDI_RT_START    0xFA
+#define MIDI_RT_CONTINUE 0xFB
+#define MIDI_RT_STOP     0xFC
+
 #define PRESSED 0
 #define RELEASED 1
 
@@ -39,10 +45,6 @@
 #define GRID_TICK 0
 #define TRANSPORT_START 1
 #define TRANSPORT_STOP 2
-
-// Rotary encoder command values
-#define ROTATING_RIGHT 1
-#define ROTATING_LEFT 2
 
 #define SENSOR_1_PIN 2
 #define SENSOR_2_PIN 3
