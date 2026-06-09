@@ -4,6 +4,10 @@ BuitPersistenceManager::BuitPersistenceManager() {}
 
 BuitPersistenceManager::~BuitPersistenceManager() {}
 
+bool BuitPersistenceManager::fileExists(const String& fileName) {
+    return fileExistsOnSD(fileName);
+}
+
 String BuitPersistenceManager::sequenceToJson(const RTPEventNoteSequence* sequence) {
     String noteSeqString;
     StaticJsonDocument<4096> doc;

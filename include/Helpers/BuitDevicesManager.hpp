@@ -68,6 +68,12 @@ public:
 
     void saveSequencer(const String& fileName);
     void loadSequencer(const String& fileName);
+    bool patternFileExists(const String& fileName);
+
+    // Direct trellis access for pattern bank UI
+    void clearTrellis();
+    void setTrellisButtonColor(uint8_t index, uint32_t color);
+    void showTrellis();
 
     // Sequencer access
     RTPSequencer& getSequencer() { return _sequencer; }

@@ -363,6 +363,22 @@ void BuitDevicesManager::loadSequencer(const String& fileName){
         printToScreen("Failed to load", fileName, "");
 }
 
+bool BuitDevicesManager::patternFileExists(const String& fileName){
+    return _persistenceManager.fileExists(fileName);
+}
+
+void BuitDevicesManager::clearTrellis(){
+    _neoTrellis.clearAllButtons();
+}
+
+void BuitDevicesManager::setTrellisButtonColor(uint8_t index, uint32_t color){
+    _neoTrellis.setButtonColor(index, color);
+}
+
+void BuitDevicesManager::showTrellis(){
+    _neoTrellis.show();
+}
+
 // Transport control methods
 bool BuitDevicesManager::isInternalClock() const {
     return _clockGenerator && _clockGenerator->getMode() == rtp::SyncMode::Internal;

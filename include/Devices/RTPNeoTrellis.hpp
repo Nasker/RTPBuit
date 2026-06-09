@@ -37,4 +37,8 @@ class RTPNeoTrellis{
     static uint32_t colorWhite();
     static uint32_t colorOff();
     static uint32_t colorDim(uint32_t color, uint8_t brightness);
+    
+    // Pattern bank color helpers
+    static uint32_t colorForPage(uint8_t page);           // Hue gradient across 16 pages
+    static uint32_t colorForSlot(uint8_t page, bool exists); // Page hue, bright=exists, dim=empty
 };

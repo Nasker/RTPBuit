@@ -53,6 +53,10 @@
 #define N_NOTES 12
 #define BASE_NOTE 48
 
+// Pattern bank
+#define PATTERN_BANK_PAGES  16
+#define PATTERN_BANK_SLOTS  16
+
 #define LEFT 0
 #define CENTER 1
 #define RIGHT 2

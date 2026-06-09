@@ -8,6 +8,7 @@
 #include "SequencePianoRollState.h"
 #include "SequenceSelectState.h"
 #include "SequenceSettingsState.h"
+#include "PatternBankState.h"
 
 #include "Arduino.h"
 
@@ -22,6 +23,8 @@ BuitStateMachine::BuitStateMachine(BuitDevicesManager& outDevices){ //, LiquidSc
 	_sequencePianoRollState = new SequencePianoRollState(*this, outDevices);
 	_sequenceSelectState = new SequenceSelectState(*this, outDevices);
 	_sequenceSettingsState = new SequenceSettingsState(*this, outDevices);
+	_patternBankLoadState  = new PatternBankState(*this, outDevices, PatternBankMode::Load);
+	_patternBankSaveState  = new PatternBankState(*this, outDevices, PatternBankMode::Save);
 }
 
 void BuitStateMachine::singleClick(){
@@ -110,4 +113,12 @@ BuitState* BuitStateMachine::getSequenceSelectState(){
 
 BuitState* BuitStateMachine::getSequenceSettingsState(){
   return _sequenceSettingsState;
+}
+
+BuitState* BuitStateMachine::getPatternBankLoadState(){
+  return _patternBankLoadState;
+}
+
+BuitState* BuitStateMachine::getPatternBankSaveState(){
+  return _patternBankSaveState;
 }

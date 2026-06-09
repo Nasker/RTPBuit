@@ -163,3 +163,33 @@ uint32_t RTPNeoTrellis::colorDim(uint32_t color, uint8_t brightness){
   
   return myTrellis.pixels.Color(r, g, b);
 }
+
+// Full spectrum hue sweep: 0=red, 4=green, 8=cyan, 12=blue, 13=purple, 15=magenta
+// HSV S=255, V=180, GRB NeoPixel format
+uint32_t RTPNeoTrellis::colorForPage(uint8_t page){
+  // Full hue sweep: page 0-15 maps evenly across 0-255 (red→yellow→green→cyan→blue→purple→magenta)
+  uint8_t hue = (uint8_t)((page * 256) / 16);  // 0, 16, 32 ... 240
+  
+  // HSV to RGB (S=255, V=180)
+  uint8_t region = hue / 43;
+  uint8_t remainder = (hue - (region * 43)) * 6;
+  uint8_t q = (180 * (255 - remainder)) >> 8;
+  uint8_t t = (180 * remainder) >> 8;
+  
+  uint8_t r, g, b;
+  switch (region) {
+    case 0:  r = 180; g = t;   b = 0;   break;
+    case 1:  r = q;   g = 180; b = 0;   break;
+    case 2:  r = 0;   g = 180; b = t;   break;
+    case 3:  r = 0;   g = q;   b = 180; break;
+    case 4:  r = t;   g = 0;   b = 180; break;
+    default: r = 180; g = 0;   b = q;   break;
+  }
+  return myTrellis.pixels.Color(r, g, b);
+}
+
+// Slot color: same hue as its page, bright if file exists, very dim if empty
+uint32_t RTPNeoTrellis::colorForSlot(uint8_t page, bool exists){
+  uint32_t base = colorForPage(page);
+  return exists ? base : colorDim(base, 30);
+}

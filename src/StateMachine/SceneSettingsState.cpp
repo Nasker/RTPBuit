@@ -1,6 +1,7 @@
 #include "Arduino.h"
 
 #include "SceneSettingsState.h"
+#include "PatternBankState.h"
 
 SceneSettingsState::SceneSettingsState (BuitStateMachine& buitMachine, BuitDevicesManager& devices) : BuitState(devices), _buitMachine(buitMachine) {
   Serial.println("SceneSettingsState");
@@ -18,13 +19,15 @@ void SceneSettingsState::doubleClick() {
 }
 
 void SceneSettingsState::tripleClick() {
-  _devices.printToScreen("Load Data", "LoadingData","");
-  _devices.loadSequencer("scenes.json");
+  PatternBankState* bankState = static_cast<PatternBankState*>(_buitMachine.getPatternBankLoadState());
+  bankState->enter();
+  _buitMachine.setState(bankState);
 }
 
 void SceneSettingsState::longClick() {
-  _devices.printToScreen("Dump Data", "DumpingData","");
-  _devices.saveSequencer("scenes.json");
+  PatternBankState* bankState = static_cast<PatternBankState*>(_buitMachine.getPatternBankSaveState());
+  bankState->enter();
+  _buitMachine.setState(bankState);
 }
 
 void SceneSettingsState::rotaryTurned(ControlCommand command) {
