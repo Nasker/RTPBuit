@@ -6,7 +6,7 @@ DrumSequence::DrumSequence(int midiChannel, int NEvents, int type, int baseNote,
 }
 
 void DrumSequence::setTypeSpecificColor(){
-    setColor(DRUM_COLOR);
+    setColor(DRUM_COLOR_IDX);
 }
 
 void DrumSequence::playCurrentEventNote(){

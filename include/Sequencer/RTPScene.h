@@ -17,6 +17,7 @@ class RTPScene{
   RTPSequenceNoteStates _seqStates;
 public:
   RTPScene(String name, uint8_t NSequences, uint8_t scene, NotesPlayer& notesPlayer, MusicManager& musicManager);
+  RTPScene(String name, uint8_t NSequences, NotesPlayer& notesPlayer, MusicManager& musicManager);  // default: all MONO_SYNTH ch1
   void playScene();
   void fordwardScene();
   void backwardScene();
@@ -43,6 +44,7 @@ public:
   uint16_t getSelectedSequenceSize();
   uint8_t getSequenceType(uint8_t sequenceIndex);
   void toggleSequence(uint8_t sequenceIndex);
+  void toggleAllSequences();
   void toggleNoteInSequence(uint16_t position);
   void editNoteInCurrentPosition(ControlCommand command);
   RTPSequenceNoteStates getSequenceNoteStates();

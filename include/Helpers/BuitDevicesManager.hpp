@@ -70,6 +70,13 @@ public:
     void loadSequencer(const String& fileName);
     bool patternFileExists(const String& fileName);
 
+    // Scene management
+    void sceneAdd();
+    void sceneRemove();
+    void sceneToggleAll();
+    int  getSceneCount() const;
+    void presentSceneSettings(int8_t focusedPad = -1);
+
     // Direct trellis access for pattern bank UI
     void clearTrellis();
     void setTrellisButtonColor(uint8_t index, uint32_t color);

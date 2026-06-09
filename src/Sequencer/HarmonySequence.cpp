@@ -16,7 +16,7 @@ void HarmonySequence::fordwardSequence(){
 }
 
 void HarmonySequence::setTypeSpecificColor(){
-    setColor(HARMONY_TRACK_COLOR);
+    setColor(HARMONY_TRACK_COLOR_IDX);
 }
 
 void HarmonySequence::playCurrentEventNote(){

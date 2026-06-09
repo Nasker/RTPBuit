@@ -7,7 +7,7 @@ PolySequence::PolySequence(int midiChannel, int NEvents, int type, int baseNote,
 }
 
 void PolySequence::setTypeSpecificColor(){
-    setColor(POLY_SYNTH_COLOR);
+    setColor(POLY_SYNTH_COLOR_IDX);
 }
 
 void PolySequence::playCurrentEventNote(){

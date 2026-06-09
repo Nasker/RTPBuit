@@ -36,7 +36,9 @@ public:
   uint8_t getSelectedSequence();
   uint8_t getSelectedSequenceMidiChannel();
   String getSelectedSequenceTypeName();
-  void addScene(RTPScene* scene); // Change to pointer type
+  void addScene(RTPScene* scene);
+  void addDynamicScene();       // Add blank MONO_SYNTH scene at runtime (stopped only)
+  void removeCurrentScene();    // Remove selected scene safely (stopped, min 1 scene)
   void removeScene(uint8_t scene);
   void selectParameterInSequence(uint8_t parameterIndex);
   void incSelectParameterInSequence();
@@ -44,6 +46,7 @@ public:
   int getSelectedParameterInSequenceValue();
   String getSelectedParameterInSequenceName();
   void toggleSequence(uint8_t sequenceIndex);
+  void toggleAllSequencesInScene();
   RTPSequencesState getSequencesState();
   void selectSequence(uint8_t sequenceIndex);
   RTPSequenceNoteStates getSelectedSequenceNoteStates();
@@ -55,6 +58,6 @@ public:
   void dumpSequencesToJson();
   
   // For persistence manager
-  int getNumScenes() const { return _NScenes; }
+  int getNumScenes() const { return (int)Sequencer.size(); }
   RTPScene* getScene(int index) const { return (index >= 0 && index < Sequencer.size()) ? Sequencer[index] : nullptr; }
 };

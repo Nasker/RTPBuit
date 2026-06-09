@@ -7,7 +7,7 @@ BassSequence::BassSequence(int midiChannel, int NEvents, int type, int baseNote,
 }
 
 void BassSequence::setTypeSpecificColor(){
-    setColor(BASS_SYNTH_COLOR);
+    setColor(BASS_SYNTH_COLOR_IDX);
 }
 
 void BassSequence::playCurrentEventNote(){

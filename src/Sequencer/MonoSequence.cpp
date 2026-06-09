@@ -7,7 +7,7 @@ MonoSequence::MonoSequence(int midiChannel, int NEvents, int type, int baseNote,
 }
 
 void MonoSequence::setTypeSpecificColor(){
-    setColor(MONO_SYNTH_COLOR);
+    setColor(MONO_SYNTH_COLOR_IDX);
 }
 
 void MonoSequence::playCurrentEventNote(){

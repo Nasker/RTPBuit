@@ -6,7 +6,7 @@ ControlSequence::ControlSequence(int midiChannel, int NEvents, int type, int bas
 }
 
 void ControlSequence::setTypeSpecificColor(){
-    setColor(CONTROL_TRACK_COLOR);
+    setColor(CONTROL_TRACK_COLOR_IDX);
 }
 
 void ControlSequence::playCurrentEventNote(){

@@ -26,7 +26,7 @@ void SceneEditState::tripleClick() {
 void SceneEditState::longClick() {
   Serial.println("Going to Scene Settings!");
   _buitMachine.setState(_buitMachine.getSceneSettingsState());
-  _devices.printToScreen("Scene Settings", "","");
+  _devices.presentSceneSettings();
 }
 
 void SceneEditState::rotaryTurned(ControlCommand command) {

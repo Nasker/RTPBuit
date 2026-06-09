@@ -1,5 +1,7 @@
 #include "RTPNeoTrellis.hpp"
 #include "RTPMainUnit.hpp"
+#include "RTPTypeColors.h"
+#include "ColorFunctions.h"
 
 
 Adafruit_NeoTrellis RTPNeoTrellis::myTrellis;
@@ -80,14 +82,35 @@ void RTPNeoTrellis::writeBuitCCStates(RTPSequencesState ccStates, int color){
 }
 
 void RTPNeoTrellis::writeSequenceSettingsPage(SequenceSettings sequenceSettings){
-  Serial.printf("CH: %d, color: %d, type: %d, length: %d\n", 
-  sequenceSettings.midiChannel, sequenceSettings.color, sequenceSettings.type, sequenceSettings.lenght);
   for(int i=0; i<SCENE_BLOCK_SIZE; i++)
     myTrellis.pixels.setPixelColor(i, 0);
-  myTrellis.pixels.setPixelColor(convertMatrix[0], sequenceSettings.type);
-  myTrellis.pixels.setPixelColor(convertMatrix[1], sequenceSettings.midiChannel);
+
+  // Pad 0 — Type: show the canonical type colour
+  const uint32_t typeColors[] = {
+    DRUM_COLOR, BASS_SYNTH_COLOR, MONO_SYNTH_COLOR,
+    POLY_SYNTH_COLOR, CONTROL_TRACK_COLOR, HARMONY_TRACK_COLOR
+  };
+  uint8_t t = sequenceSettings.type;
+  uint32_t typeCol = (t < 6) ? typeColors[t] : 0xFFFFFF;
+  myTrellis.pixels.setPixelColor(convertMatrix[0], typeCol);
+
+  // Pad 1 — MIDI Channel: spread hue across 16 channels (index 0-30, step 2)
+  uint8_t ch = sequenceSettings.midiChannel;
+  if (ch < 1) ch = 1;
+  if (ch > 16) ch = 16;
+  uint32_t chCol = colorMapper((ch - 1) * 2);
+  myTrellis.pixels.setPixelColor(convertMatrix[1], chCol);
+
+  // Pad 2 — Color: show the chosen colour from the wheel
   myTrellis.pixels.setPixelColor(convertMatrix[2], colorMapper(sequenceSettings.color));
-  myTrellis.pixels.setPixelColor(convertMatrix[3], sequenceSettings.lenght);
+
+  // Pad 3 — Length: white scaled by number of pages (1-4 -> dim to bright)
+  uint8_t pages = sequenceSettings.lenght;
+  if (pages < 1) pages = 1;
+  if (pages > 4) pages = 4;
+  uint8_t brightness = (uint8_t)(pages * 63);  // 63, 126, 189, 252
+  myTrellis.pixels.setPixelColor(convertMatrix[3], myTrellis.pixels.Color(brightness, brightness, brightness));
+
   myTrellis.pixels.show();
 }
 

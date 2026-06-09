@@ -1,4 +1,5 @@
 #include "RTPScene.h"
+#include "ColorFunctions.h"
 #include "DrumSequence.hpp"
 #include "BassSequence.hpp"
 #include "MonoSequence.hpp"
@@ -49,6 +50,19 @@ RTPScene::RTPScene(String name, uint8_t NSequences, uint8_t scene, NotesPlayer& 
         }
     SequencerScene.push_back(move(sequence));
   }
+}
+
+RTPScene::RTPScene(String name, uint8_t NSequences, NotesPlayer& notesPlayer, MusicManager& musicManager)
+  : _name(name), _NSequences(NSequences), _selectedSequence(0), _notesPlayer(notesPlayer), _musicManager(musicManager) {
+  for (uint8_t i = 0; i < _NSequences; i++) {
+    auto sequence = std::make_unique<MonoSequence>(1, SEQ_BLOCK_SIZE * N_PAGES, MONO_SYNTH, 60, _notesPlayer, _musicManager);
+    SequencerScene.push_back(move(sequence));
+  }
+}
+
+void RTPScene::toggleAllSequences() {
+  for (size_t i = 0; i < SequencerScene.size(); i++)
+    SequencerScene[i]->enableSequence(!SequencerScene[i]->isCurrentSequenceEnabled());
 }
 
 void RTPScene::playScene() {
@@ -113,7 +127,7 @@ RTPSequencesState RTPScene::getSequencesState() {
   RTPSequencesState seqsState;
   for (size_t i = 0; i < SequencerScene.size(); i++) {
     seqsState.sequenceState[i].state = SequencerScene[i]->isCurrentSequenceEnabled();
-    seqsState.sequenceState[i].color = SequencerScene[i]->getColor();
+    seqsState.sequenceState[i].color = colorMapper(SequencerScene[i]->getColor());
   }
   return seqsState;
 }
@@ -190,7 +204,7 @@ RTPSequenceNoteStates RTPScene::getSequenceNoteStates() {
 }
 
 uint32_t RTPScene::getSequenceColor() {
-  return SequencerScene[_selectedSequence]->getColor();
+  return colorMapper(SequencerScene[_selectedSequence]->getColor());
 }
 
 void RTPScene::dumpSequencesToJson() {

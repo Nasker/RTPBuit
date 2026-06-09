@@ -212,8 +212,25 @@ void BuitDevicesManager::presentTransport(){
 }
 
 void BuitDevicesManager::presentSequenceSettings(){
-    printToScreen("Settings", _sequencer.getSelectedParameterInSequenceName(), String(_sequencer.getSelectedParameterInSequenceValue()));
-    _neoTrellis.writeSequenceSettingsPage(_sequencer.getSelectedSequenceSettings());
+    SequenceSettings s = _sequencer.getSelectedSequenceSettings();
+    String paramName  = _sequencer.getSelectedParameterInSequenceName();
+    int    paramValue = _sequencer.getSelectedParameterInSequenceValue();
+
+    String valueStr;
+    if (paramName == "Type") {
+        valueStr = _sequencer.getSelectedSequenceTypeName();
+    } else if (paramName == "Midi CH") {
+        valueStr = "CH " + String(paramValue);
+    } else if (paramName == "Color") {
+        valueStr = "Col " + String(paramValue);
+    } else if (paramName == "Lenght") {
+        valueStr = String(paramValue) + " pages";
+    } else {
+        valueStr = String(paramValue);
+    }
+
+    printToScreen("Seq Settings", paramName, valueStr);
+    _neoTrellis.writeSequenceSettingsPage(s);
 }
 
 void BuitDevicesManager::presentBuitCC(){
@@ -377,6 +394,75 @@ void BuitDevicesManager::setTrellisButtonColor(uint8_t index, uint32_t color){
 
 void BuitDevicesManager::showTrellis(){
     _neoTrellis.show();
+}
+
+void BuitDevicesManager::sceneAdd(){
+    _sequencer.addDynamicScene();
+    int count = _sequencer.getNumScenes();
+    printToScreen("Scene Added", String(count) + " scenes", "");
+}
+
+void BuitDevicesManager::sceneRemove(){
+    if (_sequencer.isPlaying()) {
+        printToScreen("Stop first", "", "");
+        return;
+    }
+    if (_sequencer.getNumScenes() <= 1) {
+        printToScreen("Min 1 scene", "", "");
+        return;
+    }
+    _sequencer.removeCurrentScene();
+    int count = _sequencer.getNumScenes();
+    printToScreen("Scene Removed", String(count) + " scenes", "");
+}
+
+void BuitDevicesManager::sceneToggleAll(){
+    _sequencer.toggleAllSequencesInScene();
+    presentScene();
+}
+
+int BuitDevicesManager::getSceneCount() const {
+    return _sequencer.getNumScenes();
+}
+
+void BuitDevicesManager::presentSceneSettings(int8_t focusedPad){
+    bool playing  = _sequencer.isPlaying();
+    int  nScenes  = _sequencer.getNumScenes();
+    int  curScene = _sequencer.getSelectScene() + 1;
+
+    _neoTrellis.clearAllButtons();
+
+    // Pad 0 — Load (cyan)
+    _neoTrellis.setButtonColor(0, _neoTrellis.colorDim(_neoTrellis.colorBlue(), 200));
+
+    // Pad 1 — Save (magenta: full red + blue)
+    _neoTrellis.setButtonColor(1, _neoTrellis.colorDim(_neoTrellis.colorRed(), 180));
+
+    // Pad 2 — Add scene (green, dim if playing)
+    _neoTrellis.setButtonColor(2, playing
+        ? _neoTrellis.colorDim(_neoTrellis.colorGreen(), 40)
+        : _neoTrellis.colorGreen());
+
+    // Pad 3 — Remove scene (red, dim if playing or only 1 scene)
+    bool canRemove = !playing && nScenes > 1;
+    _neoTrellis.setButtonColor(3, canRemove
+        ? _neoTrellis.colorRed()
+        : _neoTrellis.colorDim(_neoTrellis.colorRed(), 40));
+
+    // Pad 4 — Toggle all sequences in scene (white)
+    _neoTrellis.setButtonColor(4, _neoTrellis.colorWhite());
+
+    // Highlight focused pad with full brightness white overlay
+    if (focusedPad >= 0 && focusedPad <= 4)
+        _neoTrellis.setButtonColor(focusedPad, _neoTrellis.colorWhite());
+
+    _neoTrellis.show();
+
+    printToScreen(
+        "Scene Settings",
+        "Scene " + String(curScene) + "/" + String(nScenes),
+        playing ? "Playing" : "Stopped"
+    );
 }
 
 // Transport control methods

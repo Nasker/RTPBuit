@@ -82,12 +82,33 @@ uint8_t RTPSequencer::getSelectScene() {
     return _selectedScene;
 }
 
-void RTPSequencer::addScene(RTPScene* scene) { // Change to pointer type
+void RTPSequencer::addScene(RTPScene* scene) {
     Sequencer.push_back(scene);
 }
 
+void RTPSequencer::addDynamicScene() {
+    if (_isPlaying) return;
+    RTPScene* scene = new RTPScene("Scene", SCENE_BLOCK_SIZE, _notesPlayer, _musicManager);
+    Sequencer.push_back(scene);
+}
+
+void RTPSequencer::removeCurrentScene() {
+    if (_isPlaying) return;
+    if (Sequencer.size() <= 1) return;
+    delete Sequencer[_selectedScene];
+    Sequencer.erase(Sequencer.begin() + _selectedScene);
+    if (_selectedScene >= Sequencer.size())
+        _selectedScene = (uint8_t)(Sequencer.size() - 1);
+}
+
 void RTPSequencer::removeScene(uint8_t scene) {
-    // Implement if needed
+    if (_isPlaying) return;
+    if (Sequencer.size() <= 1) return;
+    if (scene >= Sequencer.size()) return;
+    delete Sequencer[scene];
+    Sequencer.erase(Sequencer.begin() + scene);
+    if (_selectedScene >= Sequencer.size())
+        _selectedScene = (uint8_t)(Sequencer.size() - 1);
 }
 
 void RTPSequencer::toggleNoteInSceneInSelectedSequence(uint16_t position) {
@@ -96,6 +117,10 @@ void RTPSequencer::toggleNoteInSceneInSelectedSequence(uint16_t position) {
 
 void RTPSequencer::toggleSequence(uint8_t sequenceIndex) {
     Sequencer[_selectedScene]->toggleSequence(sequenceIndex);
+}
+
+void RTPSequencer::toggleAllSequencesInScene() {
+    Sequencer[_selectedScene]->toggleAllSequences();
 }
 
 RTPSequencesState RTPSequencer::getSequencesState() {
