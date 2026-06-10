@@ -7,13 +7,15 @@ SequencePianoRollState::SequencePianoRollState(BuitStateMachine& buitMachine, Bu
   _buitMachine = buitMachine;
 }
 
+void SequencePianoRollState::onEnter() {
+  _devices.showSequence();
+}
+
 void SequencePianoRollState::singleClick() {
   //Serial.println("Does nothing here!");
 }
 
 void SequencePianoRollState::doubleClick() {
-  Serial.println("Going to Sequence Edit!");
-  _devices.printToScreen("State:", "Sequence Edit!","");
   _buitMachine.setState(_buitMachine.getSequenceEditState());
 }
 

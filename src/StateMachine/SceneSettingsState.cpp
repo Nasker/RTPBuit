@@ -7,27 +7,27 @@ SceneSettingsState::SceneSettingsState (BuitStateMachine& buitMachine, BuitDevic
   Serial.println("SceneSettingsState");
 }
 
-void SceneSettingsState::singleClick() {
+void SceneSettingsState::onEnter() {
   _focusedPad = -1;
   _devices.presentSceneSettings();
 }
 
-void SceneSettingsState::doubleClick() {
+void SceneSettingsState::singleClick() {
   _focusedPad = -1;
+  _devices.presentSceneSettings();
+  // singleClick refreshes the grid — intentional extra call
+}
+
+void SceneSettingsState::doubleClick() {
   _buitMachine.setState(_buitMachine.getSceneEditState());
-  _devices.presentScene();
 }
 
 void SceneSettingsState::tripleClick() {
-  PatternBankState* bankState = static_cast<PatternBankState*>(_buitMachine.getPatternBankLoadState());
-  bankState->enter();
-  _buitMachine.setState(bankState);
+  _buitMachine.setState(_buitMachine.getPatternBankLoadState());
 }
 
 void SceneSettingsState::longClick() {
-  PatternBankState* bankState = static_cast<PatternBankState*>(_buitMachine.getPatternBankSaveState());
-  bankState->enter();
-  _buitMachine.setState(bankState);
+  _buitMachine.setState(_buitMachine.getPatternBankSaveState());
 }
 
 void SceneSettingsState::rotaryTurned(ControlCommand command) {
@@ -75,18 +75,12 @@ void SceneSettingsState::trellisPressed(ControlCommand command) {
   // Second press on same pad: execute
   _focusedPad = -1;
   switch (pad) {
-    case 0: {
-      PatternBankState* bankState = static_cast<PatternBankState*>(_buitMachine.getPatternBankLoadState());
-      bankState->enter();
-      _buitMachine.setState(bankState);
+    case 0:
+      _buitMachine.setState(_buitMachine.getPatternBankLoadState());
       break;
-    }
-    case 1: {
-      PatternBankState* bankState = static_cast<PatternBankState*>(_buitMachine.getPatternBankSaveState());
-      bankState->enter();
-      _buitMachine.setState(bankState);
+    case 1:
+      _buitMachine.setState(_buitMachine.getPatternBankSaveState());
       break;
-    }
     case 2:
       _devices.sceneAdd();
       _devices.presentSceneSettings();

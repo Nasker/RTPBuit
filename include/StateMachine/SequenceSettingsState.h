@@ -4,6 +4,7 @@ class SequenceSettingsState : public BuitState{
   BuitStateMachine& _buitMachine;
 public:
   SequenceSettingsState (BuitStateMachine& buitMachine, BuitDevicesManager& devices);
+  void onEnter() override;
   void singleClick();
   void doubleClick();
   void tripleClick();

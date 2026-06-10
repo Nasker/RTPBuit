@@ -4,6 +4,7 @@ class SceneEditState : public BuitState{
   BuitStateMachine& _buitMachine;
 public:
   SceneEditState(BuitStateMachine& buitMachine, BuitDevicesManager& devices);
+  void onEnter() override;
   void singleClick();
   void doubleClick();
   void tripleClick();

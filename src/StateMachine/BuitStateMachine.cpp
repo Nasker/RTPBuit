@@ -77,6 +77,7 @@ void BuitStateMachine::midiCC(ControlCommand command){
 
 void BuitStateMachine::setState(BuitState* state){
   _state = state;
+  _state->onEnter();
 }
 
 BuitState* BuitStateMachine::getInitState(){

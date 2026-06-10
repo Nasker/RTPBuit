@@ -7,6 +7,10 @@ TransportState::TransportState (BuitStateMachine& buitMachine, BuitDevicesManage
   _buitMachine = buitMachine;
 }
 
+void TransportState::onEnter() {
+  _devices.presentTransport();
+}
+
 void TransportState::singleClick() {
   // Single click: could be used for quick action on last selected parameter
   // For now, refresh the transport display
@@ -14,9 +18,7 @@ void TransportState::singleClick() {
 }
 
 void TransportState::doubleClick() {
-  Serial.println("Going to Scene Edit!");
   _buitMachine.setState(_buitMachine.getSceneEditState());
-  _devices.presentScene();
 }
 
 void TransportState::tripleClick() {
@@ -36,8 +38,6 @@ void TransportState::longClick() {
     _devices.presentTransport();
   }
   else {
-    // Default: go to Global Settings
-    Serial.println("Going to Global Settings!");
     _buitMachine.setState(_buitMachine.getGlobalSettingsState());
   }
 }

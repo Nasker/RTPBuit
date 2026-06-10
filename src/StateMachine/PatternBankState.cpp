@@ -48,7 +48,7 @@ void PatternBankState::renderSlotGrid(uint8_t page) {
 
 // ── Public entry ─────────────────────────────────────────────────────────────
 
-void PatternBankState::enter() {
+void PatternBankState::onEnter() {
     resetState();
     renderPageGrid();
 }
@@ -75,7 +75,6 @@ void PatternBankState::trellisPressed(ControlCommand command) {
     if (_mode == PatternBankMode::Load) {
         _devices.loadSequencer(fileName);
         _buitMachine.setState(_buitMachine.getSceneEditState());
-        _devices.presentScene();
 
     } else {
         // Save mode: require confirmation on existing files
@@ -93,7 +92,6 @@ void PatternBankState::trellisPressed(ControlCommand command) {
         _devices.saveSequencer(fileName);
         resetState();
         _buitMachine.setState(_buitMachine.getSceneEditState());
-        _devices.presentScene();
     }
 }
 
@@ -111,10 +109,8 @@ void PatternBankState::singleClick() {
 }
 
 void PatternBankState::doubleClick() {
-    // Exit back to scene edit from anywhere
     resetState();
     _buitMachine.setState(_buitMachine.getSceneEditState());
-    _devices.presentScene();
 }
 
 // ── Unused overrides ─────────────────────────────────────────────────────────

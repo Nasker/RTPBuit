@@ -4,6 +4,7 @@ class SequencePianoRollState : public BuitState{
   BuitStateMachine& _buitMachine;
 public:
   SequencePianoRollState (BuitStateMachine& voidMachine, BuitDevicesManager& devices);
+  void onEnter() override;
   void singleClick();
   void doubleClick();
   void tripleClick();

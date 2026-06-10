@@ -19,7 +19,7 @@ class PatternBankState : public BuitState {
 public:
     PatternBankState(BuitStateMachine& machine, BuitDevicesManager& devices, PatternBankMode mode);
 
-    void enter();  // Call when transitioning into this state
+    void onEnter() override;
 
     void singleClick()                          override;
     void doubleClick()                          override;
