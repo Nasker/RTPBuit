@@ -103,9 +103,9 @@ void BuitDevicesManager::displayCursorInSequence(ControlCommand command){
         _neoTrellis.writeSequenceStates(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor(), false);
         _neoTrellis.moveCursor(cursorPos);
     }
-    else if (cursorPos == SEQ_BLOCK_SIZE){
+    else {
         _neoTrellis.writeSequenceStates(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor());
-    }    
+    }
 }   
 
 void BuitDevicesManager::changeScene(ControlCommand command){
