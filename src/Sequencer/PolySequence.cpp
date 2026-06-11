@@ -20,8 +20,8 @@ void PolySequence::playCurrentEventNote(){
         if(it->isLiteralPitch()){
             _notesPlayer.queueNote(*it);
         } else {
-            _musicManager.setCurrentSteps(it->getEventRead(), POLY_SYNTH);
-            auto chordNotes = _musicManager.getCurrentChordNotes();
+            int spread = constrain(remap(it->getLength(), 1, 16, 1, 8), 1, 8);
+            auto chordNotes = _musicManager.getAutoharpChordNotes(it->getEventRead(), spread);
             while(!chordNotes.empty()){
                 it->setEventNote(chordNotes.front());
                 _notesPlayer.queueNote(*it);

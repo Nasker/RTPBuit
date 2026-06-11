@@ -1,4 +1,5 @@
 #include "MusicManager.hpp"
+#include <cstdint>
 
 MusicManager::MusicManager(){}
 
@@ -47,6 +48,22 @@ queue<int> MusicManager::getCurrentChordNotes(){
     queue<int> chordNotes;
     for(int i=0; i<mControl.chords.getChordSteps(); i++){
         mControl.setCurrentChordStep(i);
+        chordNotes.push(mControl.getCurrentChordMidiNote());
+    }
+    return chordNotes;
+}
+
+queue<int> MusicManager::getAutoharpChordNotes(int rangeReading, int spread){
+    queue<int> chordNotes;
+    uint8_t chordSteps = mControl.chords.getChordSteps();
+    uint8_t poolSize = POLY_OCTAVES * chordSteps;
+    uint8_t focus = constrain((int)polyRange.getCurrentStep(rangeReading), 0, poolSize - 1);
+    uint8_t octave = focus / chordSteps;
+    uint8_t count = max(1, (uint8_t)round(float(spread) * float(octave + 1) / float(POLY_OCTAVES)));
+    count = min(count, poolSize - focus);
+    for(uint8_t i = focus; i < focus + count; i++){
+        mControl.setCurrentOctave(i / chordSteps);
+        mControl.setCurrentChordStep(i % chordSteps);
         chordNotes.push(mControl.getCurrentChordMidiNote());
     }
     return chordNotes;
