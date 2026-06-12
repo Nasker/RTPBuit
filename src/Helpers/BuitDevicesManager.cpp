@@ -276,6 +276,22 @@ bool BuitDevicesManager::isSelectedSequenceRecording(){
     return _sequencer.isSelectedSequenceRecording();
 }
 
+void BuitDevicesManager::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType){
+    _sequencer.playLiveNoteOn(rootNote, velocity, chordType);
+}
+
+void BuitDevicesManager::playLiveNoteOff(uint8_t rootNote, uint8_t chordType){
+    _sequencer.playLiveNoteOff(rootNote, chordType);
+}
+
+void BuitDevicesManager::handleLiveThreeAxis(ControlCommand command){
+    _sequencer.handleLiveThreeAxis(command);
+}
+
+uint8_t BuitDevicesManager::getLiveVelocity(){
+    return _sequencer.getLiveVelocity();
+}
+
 bool BuitDevicesManager::isSelectedSequenceWaiting(){
     return _notesRecorder.isWaiting();
 }

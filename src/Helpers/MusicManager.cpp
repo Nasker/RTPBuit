@@ -68,3 +68,15 @@ queue<int> MusicManager::getAutoharpChordNotes(int rangeReading, int spread){
     }
     return chordNotes;
 }
+
+void MusicManager::setChordType(uint8_t chordType){
+    mControl.chords.setChordType(chordType);
+}
+
+int MusicManager::getChordStep(uint8_t step){
+    return mControl.chords.getChordStep(step);
+}
+
+uint8_t MusicManager::getChordSteps(){
+    return mControl.chords.getChordSteps();
+}

@@ -51,7 +51,7 @@
 #define SENSOR_3_PIN 4
 
 #define N_NOTES 12
-#define BASE_NOTE 48
+#define BASE_NOTE 36
 
 // Pattern bank
 #define PATTERN_BANK_PAGES  16

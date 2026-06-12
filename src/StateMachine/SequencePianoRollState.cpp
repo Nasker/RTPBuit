@@ -61,6 +61,7 @@ void SequencePianoRollState::onEnter() {
   _chordionKeys.initSetup();
   _drumRollActive = false;
   _tickCount = 0;
+  for (int i = 0; i < 128; i++) _activeChordTypes[i] = 0;
   _paintTrellis();
 
   uint8_t seqType = _devices.getSelectedSequenceType();
@@ -73,56 +74,6 @@ void SequencePianoRollState::onEnter() {
     default:         typeName = "Live";  break;
   }
   _devices.printToScreen("Piano Roll", typeName, "Live");
-}
-
-// ---------------------------------------------------------------------------
-// Private: fire a single drum hit (note-on + note-off) and optionally record
-// ---------------------------------------------------------------------------
-void SequencePianoRollState::_fireDrumHit(uint8_t note, uint8_t vel, uint8_t midiCh) {
-  usbMIDI.sendNoteOn(note, vel, midiCh);
-  Serial1.write(0x90 | ((midiCh - 1) & 0x0F));
-  Serial1.write(note & 0x7F);
-  Serial1.write(vel & 0x7F);
-  usbMIDI.sendNoteOff(note, 0, midiCh);
-  Serial1.write(0x80 | ((midiCh - 1) & 0x0F));
-  Serial1.write(note & 0x7F);
-  Serial1.write(0x00);
-  if (_devices.isSelectedSequenceRecording()) {
-    _devices.recorderNoteOn(note, vel);
-    _devices.recorderNoteOff(note);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Private: play live note(s) depending on sequence type
-// ---------------------------------------------------------------------------
-void SequencePianoRollState::_playLiveNote(uint8_t rootNote, uint8_t midiCh, uint8_t seqType) {
-  switch (seqType) {
-    case POLY_SYNTH: {
-      queue<int> notes = _devices.getMusicManager().getAutoharpChordNotes(_eventRead, _currentSpread);
-      while (!notes.empty()) {
-        uint8_t n = (uint8_t)notes.front();
-        usbMIDI.sendNoteOn(n, _currentVelocity, midiCh);
-        Serial1.write(0x90 | ((midiCh - 1) & 0x0F));
-        Serial1.write(n & 0x7F);
-        Serial1.write(_currentVelocity & 0x7F);
-        notes.pop();
-      }
-      break;
-    }
-    case MONO_SYNTH:
-    case BASS_SYNTH: {
-      _devices.getMusicManager().setCurrentSteps(rootNote, seqType);
-      uint8_t note = (uint8_t)_devices.getMusicManager().getCurrentChordNote();
-      usbMIDI.sendNoteOn(note, _currentVelocity, midiCh);
-      Serial1.write(0x90 | ((midiCh - 1) & 0x0F));
-      Serial1.write(note & 0x7F);
-      Serial1.write(_currentVelocity & 0x7F);
-      break;
-    }
-    default:
-      break;
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -167,39 +118,21 @@ void SequencePianoRollState::threeAxisChanged(ControlCommand command) {
           _drumRollActive = false;
         } else {
           _drumRollActive = true;
-          // Map 0-127 → 16 zones
           uint8_t zone = (uint8_t)constrain(::map(val, 0, 127, 0, DRUM_ZONES - 1), 0, DRUM_ZONES - 1);
           _drumRollNote = BASE_NOTE + zone;
         }
         break;
       case CHANGE_CENTER:
-        // Map 0-127 → subdivision step interval {4, 2, 1} (quarter / 8th / 16th)
         if (val < 43)       _rollDivision = 4;
         else if (val < 85)  _rollDivision = 2;
         else                _rollDivision = 1;
         break;
       case CHANGE_RIGHT:
-        _rollVelocity = (uint8_t)constrain(::map(val, 0, 127, 1, 127), 1, 127);
+        _devices.handleLiveThreeAxis(command);
         break;
     }
   } else {
-    // Poly / Mono / Bass
-    switch (command.commandType) {
-      case CHANGE_LEFT:
-        if (seqType == POLY_SYNTH)
-          _eventRead = val;
-        else
-          _currentOctave = (uint8_t)constrain(::map(val, 0, 127, 0, 4), 0, 4);
-        break;
-      case CHANGE_CENTER:
-        // dual-purpose: spread (poly) or length, also acts as velocity envelope
-        if (seqType == POLY_SYNTH)
-          _currentSpread = (uint8_t)constrain(::map(val, 0, 127, 1, 8), 1, 8);
-        break;
-      case CHANGE_RIGHT:
-        _currentVelocity = (uint8_t)constrain(::map(val, 0, 127, 1, 127), 1, 127);
-        break;
-    }
+    _devices.handleLiveThreeAxis(command);
   }
 }
 
@@ -209,41 +142,32 @@ void SequencePianoRollState::threeAxisChanged(ControlCommand command) {
 void SequencePianoRollState::trellisPressed(ControlCommand command) {
   uint8_t pad = (uint8_t)command.value;
   uint8_t seqType = _devices.getSelectedSequenceType();
-  uint8_t midiCh = (uint8_t)_devices.getSelectedSequenceMidichannel();
 
+  uint8_t liveVel = _devices.getLiveVelocity();
   if (seqType == DRUM_PART) {
     uint8_t note = BASE_NOTE + pad;
-    usbMIDI.sendNoteOn(note, _currentVelocity, midiCh);
-    Serial1.write(0x90 | ((midiCh - 1) & 0x0F));
-    Serial1.write(note & 0x7F);
-    Serial1.write(_currentVelocity & 0x7F);
+    _devices.playLiveNoteOn(note, liveVel, 0);
     if (_devices.isSelectedSequenceRecording())
-      _devices.recorderNoteOn(note, _currentVelocity);
+      _devices.recorderNoteOn(note, liveVel);
     _devices.setTrellisButtonColor(pad, 0xFFFFFF);
     _devices.showTrellis();
   } else {
     if (pad < 12) {
-      // Note key
       uint8_t rootNote = BASE_NOTE + pad;
-      _playLiveNote(rootNote, midiCh, seqType);
+      uint8_t chordType = _chordionKeys.getChordType();
+      _activeChordTypes[rootNote] = chordType;
+      _devices.playLiveNoteOn(rootNote, liveVel, chordType);
       if (_devices.isSelectedSequenceRecording())
-        _devices.recorderNoteOn(rootNote, _currentVelocity);
+        _devices.recorderNoteOn(rootNote, liveVel);
       _devices.setTrellisButtonColor(pad, 0xFFFFFF);
       _devices.showTrellis();
-      // Show root note + chord type on OLED bottom line
-      {
-        uint8_t noteName = pad % 12;
-        uint8_t chordType = _chordionKeys.getChordType();
-        String chordStr = String(NOTE_NAMES[noteName]) + " " + String(CHORD_TYPE_NAMES[chordType & 0x0F]);
-        _devices.printToScreen("Piano Roll", _devices.getSequencer().getSelectedSequenceTypeName(), chordStr);
-      }
+      String chordStr = String(NOTE_NAMES[pad % 12]) + " " + String(CHORD_TYPE_NAMES[chordType & 0x0F]);
+      _devices.printToScreen("Piano Roll", _devices.getSequencer().getSelectedSequenceTypeName(), chordStr);
     } else {
-      // Chord modifier momentary (held = on, released = off)
       uint8_t modIdx = pad - 12;
       _chordionKeys.enableChordionKey(modIdx);
       _devices.setTrellisButtonColor(pad, 0xFFFFFF);
       _devices.showTrellis();
-      // Preview chord type on OLED
       String preview = String(CHORD_TYPE_NAMES[_chordionKeys.getChordType() & 0x0F]);
       _devices.printToScreen("Piano Roll", _devices.getSequencer().getSelectedSequenceTypeName(), "[ " + preview + " ]");
     }
@@ -256,40 +180,18 @@ void SequencePianoRollState::trellisPressed(ControlCommand command) {
 void SequencePianoRollState::trellisReleased(ControlCommand command) {
   uint8_t pad = (uint8_t)command.value;
   uint8_t seqType = _devices.getSelectedSequenceType();
-  uint8_t midiCh = (uint8_t)_devices.getSelectedSequenceMidichannel();
 
   if (seqType == DRUM_PART) {
     uint8_t note = BASE_NOTE + pad;
-    usbMIDI.sendNoteOff(note, 0, midiCh);
-    Serial1.write(0x80 | ((midiCh - 1) & 0x0F));
-    Serial1.write(note & 0x7F);
-    Serial1.write(0x00);
+    _devices.playLiveNoteOff(note, 0);
     if (_devices.isSelectedSequenceRecording())
       _devices.recorderNoteOff(note);
     _devices.setTrellisButtonColor(pad, (uint32_t)_devices.getSelectedSequenceColor());
     _devices.showTrellis();
   } else if (pad < 12) {
     uint8_t rootNote = BASE_NOTE + pad;
-    if (seqType == POLY_SYNTH) {
-      // Send note-offs for all chord notes that were started
-      queue<int> notes = _devices.getMusicManager().getAutoharpChordNotes(_eventRead, _currentSpread);
-      while (!notes.empty()) {
-        uint8_t n = (uint8_t)notes.front();
-        usbMIDI.sendNoteOff(n, 0, midiCh);
-        Serial1.write(0x80 | ((midiCh - 1) & 0x0F));
-        Serial1.write(n & 0x7F);
-        Serial1.write(0x00);
-        notes.pop();
-      }
-    } else {
-      // Mono/bass: single note off
-      _devices.getMusicManager().setCurrentSteps(rootNote, seqType);
-      uint8_t note = (uint8_t)_devices.getMusicManager().getCurrentChordNote();
-      usbMIDI.sendNoteOff(note, 0, midiCh);
-      Serial1.write(0x80 | ((midiCh - 1) & 0x0F));
-      Serial1.write(note & 0x7F);
-      Serial1.write(0x00);
-    }
+    uint8_t ct = _activeChordTypes[rootNote];
+    _devices.playLiveNoteOff(rootNote, ct);
     if (_devices.isSelectedSequenceRecording())
       _devices.recorderNoteOff(rootNote);
     {
@@ -321,11 +223,10 @@ void SequencePianoRollState::sequencerCallback(ControlCommand command) {
   _tickCount++;
 
   uint8_t seqType = _devices.getSelectedSequenceType();
-  uint8_t midiCh  = (uint8_t)_devices.getSelectedSequenceMidichannel();
 
   if (seqType == DRUM_PART && _drumRollActive) {
     if ((_tickCount % _rollDivision) == 0)
-      _fireDrumHit(_drumRollNote, _rollVelocity, midiCh);
+      _devices.playLiveNoteOn(_drumRollNote, _devices.getLiveVelocity(), 0);
   }
 
   if (_devices.isSelectedSequenceRecording())

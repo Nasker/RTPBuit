@@ -10,6 +10,52 @@ void MonoSequence::setTypeSpecificColor(){
     setColor(MONO_SYNTH_COLOR_IDX);
 }
 
+void MonoSequence::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType) {
+    uint8_t ch = getMidiChannel();
+    _musicManager.setChordType(chordType);
+    uint8_t steps = _musicManager.getChordSteps();
+    uint8_t transposed = rootNote + (_liveOctave * 12);
+    for (uint8_t i = 0; i < steps; i++) {
+        uint8_t note = transposed + _musicManager.getChordStep(i);
+        usbMIDI.sendNoteOn(note, _liveVelocity, ch);
+        Serial1.write(0x90 | ((ch - 1) & 0x0F));
+        Serial1.write(note & 0x7F);
+        Serial1.write(_liveVelocity & 0x7F);
+    }
+}
+
+void MonoSequence::playLiveNoteOff(uint8_t rootNote, uint8_t chordType) {
+    uint8_t ch = getMidiChannel();
+    _musicManager.setChordType(chordType);
+    uint8_t steps = _musicManager.getChordSteps();
+    uint8_t transposed = rootNote + (_liveOctave * 12);
+    for (uint8_t i = 0; i < steps; i++) {
+        uint8_t note = transposed + _musicManager.getChordStep(i);
+        usbMIDI.sendNoteOff(note, 0, ch);
+        Serial1.write(0x80 | ((ch - 1) & 0x0F));
+        Serial1.write(note & 0x7F);
+        Serial1.write(0x00);
+    }
+}
+
+void MonoSequence::handleLiveThreeAxis(ControlCommand command) {
+    if (command.controlType != THREE_AXIS) return;
+    switch (command.commandType) {
+        case CHANGE_LEFT:
+            _liveOctave = (uint8_t)constrain(remap(command.value, 0, 127, 0, 4), 0, 4);
+            break;
+        case CHANGE_RIGHT:
+            _liveVelocity = command.value;
+            break;
+        default:
+            break;
+    }
+}
+
+uint8_t MonoSequence::getLiveVelocity() const {
+    return _liveVelocity;
+}
+
 void MonoSequence::playCurrentEventNote(){
     // Mute sequence playback during recording - only monitor input
     if(isRecording()) return;

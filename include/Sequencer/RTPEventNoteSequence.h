@@ -53,6 +53,10 @@ public:
 	void enableSequence(bool state);
 	virtual void setTypeSpecificColor() = 0;
 	virtual void playCurrentEventNote() = 0;
+	virtual void playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType) {}
+	virtual void playLiveNoteOff(uint8_t rootNote, uint8_t chordType) {}
+	virtual void handleLiveThreeAxis(ControlCommand command) {}
+	virtual uint8_t getLiveVelocity() const { return 90; }
 	void setMidiChannel(uint8_t midiChannel);
 	uint8_t getMidiChannel();
 	uint8_t getMidiChannel() const;  // Const version for JSON serialization

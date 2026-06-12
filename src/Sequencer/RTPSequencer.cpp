@@ -223,3 +223,27 @@ void RTPSequencer::dumpSequencesToJson() {
     
     Serial.println("Saved sequences using BuitPersistenceManager");
 }
+
+void RTPSequencer::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType) {
+    uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
+    RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);
+    if (seq) seq->playLiveNoteOn(rootNote, velocity, chordType);
+}
+
+void RTPSequencer::playLiveNoteOff(uint8_t rootNote, uint8_t chordType) {
+    uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
+    RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);
+    if (seq) seq->playLiveNoteOff(rootNote, chordType);
+}
+
+void RTPSequencer::handleLiveThreeAxis(ControlCommand command) {
+    uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
+    RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);
+    if (seq) seq->handleLiveThreeAxis(command);
+}
+
+uint8_t RTPSequencer::getLiveVelocity() {
+    uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
+    RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);
+    return seq ? seq->getLiveVelocity() : 90;
+}

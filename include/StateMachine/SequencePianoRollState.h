@@ -7,23 +7,17 @@ class SequencePianoRollState : public BuitState{
   // --- live play state ---
   ChordionKeys _chordionKeys;
 
-  // Poly / Mono / Bass
-  uint8_t _currentVelocity = 90;
-  uint8_t _currentSpread   = 4;
-  uint8_t _currentOctave   = 0;
-  int     _eventRead       = 64;
-
   // Drum theremin roll
   bool     _drumRollActive = false;
   uint8_t  _drumRollNote   = 36;
   uint8_t  _rollDivision   = 1;   // step interval: 1=16th 2=8th 4=quarter
-  uint8_t  _rollVelocity   = 90;
   uint32_t _tickCount      = 0;
+
+  // Track chord type active when each note was pressed (so note-off matches)
+  uint8_t _activeChordTypes[128] = {0};
 
   // helpers
   void _paintTrellis();
-  void _playLiveNote(uint8_t rootNote, uint8_t midiCh, uint8_t seqType);
-  void _fireDrumHit(uint8_t note, uint8_t vel, uint8_t midiCh);
 
 public:
   SequencePianoRollState (BuitStateMachine& voidMachine, BuitDevicesManager& devices);
