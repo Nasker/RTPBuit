@@ -25,7 +25,7 @@ TrellisCallback RTPNeoTrellis::blink(keyEvent evt){
     
   else if(evt.bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING){
     callbackCommand.commandType = RELEASED;
-    callbackCommand.value = evt.bit.NUM;
+    callbackCommand.value = convertMatrix[evt.bit.NUM];
     mainUnit->actOnControlsCallback(callbackCommand);
   }
   myTrellis.pixels.show();

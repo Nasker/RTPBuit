@@ -33,6 +33,7 @@ public:
     void selectSequence(ControlCommand command);
 
     void presentScene();
+    void presentSequenceSelect();
     void presentSequence();
     void showSequence();
     void presentTransport();
@@ -56,6 +57,8 @@ public:
     void sendBuitCC(ControlCommand command);
 
     int getSelectedSequenceMidichannel();
+    uint8_t getSelectedSequenceType();
+    uint32_t getSelectedSequenceColor();
     bool isSelectedSequenceRecording();
     bool isSelectedSequenceWaiting();
     SequenceDisplayState getSequenceDisplayState();
@@ -82,8 +85,9 @@ public:
     void setTrellisButtonColor(uint8_t index, uint32_t color);
     void showTrellis();
 
-    // Sequencer access
+    // Sequencer and music manager access
     RTPSequencer& getSequencer() { return _sequencer; }
+    MusicManager& getMusicManager() { return _sequencer.getMusicManager(); }
 
     // Clock generator access (set by RTPMainUnit)
     void setClockGenerator(RTPClockGenerator& clockGenerator) { _clockGenerator = &clockGenerator; }

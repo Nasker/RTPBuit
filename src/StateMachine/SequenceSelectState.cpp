@@ -9,7 +9,7 @@ SequenceSelectState::SequenceSelectState(BuitStateMachine& buitMachine, BuitDevi
 
 void SequenceSelectState::onEnter() {
   _devices.printToScreen("Select a", "Sequence", "");
-  _devices.presentScene();
+  _devices.presentSequenceSelect();
 }
 
 void SequenceSelectState::singleClick() {

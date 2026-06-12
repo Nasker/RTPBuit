@@ -59,5 +59,6 @@ public:
   
   // For persistence manager
   int getNumScenes() const { return (int)Sequencer.size(); }
-  RTPScene* getScene(int index) const { return (index >= 0 && index < Sequencer.size()) ? Sequencer[index] : nullptr; }
+  RTPScene* getScene(int index) const { return (index >= 0 && index < (int)Sequencer.size()) ? Sequencer[index] : nullptr; }
+  MusicManager& getMusicManager() { return _musicManager; }
 };

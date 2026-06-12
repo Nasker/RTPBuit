@@ -141,6 +141,11 @@ void BuitDevicesManager::rotateParameter(ControlCommand command){
     }
 }
 
+void BuitDevicesManager::presentSequenceSelect(){
+    writeSceneToNeoTrellis(_sequencer.getSequencesState());
+}
+
+
 void BuitDevicesManager::presentScene(){
     // Determine scene display state based on sequencer playing status
     SequenceDisplayState state = _sequencer.isPlaying() ? SequenceDisplayState::Playing : SequenceDisplayState::Stopped;
@@ -257,6 +262,14 @@ void BuitDevicesManager::sendBuitCC(ControlCommand command){
 
 int BuitDevicesManager::getSelectedSequenceMidichannel(){
     return _sequencer.getSelectedSequenceMidiChannel();
+}
+
+uint8_t BuitDevicesManager::getSelectedSequenceType(){
+    return (uint8_t)_sequencer.getSelectedSequenceSettings().type;
+}
+
+uint32_t BuitDevicesManager::getSelectedSequenceColor(){
+    return _sequencer.getSelectedSequenceColor();
 }
 
 bool BuitDevicesManager::isSelectedSequenceRecording(){

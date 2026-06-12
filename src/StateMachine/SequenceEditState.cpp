@@ -12,7 +12,7 @@ void SequenceEditState::onEnter() {
 }
 
 void SequenceEditState::singleClick() {
-  //Serial.println("Does nothing here!");
+  _buitMachine.setState(_buitMachine.getSequencePianoRollState());
 }
 
 void SequenceEditState::doubleClick() {

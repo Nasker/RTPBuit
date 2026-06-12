@@ -40,7 +40,7 @@ void StateMachineManager::handleActions(ControlCommand callbackControlCommand, i
             buitStateMachine.trellisPressed(callbackControlCommand);
             return;
         case RELEASED:    
-            //buitStateMachine.trellisReleased(callbackControlCommand);
+            buitStateMachine.trellisReleased(callbackControlCommand);
             return;
         default:
             return;
