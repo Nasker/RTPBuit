@@ -7,6 +7,16 @@ static constexpr int DRUM_PRESENCE_THRESHOLD = 2;
 // Number of drum zones mapped across the left-axis range (0-127)
 static constexpr uint8_t DRUM_ZONES = 16;
 
+// Note name lookup (chromatic, starting at C)
+static const char* NOTE_NAMES[12] = {
+  "C","C#","D","D#","E","F","F#","G","G#","A","A#","B"
+};
+// Chord type names for the 16 chordionArray bitmask values (bits 0-3)
+static const char* CHORD_TYPE_NAMES[16] = {
+  "note","maj","min","maj7","min7","dom7","sus2","sus4",
+  "aug","dim","add9","maj9","min9","11th","13th","full"
+};
+
 SequencePianoRollState::SequencePianoRollState(BuitStateMachine& buitMachine, BuitDevicesManager& devices) : BuitState(devices), _buitMachine(buitMachine) {
   Serial.println("SequencePianoRollState");
   _buitMachine = buitMachine;
@@ -220,12 +230,22 @@ void SequencePianoRollState::trellisPressed(ControlCommand command) {
         _devices.recorderNoteOn(rootNote, _currentVelocity);
       _devices.setTrellisButtonColor(pad, 0xFFFFFF);
       _devices.showTrellis();
+      // Show root note + chord type on OLED bottom line
+      {
+        uint8_t noteName = pad % 12;
+        uint8_t chordType = _chordionKeys.getChordType();
+        String chordStr = String(NOTE_NAMES[noteName]) + " " + String(CHORD_TYPE_NAMES[chordType & 0x0F]);
+        _devices.printToScreen("Piano Roll", _devices.getSequencer().getSelectedSequenceTypeName(), chordStr);
+      }
     } else {
-      // Chord modifier toggle (pads 12-15)
+      // Chord modifier momentary (held = on, released = off)
       uint8_t modIdx = pad - 12;
-      _chordionKeys.switchChordionKeys(modIdx);
+      _chordionKeys.enableChordionKey(modIdx);
       _devices.setTrellisButtonColor(pad, 0xFFFFFF);
       _devices.showTrellis();
+      // Preview chord type on OLED
+      String preview = String(CHORD_TYPE_NAMES[_chordionKeys.getChordType() & 0x0F]);
+      _devices.printToScreen("Piano Roll", _devices.getSequencer().getSelectedSequenceTypeName(), "[ " + preview + " ]");
     }
   }
 }
@@ -282,10 +302,13 @@ void SequencePianoRollState::trellisReleased(ControlCommand command) {
     }
     _devices.showTrellis();
   }
-  // Modifier pad release (12-15): restore to dim white (toggle state stays in _chordionKeys)
+  // Modifier pad release (12-15): disable key (momentary), restore LED, update OLED preview
   if (pad >= 12 && pad <= 15) {
+    _chordionKeys.disableChordionKey(pad - 12);
     _devices.setTrellisButtonColor(pad, 0x101010);
     _devices.showTrellis();
+    String preview = String(CHORD_TYPE_NAMES[_chordionKeys.getChordType() & 0x0F]);
+    _devices.printToScreen("Piano Roll", _devices.getSequencer().getSelectedSequenceTypeName(), "[ " + preview + " ]");
   }
 }
 

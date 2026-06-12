@@ -100,6 +100,13 @@ void ChordionKeys::releaseChord(int rootNote){
     }
 }
 
+uint8_t ChordionKeys::getChordType() const {
+    uint8_t ct = 0;
+    for (int i = 0; i < N_CHORDION_KEYS; i++)
+        ct |= (chordionArray[i] ? (1 << i) : 0);
+    return ct;
+}
+
 void ChordionKeys::printChordionArray(){
     for(int i=0; i<N_CHORDION_KEYS; i++)
         Serial.printf("%d ", chordionArray[i]);

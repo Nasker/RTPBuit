@@ -34,6 +34,7 @@ public:
     void disableChordionKey(int chordionIndex);
     PlayedChord playChord(int rootNote);
     void releaseChord(int rootNote);
+    uint8_t getChordType() const;
 private:
     void printChordionArray();
 };
