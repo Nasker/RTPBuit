@@ -28,8 +28,6 @@ TrellisCallback RTPNeoTrellis::blink(keyEvent evt){
     callbackCommand.value = convertMatrix[evt.bit.NUM];
     mainUnit->actOnControlsCallback(callbackCommand);
   }
-  myTrellis.pixels.show();
-  
   return 0;
 }
 
@@ -58,6 +56,7 @@ void RTPNeoTrellis::introAnimation(){
 void RTPNeoTrellis::read(){
   if(!digitalRead(TRELLIS_INT_PIN))
     myTrellis.read(false);
+  myTrellis.pixels.show();
 }
 
 void RTPNeoTrellis::writeSequenceStates(RTPSequenceNoteStates seqStates, int color, bool show=true){

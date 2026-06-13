@@ -8,6 +8,7 @@
 #include "Arduino.h"
 #include <vector>
 #include <list>
+#include <queue>
 #include "Structs.h"
 #include "ControlCommand.h"
 #include "constants.h"

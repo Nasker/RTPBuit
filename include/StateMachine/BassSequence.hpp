@@ -16,4 +16,5 @@ public:
 private:
   uint8_t _liveVelocity = 90;
   uint8_t _liveOctave = 0;
+  queue<uint8_t> _liveRingingNotes;
 };

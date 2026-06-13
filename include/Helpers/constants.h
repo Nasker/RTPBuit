@@ -69,3 +69,6 @@ enum RTPEventNoteSequenceType{
 	CONTROL_TRACK,
 	HARMONY_TRACK
 };
+
+extern const char* NOTE_NAMES[12];
+extern const char* CHORD_TYPE_NAMES[16];

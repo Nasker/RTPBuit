@@ -9,7 +9,7 @@ void BuitDevicesManager::initSetup(){
     _oled.init();
     initBuitSD();
     introAnimations();
-
+    _chordionKeys.initSetup();
 }
 
 void BuitDevicesManager::introAnimations(){
@@ -166,6 +166,31 @@ void BuitDevicesManager::presentSequence(){
     showSequence();
 }
 
+void BuitDevicesManager::paintLiveTrellis() {
+    _pressedPads = 0;
+    _lastLiveMelodicNote = 255;
+    uint8_t seqType = getSelectedSequenceType();
+    uint32_t seqColor = getSelectedSequenceColor();
+    clearTrellis();
+
+    static const bool isBlackKey[12] = {false,true,false,true,false,false,true,false,true,false,true,false};
+
+    if (seqType == DRUM_PART) {
+        for (uint8_t i = 0; i < 16; i++)
+            setTrellisButtonColor(i, seqColor);
+    } else {
+        for (uint8_t i = 0; i < 12; i++) {
+            uint32_t dimmed = (((seqColor >> 16 & 0xFF) * 35 / 255) << 16)
+                            | (((seqColor >>  8 & 0xFF) * 35 / 255) <<  8)
+                            |  ((seqColor       & 0xFF) * 35 / 255);
+            setTrellisButtonColor(i, isBlackKey[i] ? dimmed : seqColor);
+        }
+        for (uint8_t i = 0; i < N_CHORDION_KEYS; i++)
+            setTrellisButtonColor(12 + i, 0x101010);
+    }
+    showTrellis();
+}
+
 void BuitDevicesManager::showSequence(){
     // Get the sequence type name
     String sequenceType = _sequencer.getSelectedSequenceTypeName();
@@ -290,6 +315,156 @@ void BuitDevicesManager::handleLiveThreeAxis(ControlCommand command){
 
 uint8_t BuitDevicesManager::getLiveVelocity(){
     return _sequencer.getLiveVelocity();
+}
+
+void BuitDevicesManager::handleLiveTrellisPressed(uint8_t pad) {
+    uint8_t seqType = getSelectedSequenceType();
+    uint8_t liveVel = getLiveVelocity();
+
+    if (seqType == DRUM_PART) {
+        uint8_t note = BASE_NOTE + pad;
+        playLiveNoteOn(note, liveVel, 0);
+        if (isSelectedSequenceRecording())
+            recorderNoteOn(note, liveVel);
+        setTrellisButtonColor(pad, 0xFFFFFF);
+        _pressedPads |= (1 << pad);
+        return;
+    }
+
+    // Melodic (Poly / Mono / Bass)
+    if (pad < 12) {
+        uint8_t rootNote = BASE_NOTE + pad;
+        // Autoharp-style sweep: release previous chord if different
+        if (_lastLiveMelodicNote != 255 && _lastLiveMelodicNote != rootNote) {
+            uint8_t oldCt = _chordionKeys.releaseChordOn(_lastLiveMelodicNote);
+            playLiveNoteOff(_lastLiveMelodicNote, oldCt);
+            if (isSelectedSequenceRecording())
+                recorderNoteOff(_lastLiveMelodicNote);
+            // restore old pad LED
+            static const bool isBlackKey[12] = {false,true,false,true,false,false,true,false,true,false,true,false};
+            uint32_t sc = getSelectedSequenceColor();
+            uint32_t dimmed = (((sc >> 16 & 0xFF) * 35 / 255) << 16)
+                            | (((sc >>  8 & 0xFF) * 35 / 255) <<  8)
+                            |  ((sc       & 0xFF) * 35 / 255);
+            uint8_t oldPad = _lastLiveMelodicNote - BASE_NOTE;
+            setTrellisButtonColor(oldPad, (oldPad < 12 && isBlackKey[oldPad]) ? dimmed : sc);
+            _pressedPads &= ~(1 << oldPad);
+        }
+        uint8_t chordType = _chordionKeys.playChordOn(rootNote);
+        playLiveNoteOn(rootNote, liveVel, chordType);
+        if (isSelectedSequenceRecording())
+            recorderNoteOn(rootNote, liveVel);
+        setTrellisButtonColor(pad, 0xFFFFFF);
+        _pressedPads |= (1 << pad);
+        _lastLiveMelodicNote = rootNote;
+        String chordStr = String(NOTE_NAMES[pad % 12]) + " " + String(CHORD_TYPE_NAMES[chordType & 0x0F]);
+        printToScreen("Piano Roll", getSequencer().getSelectedSequenceTypeName(), chordStr);
+    } else {
+        uint8_t modIdx = pad - 12;
+        _chordionKeys.enableChordionKey(modIdx);
+        setTrellisButtonColor(pad, 0xFFFFFF);
+        _pressedPads |= (1 << pad);
+        String preview = String(CHORD_TYPE_NAMES[_chordionKeys.getChordType() & 0x0F]);
+        printToScreen("Piano Roll", getSequencer().getSelectedSequenceTypeName(), "[ " + preview + " ]");
+    }
+}
+
+void BuitDevicesManager::handleLiveTrellisReleased(uint8_t pad) {
+    uint8_t seqType = getSelectedSequenceType();
+
+    if (seqType == DRUM_PART) {
+        uint8_t note = BASE_NOTE + pad;
+        playLiveNoteOff(note, 0);
+        if (isSelectedSequenceRecording())
+            recorderNoteOff(note);
+        setTrellisButtonColor(pad, getSelectedSequenceColor());
+        _pressedPads &= ~(1 << pad);
+        return;
+    }
+
+    // Melodic
+    if (pad < 12) {
+        uint8_t rootNote = BASE_NOTE + pad;
+        uint8_t ct = _chordionKeys.releaseChordOn(rootNote);
+        // Only release if this is the currently tracked note (avoids double-release on sweep)
+        if (_lastLiveMelodicNote == rootNote) {
+            playLiveNoteOff(rootNote, ct);
+            if (isSelectedSequenceRecording())
+                recorderNoteOff(rootNote);
+            _lastLiveMelodicNote = 255;
+        }
+        static const bool isBlackKey[12] = {false,true,false,true,false,false,true,false,true,false,true,false};
+        uint32_t sc = getSelectedSequenceColor();
+        uint32_t dimmed = (((sc >> 16 & 0xFF) * 35 / 255) << 16)
+                        | (((sc >>  8 & 0xFF) * 35 / 255) <<  8)
+                        |  ((sc       & 0xFF) * 35 / 255);
+        setTrellisButtonColor(pad, (pad < 12 && isBlackKey[pad]) ? dimmed : sc);
+        _pressedPads &= ~(1 << pad);
+    }
+
+    // Modifier pad release (12-15): disable key (momentary), restore LED, update OLED preview
+    if (pad >= 12 && pad <= 15) {
+        _chordionKeys.disableChordionKey(pad - 12);
+        setTrellisButtonColor(pad, 0x101010);
+        _pressedPads &= ~(1 << pad);
+        String preview = String(CHORD_TYPE_NAMES[_chordionKeys.getChordType() & 0x0F]);
+        printToScreen("Piano Roll", getSequencer().getSelectedSequenceTypeName(), "[ " + preview + " ]");
+    }
+}
+
+void BuitDevicesManager::handleLiveSequencerTick() {
+    _tickCount++;
+    uint8_t seqType = getSelectedSequenceType();
+    if (seqType == DRUM_PART && _drumRollActive) {
+        if ((_tickCount % _rollDivision) == 0)
+            playLiveNoteOn(_drumRollNote, getLiveVelocity(), 0);
+    }
+    if ((_tickCount % 4) == 0)
+        syncLiveTrellis();
+}
+
+void BuitDevicesManager::syncLiveTrellis() {
+    uint8_t seqType = getSelectedSequenceType();
+    uint32_t seqColor = getSelectedSequenceColor();
+    static const bool isBlackKey[12] = {false,true,false,true,false,false,true,false,true,false,true,false};
+    uint32_t dimmed = (((seqColor >> 16 & 0xFF) * 35 / 255) << 16)
+                    | (((seqColor >>  8 & 0xFF) * 35 / 255) <<  8)
+                    |  ((seqColor       & 0xFF) * 35 / 255);
+    for (uint8_t i = 0; i < 16; i++) {
+        bool pressed = (_pressedPads >> i) & 1;
+        if (pressed) {
+            setTrellisButtonColor(i, 0xFFFFFF);
+        } else if (seqType == DRUM_PART) {
+            setTrellisButtonColor(i, seqColor);
+        } else if (i < 12) {
+            setTrellisButtonColor(i, isBlackKey[i] ? dimmed : seqColor);
+        } else {
+            setTrellisButtonColor(i, 0x101010);
+        }
+    }
+}
+
+void BuitDevicesManager::handleLiveDrumRollThreeAxis(ControlCommand command) {
+    int val = command.value;
+    switch (command.commandType) {
+        case CHANGE_LEFT:
+            if (val <= 2) {
+                _drumRollActive = false;
+            } else {
+                _drumRollActive = true;
+                uint8_t zone = (uint8_t)constrain((val * 16) / 127, 0, 15);
+                _drumRollNote = BASE_NOTE + zone;
+            }
+            break;
+        case CHANGE_CENTER:
+            if (val < 43)       _rollDivision = 4;
+            else if (val < 85)  _rollDivision = 2;
+            else                _rollDivision = 1;
+            break;
+        case CHANGE_RIGHT:
+            handleLiveThreeAxis(command);
+            break;
+    }
 }
 
 bool BuitDevicesManager::isSelectedSequenceWaiting(){

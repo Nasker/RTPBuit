@@ -16,5 +16,6 @@ public:
 private:
   uint8_t _liveVelocity = 90;
   uint8_t _liveSpread = 4;
-  int8_t  _liveTranspose = 0;
+  uint8_t _liveRangeReading = 64;
+  queue<uint8_t> _liveRingingNotes;
 };

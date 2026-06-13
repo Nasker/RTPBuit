@@ -11,30 +11,44 @@ void PolySequence::setTypeSpecificColor(){
 }
 
 void PolySequence::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType) {
+    (void)velocity;
     uint8_t ch = getMidiChannel();
-    _musicManager.setChordType(chordType);
-    uint8_t steps = min(_musicManager.getChordSteps(), _liveSpread);
-    uint8_t transposed = (uint8_t)((int)rootNote + _liveTranspose);
-    for (uint8_t i = 0; i < steps; i++) {
-        uint8_t note = transposed + _musicManager.getChordStep(i);
-        usbMIDI.sendNoteOn(note, _liveVelocity, ch);
-        Serial1.write(0x90 | ((ch - 1) & 0x0F));
-        Serial1.write(note & 0x7F);
-        Serial1.write(_liveVelocity & 0x7F);
-    }
-}
-
-void PolySequence::playLiveNoteOff(uint8_t rootNote, uint8_t chordType) {
-    uint8_t ch = getMidiChannel();
-    _musicManager.setChordType(chordType);
-    uint8_t steps = min(_musicManager.getChordSteps(), _liveSpread);
-    uint8_t transposed = (uint8_t)((int)rootNote + _liveTranspose);
-    for (uint8_t i = 0; i < steps; i++) {
-        uint8_t note = transposed + _musicManager.getChordStep(i);
+    // Defensive: ensure any previously stuck notes are off before new chord
+    while (!_liveRingingNotes.empty()) {
+        uint8_t note = _liveRingingNotes.front();
         usbMIDI.sendNoteOff(note, 0, ch);
         Serial1.write(0x80 | ((ch - 1) & 0x0F));
         Serial1.write(note & 0x7F);
         Serial1.write(0x00);
+        _liveRingingNotes.pop();
+    }
+    _musicManager.setChordType(chordType);
+    auto chordNotes = _musicManager.getAutoharpChordNotes(_liveRangeReading, _liveSpread);
+    int transpose = 0;
+    if (!chordNotes.empty())
+        transpose = (int)rootNote - chordNotes.front();
+    while (!chordNotes.empty()) {
+        uint8_t note = (uint8_t)constrain((int)chordNotes.front() + transpose, 0, 127);
+        usbMIDI.sendNoteOn(note, _liveVelocity, ch);
+        Serial1.write(0x90 | ((ch - 1) & 0x0F));
+        Serial1.write(note & 0x7F);
+        Serial1.write(_liveVelocity & 0x7F);
+        _liveRingingNotes.push(note);
+        chordNotes.pop();
+    }
+}
+
+void PolySequence::playLiveNoteOff(uint8_t rootNote, uint8_t chordType) {
+    (void)rootNote;
+    (void)chordType;
+    uint8_t ch = getMidiChannel();
+    while (!_liveRingingNotes.empty()) {
+        uint8_t note = _liveRingingNotes.front();
+        usbMIDI.sendNoteOff(note, 0, ch);
+        Serial1.write(0x80 | ((ch - 1) & 0x0F));
+        Serial1.write(note & 0x7F);
+        Serial1.write(0x00);
+        _liveRingingNotes.pop();
     }
 }
 
@@ -42,7 +56,7 @@ void PolySequence::handleLiveThreeAxis(ControlCommand command) {
     if (command.controlType != THREE_AXIS) return;
     switch (command.commandType) {
         case CHANGE_LEFT:
-            _liveTranspose = (int8_t)constrain(remap(command.value, 0, 127, -12, 12), -12, 12);
+            _liveRangeReading = command.value;
             break;
         case CHANGE_CENTER:
             _liveSpread = (uint8_t)constrain(remap(command.value, 0, 127, 1, 8), 1, 8);

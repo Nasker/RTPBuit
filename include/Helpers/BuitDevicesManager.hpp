@@ -11,6 +11,7 @@
 #include "BuitPersistenceManager.hpp"
 #include "Helpers/NotesRecorder.hpp"
 #include "Helpers/RTPClockGenerator.hpp"
+#include "BuitFunctions/ChordionKeys.hpp"
 
 
 class BuitDevicesManager {
@@ -20,7 +21,16 @@ class BuitDevicesManager {
     BuitPersistenceManager _persistenceManager;
     MatrixBuitControlChanger _matrixBuitCC;
     NotesRecorder _notesRecorder;
-    RTPClockGenerator* _clockGenerator = nullptr;  // Set by RTPMainUnit after creation
+    RTPClockGenerator* _clockGenerator = nullptr;
+    ChordionKeys _chordionKeys;
+
+    // Live-play state (moved from SequencePianoRollState)
+    bool     _drumRollActive = false;
+    uint8_t  _drumRollNote   = 36;
+    uint8_t  _rollDivision   = 1;
+    uint32_t _tickCount      = 0;
+    uint8_t  _lastLiveMelodicNote = 255;
+    uint16_t _pressedPads    = 0;   // bitmask of currently lit live-play pads
 
 public:
     BuitDevicesManager(RTPNeoTrellis& neoTrellis, RTPSequencer& sequencer);
@@ -35,6 +45,7 @@ public:
     void presentScene();
     void presentSequenceSelect();
     void presentSequence();
+    void paintLiveTrellis();
     void showSequence();
     void presentTransport();
     void presentBuitCC();
@@ -64,6 +75,13 @@ public:
     void playLiveNoteOff(uint8_t rootNote, uint8_t chordType);
     void handleLiveThreeAxis(ControlCommand command);
     uint8_t getLiveVelocity();
+
+    // Live-play orchestration (moved from SequencePianoRollState)
+    void handleLiveTrellisPressed(uint8_t pad);
+    void handleLiveTrellisReleased(uint8_t pad);
+    void handleLiveSequencerTick();
+    void handleLiveDrumRollThreeAxis(ControlCommand command);
+    void syncLiveTrellis();
     bool isSelectedSequenceWaiting();
     SequenceDisplayState getSequenceDisplayState();
     void toggleSelectedSequenceRecording();

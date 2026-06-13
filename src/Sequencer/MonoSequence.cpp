@@ -11,7 +11,16 @@ void MonoSequence::setTypeSpecificColor(){
 }
 
 void MonoSequence::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType) {
+    (void)velocity;
     uint8_t ch = getMidiChannel();
+    while (!_liveRingingNotes.empty()) {
+        uint8_t note = _liveRingingNotes.front();
+        usbMIDI.sendNoteOff(note, 0, ch);
+        Serial1.write(0x80 | ((ch - 1) & 0x0F));
+        Serial1.write(note & 0x7F);
+        Serial1.write(0x00);
+        _liveRingingNotes.pop();
+    }
     _musicManager.setChordType(chordType);
     uint8_t steps = _musicManager.getChordSteps();
     uint8_t transposed = rootNote + (_liveOctave * 12);
@@ -21,20 +30,21 @@ void MonoSequence::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t ch
         Serial1.write(0x90 | ((ch - 1) & 0x0F));
         Serial1.write(note & 0x7F);
         Serial1.write(_liveVelocity & 0x7F);
+        _liveRingingNotes.push(note);
     }
 }
 
 void MonoSequence::playLiveNoteOff(uint8_t rootNote, uint8_t chordType) {
+    (void)rootNote;
+    (void)chordType;
     uint8_t ch = getMidiChannel();
-    _musicManager.setChordType(chordType);
-    uint8_t steps = _musicManager.getChordSteps();
-    uint8_t transposed = rootNote + (_liveOctave * 12);
-    for (uint8_t i = 0; i < steps; i++) {
-        uint8_t note = transposed + _musicManager.getChordStep(i);
+    while (!_liveRingingNotes.empty()) {
+        uint8_t note = _liveRingingNotes.front();
         usbMIDI.sendNoteOff(note, 0, ch);
         Serial1.write(0x80 | ((ch - 1) & 0x0F));
         Serial1.write(note & 0x7F);
         Serial1.write(0x00);
+        _liveRingingNotes.pop();
     }
 }
 
