@@ -29,8 +29,7 @@ class BuitDevicesManager {
     uint8_t  _drumRollNote   = 36;
     uint8_t  _rollDivision   = 1;
     uint32_t _tickCount      = 0;
-    uint8_t  _lastLiveMelodicNote = 255;
-    uint16_t _pressedPads    = 0;   // bitmask of currently lit live-play pads
+    uint32_t _fineTickCount  = 0;
 
 public:
     BuitDevicesManager(RTPNeoTrellis& neoTrellis, RTPSequencer& sequencer);
@@ -80,6 +79,7 @@ public:
     void handleLiveTrellisPressed(uint8_t pad);
     void handleLiveTrellisReleased(uint8_t pad);
     void handleLiveSequencerTick();
+    void handleLiveFineTick();
     void handleLiveDrumRollThreeAxis(ControlCommand command);
     void syncLiveTrellis();
     bool isSelectedSequenceWaiting();

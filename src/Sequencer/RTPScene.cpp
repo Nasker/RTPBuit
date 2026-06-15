@@ -24,8 +24,12 @@ uint8_t midiChannels[N_SCENES][SCENE_BLOCK_SIZE] = {
 RTPScene::RTPScene(String name, uint8_t NSequences, uint8_t scene, NotesPlayer& notesPlayer, MusicManager& musicManager) 
   : _name(name), _NSequences(NSequences), _selectedSequence(0), _notesPlayer(notesPlayer), _musicManager(musicManager) {
   for (uint8_t i = 0; i < _NSequences; i++) {
-    uint8_t baseNote = (types[scene][i] == DRUM_PART) ? 36 + i : 60;
-        std::unique_ptr<RTPEventNoteSequence> sequence;
+    uint8_t baseNote;
+    if (types[scene][i] == DRUM_PART) baseNote = 36 + i;
+    else if (types[scene][i] == BASS_SYNTH) baseNote = BASS_BASE_NOTE;
+    else if (types[scene][i] == MONO_SYNTH) baseNote = BASE_NOTE;
+    else baseNote = 60;  // POLY and others
+    std::unique_ptr<RTPEventNoteSequence> sequence;
         switch (types[scene][i]) {
             case DRUM_PART:
                 sequence = std::make_unique<DrumSequence>(midiChannels[scene][i], SEQ_BLOCK_SIZE * N_PAGES, types[scene][i], baseNote, _notesPlayer, _musicManager);

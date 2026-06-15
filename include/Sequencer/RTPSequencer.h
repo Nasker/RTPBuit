@@ -59,6 +59,8 @@ public:
   void playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType);
   void playLiveNoteOff(uint8_t rootNote, uint8_t chordType);
   void handleLiveThreeAxis(ControlCommand command);
+  void handleLiveSequencerTick();
+  void handleLiveHalfTick();  // 32nd note resolution
   uint8_t getLiveVelocity();
   
   // For persistence manager

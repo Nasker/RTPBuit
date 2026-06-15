@@ -242,6 +242,18 @@ void RTPSequencer::handleLiveThreeAxis(ControlCommand command) {
     if (seq) seq->handleLiveThreeAxis(command);
 }
 
+void RTPSequencer::handleLiveSequencerTick() {
+    uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
+    RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);
+    if (seq) seq->handleLiveSequencerTick();
+}
+
+void RTPSequencer::handleLiveHalfTick() {
+    uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
+    RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);
+    if (seq) seq->handleLiveHalfTick();
+}
+
 uint8_t RTPSequencer::getLiveVelocity() {
     uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
     RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);

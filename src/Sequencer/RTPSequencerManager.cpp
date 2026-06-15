@@ -78,7 +78,16 @@ void RTPSequencerManager::gridClockUp(uint8_t realtimebyte){
         callbackCommand.value = counter;
         mainUnit->actOnSequencerCallback(callbackCommand);
     }
-        
+
+    // Finer 32nd-note callback for live rolls (does NOT advance the sequencer step)
+    if (counter % FINE_GRID == 0){
+        ControlCommand fineCommand;
+        fineCommand.controlType = SEQUENCER;
+        fineCommand.commandType = GRID_FINE_TICK;
+        fineCommand.value = counter;
+        mainUnit->actOnSequencerCallback(fineCommand);
+    }
+
     increaseCounter();
 } 
 

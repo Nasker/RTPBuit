@@ -93,25 +93,40 @@ ThreeReadings RTPThreeAxisVL::getThreeCleanReadings(){
 
 void RTPThreeAxisVL::callbackThreeAxisChanged(void (*userFunc) (ControlCommand callbackCommand)){
     ThreeReadings readings = getThreeCleanReadings();
-    if(readings.sensorReading1 != lastReadings.sensorReading1 && readings.sensorReading1 != -1){
+    if(readings.sensorReading1 != lastReadings.sensorReading1){
         ControlCommand command;
         command.controlType = THREE_AXIS;
-        command.commandType = CHANGE_LEFT;
-        command.value = constrain(remap(readings.sensorReading1, _minLimitReading, _maxLimitReading, 0, 127), 0, 127);
+        if(readings.sensorReading1 != -1){
+            command.commandType = CHANGE_LEFT;
+            command.value = constrain(remap(readings.sensorReading1, _minLimitReading, _maxLimitReading, 0, 127), 0, 127);
+        } else {
+            command.commandType = AXIS_ABSENT_LEFT;
+            command.value = 0;
+        }
         userFunc(command);
     }
-    if(readings.sensorReading2 != lastReadings.sensorReading2 && readings.sensorReading2 != -1){
+    if(readings.sensorReading2 != lastReadings.sensorReading2){
         ControlCommand command;
         command.controlType = THREE_AXIS;
-        command.commandType = CHANGE_CENTER;
-        command.value = constrain(remap(readings.sensorReading2, _minLimitReading, _maxLimitReading, 0, 127), 0, 127);
+        if(readings.sensorReading2 != -1){
+            command.commandType = CHANGE_CENTER;
+            command.value = constrain(remap(readings.sensorReading2, _minLimitReading, _maxLimitReading, 0, 127), 0, 127);
+        } else {
+            command.commandType = AXIS_ABSENT_CENTER;
+            command.value = 0;
+        }
         userFunc(command);
     }
-    if(readings.sensorReading3 != lastReadings.sensorReading3 && readings.sensorReading3 != -1){
+    if(readings.sensorReading3 != lastReadings.sensorReading3){
         ControlCommand command;
         command.controlType = THREE_AXIS;
-        command.commandType = CHANGE_RIGHT;
-        command.value = constrain(remap(readings.sensorReading3, _minLimitReading, _maxLimitReading, 0, 127), 0, 127);
+        if(readings.sensorReading3 != -1){
+            command.commandType = CHANGE_RIGHT;
+            command.value = constrain(remap(readings.sensorReading3, _minLimitReading, _maxLimitReading, 0, 127), 0, 127);
+        } else {
+            command.commandType = AXIS_ABSENT_RIGHT;
+            command.value = 0;
+        }
         userFunc(command);
     }
     lastReadings = readings;
@@ -120,25 +135,40 @@ void RTPThreeAxisVL::callbackThreeAxisChanged(void (*userFunc) (ControlCommand c
 
 void RTPThreeAxisVL::callbackThreeAxisChanged(RTPMainUnit* mainClass){
     ThreeReadings readings = getThreeCleanReadings();
-    if(readings.sensorReading1 != lastReadings.sensorReading1 && readings.sensorReading1 != -1){
+    if(readings.sensorReading1 != lastReadings.sensorReading1){
         ControlCommand command;
         command.controlType = THREE_AXIS;
-        command.commandType = CHANGE_LEFT;
-        command.value = constrain(remap(readings.sensorReading1, _minLimitReading, _maxLimitReading, 0, 127), 0, 127);
+        if(readings.sensorReading1 != -1){
+            command.commandType = CHANGE_LEFT;
+            command.value = constrain(remap(readings.sensorReading1, _minLimitReading, _maxLimitReading, 0, 127), 0, 127);
+        } else {
+            command.commandType = AXIS_ABSENT_LEFT;
+            command.value = 0;
+        }
         mainClass->actOnControlsCallback(command);
     }
-    if(readings.sensorReading2 != lastReadings.sensorReading2 && readings.sensorReading2 != -1){
+    if(readings.sensorReading2 != lastReadings.sensorReading2){
         ControlCommand command;
         command.controlType = THREE_AXIS;
-        command.commandType = CHANGE_CENTER;
-        command.value = constrain(remap(readings.sensorReading2, _minLimitReading, _maxLimitReading, 0, 127), 0, 127);
+        if(readings.sensorReading2 != -1){
+            command.commandType = CHANGE_CENTER;
+            command.value = constrain(remap(readings.sensorReading2, _minLimitReading, _maxLimitReading, 0, 127), 0, 127);
+        } else {
+            command.commandType = AXIS_ABSENT_CENTER;
+            command.value = 0;
+        }
         mainClass->actOnControlsCallback(command);
     }
-    if(readings.sensorReading3 != lastReadings.sensorReading3 && readings.sensorReading3 != -1){
+    if(readings.sensorReading3 != lastReadings.sensorReading3){
         ControlCommand command;
         command.controlType = THREE_AXIS;
-        command.commandType = CHANGE_RIGHT;
-        command.value = constrain(remap(readings.sensorReading3, _minLimitReading, _maxLimitReading, 0, 127), 0, 127);
+        if(readings.sensorReading3 != -1){
+            command.commandType = CHANGE_RIGHT;
+            command.value = constrain(remap(readings.sensorReading3, _minLimitReading, _maxLimitReading, 0, 127), 0, 127);
+        } else {
+            command.commandType = AXIS_ABSENT_RIGHT;
+            command.value = 0;
+        }
         mainClass->actOnControlsCallback(command);
     }
     lastReadings = readings;

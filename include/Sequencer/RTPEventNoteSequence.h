@@ -57,6 +57,8 @@ public:
 	virtual void playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType) {}
 	virtual void playLiveNoteOff(uint8_t rootNote, uint8_t chordType) {}
 	virtual void handleLiveThreeAxis(ControlCommand command) {}
+	virtual void handleLiveSequencerTick() {}
+	virtual void handleLiveHalfTick() {}  // For 32nd note resolution
 	virtual uint8_t getLiveVelocity() const { return 90; }
 	void setMidiChannel(uint8_t midiChannel);
 	uint8_t getMidiChannel();

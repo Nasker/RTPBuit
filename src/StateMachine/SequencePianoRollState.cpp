@@ -57,6 +57,8 @@ void SequencePianoRollState::trellisReleased(ControlCommand command) {
 void SequencePianoRollState::sequencerCallback(ControlCommand command) {
   if (command.commandType == GRID_TICK)
     _devices.handleLiveSequencerTick();
+  if (command.commandType == GRID_FINE_TICK)
+    _devices.handleLiveFineTick();
   if (_devices.isSelectedSequenceRecording())
     _devices.displayCursorInSequence(command);
 }
