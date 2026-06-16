@@ -19,12 +19,11 @@ This document outlines a systematic refactoring plan to transform the RTPBuit co
 | 5.1: Test Framework | ✅ Complete | Assert.hpp, MockMidiOutput, MockDisplay, teensy41_test env, TestValidation suite |
 | 5.2: Core Functionality Tests | ✅ Complete | TestMidiOutput: 11 tests covering silence, legato, roll, null-guard, MockMidiOutput contract |
 | 6.1: Documentation | ✅ Complete | README.md, PLAN.md, REFACTORING_PROGRESS.md, CURRENT_ARCHITECTURE.md |
-| 6.2: Code Cleanup | ⚠️ Partial | Compiler warnings fixed; BuitPersistenceManager warnings blocked by upstream RTPLib |
+| 6.2: Code Cleanup | ✅ Complete | All deprecation warnings fixed; BuitPersistenceManager migrated to ArduinoJson v7 API |
 
 ### Pending Work Summary
 
-**Priority: LOW**
-- **6.2** — `BuitPersistenceManager` ArduinoJson v7 deprecation warnings (`StaticJsonDocument`, `DynamicJsonDocument`, `createNestedArray/Object`) — migrate to new ArduinoJson v7 API (`JsonDocument`, `doc[key].to<JsonArray>()`, `add<JsonObject>()`)
+All planned phases complete. Build is clean with zero errors and zero warnings.
 
 ---
 
