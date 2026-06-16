@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "Interfaces/IMidiOutput.hpp"
 #include <RTPScene.h>
 #include "NotesPlayer.hpp"
 #include "Structs.h"
@@ -63,6 +64,8 @@ public:
   void handleLiveHalfTick();  // 32nd note resolution
   uint8_t getLiveVelocity();
   
+  void setMidiOutput(IMidiOutput* midiOutput);
+
   // For persistence manager
   int getNumScenes() const { return (int)Sequencer.size(); }
   RTPScene* getScene(int index) const { return (index >= 0 && index < (int)Sequencer.size()) ? Sequencer[index] : nullptr; }

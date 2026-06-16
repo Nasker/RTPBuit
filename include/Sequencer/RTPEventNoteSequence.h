@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "Interfaces/IMidiOutput.hpp"
 #include "RTPEventNotePlus.h"
 #include "RTPParameter.hpp"
 #include "NotesPlayer.hpp"
@@ -28,6 +29,7 @@ enum SequenceParametersIndex{
 
 class RTPEventNoteSequence{
 protected:
+	IMidiOutput* _midiOutput = nullptr;
 	list<RTPEventNotePlus> EventNoteSequence;
 	vector<RTPParameter> sequenceParameters;
 	NotesPlayer& _notesPlayer;
@@ -60,6 +62,7 @@ public:
 	virtual void handleLiveSequencerTick() {}
 	virtual void handleLiveHalfTick() {}  // For 32nd note resolution
 	virtual uint8_t getLiveVelocity() const { return 90; }
+	void setMidiOutput(IMidiOutput* midiOutput) { _midiOutput = midiOutput; }
 	void setMidiChannel(uint8_t midiChannel);
 	uint8_t getMidiChannel();
 	uint8_t getMidiChannel() const;  // Const version for JSON serialization

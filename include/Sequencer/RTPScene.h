@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "Interfaces/IMidiOutput.hpp"
 #include "RTPEventNoteSequence.h"
 #include "Structs.h"
 #include <vector>
@@ -28,6 +29,7 @@ public:
   uint8_t getSelectedSequencePage();
   uint8_t getSelectedSequenceMidiChannel();
   uint8_t getSize();
+  uint8_t getSize() const;
   bool isSelectedSequenceRecording();
   void toggleSelectedSequenceRecording();
   RTPSequenceNoteStates getSelectedSequenceNoteStates();
@@ -51,6 +53,8 @@ public:
   uint32_t getSequenceColor();
   void dumpSequencesToJson();
   
+  void setMidiOutput(IMidiOutput* midiOutput);
+
   // For persistence manager
   RTPEventNoteSequence* getSequence(uint8_t index);
   const RTPEventNoteSequence* getSequence(int index) const;

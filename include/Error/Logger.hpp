@@ -22,56 +22,39 @@ enum class LogLevel : uint8_t {
  * in production builds to save memory and CPU cycles.
  */
 class Logger {
-private:
-    static LogLevel _minLevel;
-    static bool _enabled;
-    static bool _serialEnabled;
-    static bool _fileEnabled;
-
 public:
-    // Configuration
-    static void setMinLevel(LogLevel level) { _minLevel = level; }
-    static void setEnabled(bool enabled) { _enabled = enabled; }
-    static void setSerialEnabled(bool enabled) { _serialEnabled = enabled; }
-    static void setFileEnabled(bool enabled) { _fileEnabled = enabled; }
-
-    // Logging methods
-    static void debug(const String& message, const String& context = "");
-    static void info(const String& message, const String& context = "");
-    static void warning(const String& message, const String& context = "");
-    static void error(const String& message, const String& context = "");
-    static void critical(const String& message, const String& context = "");
-
-    // Error logging
-    static void logError(const Error& error);
-    static void logError(ErrorCode code, ErrorSeverity severity, const String& message, const String& context = "");
-
-    // Formatted logging
-    template<typename... Args>
-    static void debugf(const String& format, Args... args);
-    
-    template<typename... Args>
-    static void infof(const String& format, Args... args);
-    
-    template<typename... Args>
-    static void warningf(const String& format, Args... args);
-    
-    template<typename... Args>
-    static void errorf(const String& format, Args... args);
-    
-    template<typename... Args>
-    static void criticalf(const String& format, Args... args);
-
-    // Utility methods
-    static String getLevelString(LogLevel level);
-    static String getTimestamp();
-    static void flush();
-
-private:
-    static void log(LogLevel level, const String& message, const String& context);
-    static void outputToSerial(LogLevel level, const String& formattedMessage);
-    static void outputToFile(LogLevel level, const String& formattedMessage);
-    static String formatMessage(LogLevel level, const String& message, const String& context);
+    static inline void debug(const String& message, const String& context = "") {
+        Serial.print("[DBG]"); if (context.length()) { Serial.print("["); Serial.print(context); Serial.print("] "); } Serial.println(message);
+    }
+    static inline void info(const String& message, const String& context = "") {
+        Serial.print("[INF]"); if (context.length()) { Serial.print("["); Serial.print(context); Serial.print("] "); } Serial.println(message);
+    }
+    static inline void warning(const String& message, const String& context = "") {
+        Serial.print("[WRN]"); if (context.length()) { Serial.print("["); Serial.print(context); Serial.print("] "); } Serial.println(message);
+    }
+    static inline void error(const String& message, const String& context = "") {
+        Serial.print("[ERR]"); if (context.length()) { Serial.print("["); Serial.print(context); Serial.print("] "); } Serial.println(message);
+    }
+    static inline void critical(const String& message, const String& context = "") {
+        Serial.print("[CRT]"); if (context.length()) { Serial.print("["); Serial.print(context); Serial.print("] "); } Serial.println(message);
+    }
+    static inline void logError(const Error& err) {
+        error(err.message, err.context);
+    }
+    static inline void logError(ErrorCode code, ErrorSeverity severity, const String& message, const String& context = "") {
+        error(message, context);
+    }
+    static inline void flush() {}
+    static inline String getLevelString(LogLevel level) {
+        switch (level) {
+            case LogLevel::Debug:    return "DBG";
+            case LogLevel::Info:     return "INF";
+            case LogLevel::Warning:  return "WRN";
+            case LogLevel::Error:    return "ERR";
+            case LogLevel::Critical: return "CRT";
+            default:                 return "???";
+        }
+    }
 };
 
 // Convenience macros for logging

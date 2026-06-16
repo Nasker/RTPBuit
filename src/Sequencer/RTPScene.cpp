@@ -113,6 +113,10 @@ uint8_t RTPScene::getSize() {
   return SequencerScene.size();
 }
 
+uint8_t RTPScene::getSize() const {
+  return SequencerScene.size();
+}
+
 bool RTPScene::isSelectedSequenceRecording() {
   return SequencerScene[_selectedSequence]->isRecording();
 }
@@ -216,6 +220,12 @@ void RTPScene::dumpSequencesToJson() {
   for (const auto& sequence : SequencerScene)
     fileString += sequence->dumpSequenceToJson() + "\t\n";
   writeToFile("sequences.json", fileString);
+}
+
+void RTPScene::setMidiOutput(IMidiOutput* midiOutput) {
+  for (auto& seq : SequencerScene) {
+    seq->setMidiOutput(midiOutput);
+  }
 }
 
 // For persistence manager - Non-const version

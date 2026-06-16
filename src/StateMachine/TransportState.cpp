@@ -4,7 +4,6 @@
 
 TransportState::TransportState (BuitStateMachine& buitMachine, BuitDevicesManager& devices) : BuitState(devices), _buitMachine(buitMachine) {
   Serial.println("TransportState");
-  _buitMachine = buitMachine;
 }
 
 void TransportState::onEnter() {

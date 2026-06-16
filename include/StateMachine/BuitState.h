@@ -7,6 +7,7 @@ protected:
 	BuitDevicesManager& _devices;
 public:
 	BuitState(BuitDevicesManager& devices) : _devices(devices) {}
+	virtual ~BuitState() = default;
 	virtual void onEnter() {}
   	virtual void singleClick() = 0;
 	virtual void doubleClick() = 0;

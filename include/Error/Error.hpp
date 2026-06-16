@@ -105,7 +105,9 @@ struct Error {
         : code(c), severity(s), message(msg), context(ctx), 
           timestamp(millis()), line(l), file(f) {}
 
-    String toString() const;
+    String toString() const {
+        return String("[") + context + "] " + message;
+    }
     bool isNone() const { return code == ErrorCode::None; }
     bool isError() const { return severity >= ErrorSeverity::Error; }
     bool isWarning() const { return severity == ErrorSeverity::Warning; }
@@ -116,9 +118,9 @@ struct Error {
  * @brief Error utilities
  */
 namespace ErrorUtils {
-    String getErrorCodeString(ErrorCode code);
-    String getSeverityString(ErrorSeverity severity);
-    ErrorCode fromMidiError(uint8_t midiError);
-    bool isRecoverable(ErrorCode code);
-    bool requiresImmediateAction(ErrorCode code);
+    inline String getErrorCodeString(ErrorCode code) { return String(static_cast<uint16_t>(code)); }
+    inline String getSeverityString(ErrorSeverity severity) { return String(static_cast<uint8_t>(severity)); }
+    inline ErrorCode fromMidiError(uint8_t) { return ErrorCode::InvalidMidiMessage; }
+    inline bool isRecoverable(ErrorCode code) { return code < ErrorCode::Unknown; }
+    inline bool requiresImmediateAction(ErrorCode code) { return code >= ErrorCode::Unknown; }
 }

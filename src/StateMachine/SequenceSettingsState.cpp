@@ -4,7 +4,6 @@
 
 SequenceSettingsState::SequenceSettingsState(BuitStateMachine& buitMachine, BuitDevicesManager& devices) : BuitState(devices), _buitMachine(buitMachine) {
   Serial.println("SequenceSettingsState");
-  _buitMachine = buitMachine;
 }
 
 void SequenceSettingsState::onEnter() {

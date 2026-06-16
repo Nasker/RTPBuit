@@ -174,7 +174,7 @@ bool BuitPersistenceManager::parseAndLoadSequences(RTPSequencer& sequencer, cons
             JsonObject seqObj = sequencesArray[seqIdx];
             
             // Get reference to the sequence
-            RTPEventNoteSequence* sequence = scene->getSequence(seqIdx);
+            RTPEventNoteSequence* sequence = scene->getSequence(static_cast<uint8_t>(seqIdx));
             if (!sequence) continue;
             
             // Load the sequence data

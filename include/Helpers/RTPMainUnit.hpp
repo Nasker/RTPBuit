@@ -2,6 +2,7 @@
 
 #include "Arduino.h"
 #include <Wire.h>
+#include "Hardware/Implementations/TeensyMidiOutput.hpp"
 #include "RTPNeoTrellis.hpp"
 #include "RTPRotaryClickChordion.hpp"
 #include "RTPThreeAxisVL.hpp"
@@ -24,6 +25,7 @@ class RTPMainUnit{
   StateMachineManager stateMachineManager{devicesManager};
   RTPSequencerManager SequencerManager{Sequencer};
   RTPClockGenerator clockGenerator;
+  TeensyMidiOutput midiOutput;
   
 public:
   RTPMainUnit();

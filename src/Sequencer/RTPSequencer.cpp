@@ -259,3 +259,9 @@ uint8_t RTPSequencer::getLiveVelocity() {
     RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);
     return seq ? seq->getLiveVelocity() : 90;
 }
+
+void RTPSequencer::setMidiOutput(IMidiOutput* midiOutput) {
+    for (auto* scene : Sequencer) {
+        if (scene) scene->setMidiOutput(midiOutput);
+    }
+}

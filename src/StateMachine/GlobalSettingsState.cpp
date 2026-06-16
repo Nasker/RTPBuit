@@ -4,7 +4,6 @@
 
 GlobalSettingsState::GlobalSettingsState (BuitStateMachine& buitMachine, BuitDevicesManager& devices) : BuitState(devices), _buitMachine(buitMachine) {
   Serial.println("GlobalSettingsState");
-  _buitMachine = buitMachine;
 }
 
 void GlobalSettingsState::onEnter() {

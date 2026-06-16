@@ -9,6 +9,7 @@
 #include <Arduino.h>
 #include "Framework/Assert.hpp"
 #include "Tests/Unit/TestValidation.hpp"
+#include "Tests/Unit/TestMidiOutput.hpp"
 
 void setup() {
     Serial.begin(115200);
@@ -17,6 +18,7 @@ void setup() {
     Serial.println("\n========== RTPBuit Unit Tests ==========");
 
     TestValidation::runAll();
+    TestMidiOutput::runAll();
 
     Serial.println("\n========== Tests Complete ==========");
 }

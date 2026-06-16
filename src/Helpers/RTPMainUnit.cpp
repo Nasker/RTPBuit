@@ -8,6 +8,7 @@ void RTPMainUnit::begin(){
   Serial.begin(9600);
   Wire.begin();
   Wire1.begin();
+  Sequencer.setMidiOutput(&midiOutput);
   vlSensor.initSetup();
   vlSensor.startContinuous();
   rtpTrellis.begin(this);
