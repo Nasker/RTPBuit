@@ -4,6 +4,38 @@
 
 This document outlines a systematic refactoring plan to transform the RTPBuit codebase from its current state (D- grade, 35/100) to a professionally maintainable and extensible system. The plan addresses SOLID principle violations, architectural debt, and establishes proper engineering practices while preserving the sophisticated musical functionality.
 
+## Progress Status
+
+| Phase | Status | Notes |
+|---|---|---|
+| 1: Foundation & Interfaces | ✅ Complete | All interfaces, config, error framework created |
+| 2.1: Hardware Abstraction | ✅ Complete | TeensyMidiOutput, OledDisplay, NeoTrellisMatrix, VlThreeAxisSensor |
+| 2.2: DI Container | ✅ Complete | ServiceContainer created (not usable in prod — RTTI disabled on Teensy) |
+| 2.3: Remove Hardcoded Dependencies | ⏳ Pending | BassSequence/MonoSequence/BuitDevicesManager still use usbMIDI directly |
+| 3.1: Decompose BuitDevicesManager | ✅ Complete | DisplayManager, InputManager, TransportManager, DeviceManager |
+| 3.2: Refactor State Machine | ⏳ Pending | BuitStateMachine still uses manual new/delete, no StateFactory |
+| 3.3: Refactor RTPMainUnit | ⏳ Pending | RTPMainUnit still directly accesses hardware; no SubsystemManager/EventRouter |
+| 4: Error Handling & Validation | ✅ Complete | MidiValidator, InputValidator, RangeChecker; Result<T> used in all managers |
+| 5.1: Test Framework | ✅ Complete | Assert.hpp, MockMidiOutput, MockDisplay, teensy41_test env, TestValidation suite |
+| 5.2: Core Functionality Tests | ⏳ Pending | BassSequence, state machine, sensor processing not yet tested |
+| 6.1: Documentation | ✅ Complete | README.md, PLAN.md, REFACTORING_PROGRESS.md, CURRENT_ARCHITECTURE.md |
+| 6.2: Code Cleanup | ⚠️ Partial | Compiler warnings fixed; BuitPersistenceManager warnings blocked by upstream RTPLib |
+
+### Pending Work Summary
+
+**Priority: HIGH**
+- **2.3** — Migrate `BassSequence` and `MonoSequence` to receive `IMidiOutput` via constructor (use `BassSequenceRefactored.cpp` as the template)
+- **3.3** — Wire `RTPMainUnit` to use the new `DeviceManager` / `DisplayManager` / `InputManager` / `TransportManager` instead of direct hardware calls
+
+**Priority: MEDIUM**
+- **3.2** — Replace `new`/`delete` in `BuitStateMachine` with a `StateFactory` using `std::shared_ptr`; add state transition validation
+- **5.2** — Add unit tests for `BassSequence` legato/chord logic, state machine transitions, and sensor processing using the existing mock infrastructure
+
+**Priority: LOW**
+- **6.2** — `BuitPersistenceManager` const/overload warnings require fixing `RTPScene::getSize()` const in upstream `RTPLib`; raise issue there
+
+---
+
 ## Current State Assessment
 
 ### Critical Issues Identified

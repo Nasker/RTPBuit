@@ -5,6 +5,7 @@
 #include "ControlCommand.h"
 #include "constants.h"
 #include "Structs.h"
+#include "Interfaces/IInputDevice.hpp"
 
 #define DEFAULT_MAX_READING 306
 #define DEFAULT_MIN_READING 50

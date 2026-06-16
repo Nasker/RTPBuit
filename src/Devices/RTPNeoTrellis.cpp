@@ -59,7 +59,7 @@ void RTPNeoTrellis::read(){
   myTrellis.pixels.show();
 }
 
-void RTPNeoTrellis::writeSequenceStates(RTPSequenceNoteStates seqStates, int color, bool show=true){
+void RTPNeoTrellis::writeSequenceStates(RTPSequenceNoteStates seqStates, int color, bool show){
   for(int i=0; i<SEQ_BLOCK_SIZE; i++){
       int pixelColor = seqStates.val[i] ? colorScaler(color, seqStates.velocity[i], 127)  :  0;
       myTrellis.pixels.setPixelColor(convertMatrix[i], pixelColor);
