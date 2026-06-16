@@ -19,21 +19,16 @@ void DrumSequence::playCurrentEventNote(){
 }
 
 void DrumSequence::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType) {
+    (void)velocity;
     (void)chordType;
     uint8_t ch = getMidiChannel();
-    usbMIDI.sendNoteOn(rootNote, _liveVelocity, ch);
-    Serial1.write(0x90 | ((ch - 1) & 0x0F));
-    Serial1.write(rootNote & 0x7F);
-    Serial1.write(_liveVelocity & 0x7F);
+    if (_midiOutput) _midiOutput->sendNoteOn(rootNote, _liveVelocity, ch);
 }
 
 void DrumSequence::playLiveNoteOff(uint8_t rootNote, uint8_t chordType) {
     (void)chordType;
     uint8_t ch = getMidiChannel();
-    usbMIDI.sendNoteOff(rootNote, 0, ch);
-    Serial1.write(0x80 | ((ch - 1) & 0x0F));
-    Serial1.write(rootNote & 0x7F);
-    Serial1.write(0x00);
+    if (_midiOutput) _midiOutput->sendNoteOff(rootNote, 0, ch);
 }
 
 void DrumSequence::handleLiveThreeAxis(ControlCommand command) {

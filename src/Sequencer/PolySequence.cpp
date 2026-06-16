@@ -16,10 +16,7 @@ void PolySequence::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t ch
     // Defensive: ensure any previously stuck notes are off before new chord
     while (!_liveRingingNotes.empty()) {
         uint8_t note = _liveRingingNotes.front();
-        usbMIDI.sendNoteOff(note, 0, ch);
-        Serial1.write(0x80 | ((ch - 1) & 0x0F));
-        Serial1.write(note & 0x7F);
-        Serial1.write(0x00);
+        if (_midiOutput) _midiOutput->sendNoteOff(note, 0, ch);
         _liveRingingNotes.pop();
     }
     _musicManager.setChordType(chordType);
@@ -29,10 +26,7 @@ void PolySequence::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t ch
         transpose = (int)rootNote - chordNotes.front();
     while (!chordNotes.empty()) {
         uint8_t note = (uint8_t)constrain((int)chordNotes.front() + transpose, 0, 127);
-        usbMIDI.sendNoteOn(note, _liveVelocity, ch);
-        Serial1.write(0x90 | ((ch - 1) & 0x0F));
-        Serial1.write(note & 0x7F);
-        Serial1.write(_liveVelocity & 0x7F);
+        if (_midiOutput) _midiOutput->sendNoteOn(note, _liveVelocity, ch);
         _liveRingingNotes.push(note);
         chordNotes.pop();
     }
@@ -44,10 +38,7 @@ void PolySequence::playLiveNoteOff(uint8_t rootNote, uint8_t chordType) {
     uint8_t ch = getMidiChannel();
     while (!_liveRingingNotes.empty()) {
         uint8_t note = _liveRingingNotes.front();
-        usbMIDI.sendNoteOff(note, 0, ch);
-        Serial1.write(0x80 | ((ch - 1) & 0x0F));
-        Serial1.write(note & 0x7F);
-        Serial1.write(0x00);
+        if (_midiOutput) _midiOutput->sendNoteOff(note, 0, ch);
         _liveRingingNotes.pop();
     }
 }

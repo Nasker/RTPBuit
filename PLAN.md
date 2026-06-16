@@ -11,10 +11,10 @@ This document outlines a systematic refactoring plan to transform the RTPBuit co
 | 1: Foundation & Interfaces | ✅ Complete | All interfaces, config, error framework created |
 | 2.1: Hardware Abstraction | ✅ Complete | TeensyMidiOutput, OledDisplay, NeoTrellisMatrix, VlThreeAxisSensor |
 | 2.2: DI Container | ✅ Complete | ServiceContainer created (not usable in prod — RTTI disabled on Teensy) |
-| 2.3: Remove Hardcoded Dependencies | ✅ Complete | BassSequence/MonoSequence use IMidiOutput via setMidiOutput(); wired from RTPMainUnit |
+| 2.3: Remove Hardcoded Dependencies | ✅ Complete | All sequence types (Bass, Mono, Drum, Poly, Harmony) use IMidiOutput via setMidiOutput(); wired from RTPMainUnit |
 | 3.1: Decompose BuitDevicesManager | ✅ Complete | DisplayManager, InputManager, TransportManager, DeviceManager |
 | 3.2: Refactor State Machine | ✅ Complete | BuitStateMachine uses unique_ptr; BuitState has virtual destructor; no leaks |
-| 3.3: Refactor RTPMainUnit | ✅ Complete | RTPSequencer now implements ISequencer; RTPClockGenerator now implements IClockGenerator |
+| 3.3: Refactor RTPMainUnit | ✅ Complete | RTPSequencer implements ISequencer; RTPClockGenerator implements IClockGenerator; BuitDevicesManager and RTPSequencerManager wired through interfaces |
 | 4: Error Handling & Validation | ✅ Complete | MidiValidator, InputValidator, RangeChecker; Result<T> used in all managers |
 | 5.1: Test Framework | ✅ Complete | Assert.hpp, MockMidiOutput, MockDisplay, teensy41_test env, TestValidation suite |
 | 5.2: Core Functionality Tests | ✅ Complete | TestMidiOutput: 11 tests covering silence, legato, roll, null-guard, MockMidiOutput contract |

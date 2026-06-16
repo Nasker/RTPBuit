@@ -55,38 +55,42 @@ main.cpp
 #### Hierarchical Organization
 
 ```
-RTPSequencer (Top Level)
-├── RTPScene[] (3 scenes max)
+RTPSequencer implements ISequencer (Top Level)
+├── RTPScene[] (dynamic, min 1)
 │   └── RTPEventNoteSequence[] (16 sequences per scene)
-│       ├── DrumSequence
-│       ├── BassSequence (with latch/legato)
-│       ├── MonoSequence (with latch/legato)
-│       ├── PolySequence
+│       ├── DrumSequence     → IMidiOutput (sendNoteOn/Off)
+│       ├── BassSequence     → IMidiOutput (latch/legato/roll)
+│       ├── MonoSequence     → IMidiOutput (latch/legato/roll)
+│       ├── PolySequence     → IMidiOutput (chord voicing)
 │       ├── ControlSequence
-│       └── HarmonySequence
+│       └── HarmonySequence  → IMidiOutput (sendControlChange)
+│
+IClockGenerator ← RTPClockGenerator (Internal / External sync)
 ```
 
 #### Sequence Types and Behaviors
 
 **DrumSequence**: Simple trigger-based drum sequencer
-- Note on/off events with velocity
+- Note on/off events with velocity via `IMidiOutput`
 - No chord processing or arpeggiation
+- Live play routed through interface (testable with MockMidiOutput)
 
 **BassSequence**: Monophonic bass with advanced features
 - **Latch Mechanism**: Root press snapshots chord and holds it
-- **Legato Transitions**: Overlapping note-on/off for smooth glides
+- **Legato Transitions**: Overlapping note-on/off for smooth glides via `IMidiOutput`
 - **Presence Gating**: Only sounds when left/center axis present
 - **Arpeggiation**: Unfolds chords across 3 octaves (BASS_OCTAVES)
 - **Hysteresis**: Prevents flutter near slot boundaries
+- **Roll Mode**: 32nd-note retrigger on half-ticks via `IMidiOutput`
 
 **MonoSequence**: Monophonic lead synthesizer
 - Similar to BassSequence but with 5-octave arpeggiation (SYNTH_OCTAVES)
-- Same latch, legato, and presence gating features
+- Same latch, legato, presence gating, and roll features via `IMidiOutput`
 
 **PolySequence**: Polyphonic chord synthesizer
 - Momentary chord playback (no latch)
-- Full chord voicing across 4 octaves (POLY_OCTAVES)
-- No presence gating requirement
+- Full chord voicing via `IMidiOutput`
+- Defensive note-off queue clears stuck notes before new chords
 
 #### Event Flow and Timing
 
@@ -104,7 +108,8 @@ RTPClockGenerator
 
 **Event Processing Pipeline**
 ```
-MIDI Clock → SequencerManager → Scene → Sequence → NotesPlayer → MIDI Output
+MIDI Clock → RTPSequencerManager (IClockGenerator) → ISequencer::play()
+    → Scene → Sequence → NotesPlayer / IMidiOutput → TeensyMidiOutput (usbMIDI + Serial1)
 ```
 
 ### State Machine Architecture
@@ -186,8 +191,14 @@ ChordAction endChord(rootNote, padIndex);    // End chord
 #### Note Output Pipeline
 
 ```
-Sequence Event → NotesPlayer Queue → Channel Ring Buffers → MIDI Output
+Sequence Event → NotesPlayer Queue / IMidiOutput → TeensyMidiOutput → USB MIDI + Serial1
 ```
+
+**IMidiOutput Interface:**
+- Single abstraction point for all MIDI output (NoteOn/Off, CC, PC, PitchBend, RealTime, Raw)
+- `TeensyMidiOutput` is the sole concrete implementation (handles usbMIDI + Serial1)
+- `MockMidiOutput` enables unit testing without hardware
+- Injected via `RTPMainUnit` → `RTPSequencer::setMidiOutput()` → `RTPScene` → each `RTPEventNoteSequence`
 
 **NotesPlayer Features:**
 - Per-channel note tracking to prevent duplicate notes

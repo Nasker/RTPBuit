@@ -32,6 +32,9 @@ public:
     virtual void previousScene() = 0;
     virtual uint8_t getCurrentScene() const = 0;
     virtual uint8_t getSceneCount() const = 0;
+    virtual void addDynamicScene() = 0;
+    virtual void removeCurrentScene() = 0;
+    virtual int getNumScenes() const = 0;
 
     // Sequence Management
     virtual void selectSequence(uint8_t sequence) = 0;

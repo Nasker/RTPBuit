@@ -2,6 +2,8 @@
 
 #include "RTPSequencer.h"
 #include "RTPClockGenerator.hpp"
+#include "Interfaces/ISequencer.hpp"
+#include "Interfaces/IClockGenerator.hpp"
 #include "constants.h"
 
 #define CLOCK 248
@@ -15,13 +17,13 @@
 class RTPMainUnit;
 class RTPSequencerManager{
     static RTPMainUnit* mainUnit;
-    RTPSequencer& _sequencer;
-    RTPClockGenerator* _clockGenerator = nullptr;
+    ISequencer& _sequencer;
+    IClockGenerator* _clockGenerator = nullptr;
     uint8_t counter;
 public:
     RTPSequencerManager(RTPSequencer& sequencer);
     void begin(RTPMainUnit* _mainUnit);
-    void setClockGenerator(RTPClockGenerator& clockGenerator) { _clockGenerator = &clockGenerator; }
+    void setClockGenerator(IClockGenerator& clockGenerator) { _clockGenerator = &clockGenerator; }
     void update();  // Poll internal clock and dispatch events
     void handleRealTimeSystem(uint8_t realtimebyte);
     uint8_t getCurrentCounter() { return counter; }

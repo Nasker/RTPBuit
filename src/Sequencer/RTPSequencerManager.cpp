@@ -45,11 +45,11 @@ void RTPSequencerManager::handleRealTimeSystem(uint8_t realtimebyte){
 	switch (realtimebyte) {
         case MIDI_RT_START:
         case MIDI_RT_CONTINUE:
-            _sequencer.playAndMoveSequencer();
+            _sequencer.play();
             sendTransportCallback(TRANSPORT_START);
             break;
         case MIDI_RT_STOP:
-            _sequencer.stopAndCleanSequencer();
+            _sequencer.stop();
             resetCounter();
             sendTransportCallback(TRANSPORT_STOP);
             break;
@@ -71,7 +71,7 @@ void RTPSequencerManager::sendTransportCallback(uint8_t transportCommand){
 
 void RTPSequencerManager::gridClockUp(uint8_t realtimebyte){
     if (counter % CLOCK_GRID == 0){
-        _sequencer.playAndMoveSequencer();
+        _sequencer.play();
         ControlCommand callbackCommand;
         callbackCommand.controlType = SEQUENCER;
         callbackCommand.commandType = GRID_TICK;
@@ -103,19 +103,15 @@ void RTPSequencerManager::resetCounter(){
 
 int RTPSequencerManager::getNearestStepPosition() {
     // Calculate the current position in the sequence
-    int currentPos = _sequencer.getSelectedSequencePosition();
+    int currentPos = _sequencer.getCurrentPosition();
     
-    // Calculate the position within the current step (0 to CLOCK_GRID-1)
     int positionInStep = counter % CLOCK_GRID;
     
-    // If we're in the first half of the step, quantize to the current step
-    // If we're in the second half, quantize to the next step
     if (positionInStep < CLOCK_GRID / 2) {
         return currentPos;
     } else {
-        // Calculate the next position, wrapping around if needed
         int nextPos = currentPos + 1;
-        if (nextPos >= _sequencer.getSelectedSequenceSize()) {
+        if (nextPos >= (int)_sequencer.getSequenceLength()) {
             nextPos = 0;
         }
         return nextPos;

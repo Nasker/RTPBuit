@@ -4,6 +4,8 @@
 #include "RTPNeoTrellis.hpp"
 #include "RTPSequencer.h"
 #include "RTPSequencerManager.hpp"
+#include "Interfaces/ISequencer.hpp"
+#include "Interfaces/IClockGenerator.hpp"
 #include "MatrixBuitControlChanger.hpp"
 #include "Structs.h"
 #include "RTPTypeColors.h"
@@ -17,11 +19,12 @@
 class BuitDevicesManager {
     RTPOled _oled;
     RTPNeoTrellis& _neoTrellis;
-    RTPSequencer& _sequencer;
+    ISequencer& _sequencer;
+    RTPSequencer& _concreteSequencer;
     BuitPersistenceManager _persistenceManager;
     MatrixBuitControlChanger _matrixBuitCC;
     NotesRecorder _notesRecorder;
-    RTPClockGenerator* _clockGenerator = nullptr;
+    IClockGenerator* _clockGenerator = nullptr;
     ChordionKeys _chordionKeys;
 
     // Live-play state (moved from SequencePianoRollState)
@@ -108,11 +111,12 @@ public:
     void showTrellis();
 
     // Sequencer and music manager access
-    RTPSequencer& getSequencer() { return _sequencer; }
-    MusicManager& getMusicManager() { return _sequencer.getMusicManager(); }
+    ISequencer& getSequencer() { return _sequencer; }
+    RTPSequencer& getConcreteSequencer() { return _concreteSequencer; }
+    MusicManager& getMusicManager() { return _concreteSequencer.getMusicManager(); }
 
     // Clock generator access (set by RTPMainUnit)
-    void setClockGenerator(RTPClockGenerator& clockGenerator) { _clockGenerator = &clockGenerator; }
+    void setClockGenerator(IClockGenerator& clockGenerator) { _clockGenerator = &clockGenerator; }
     
     // Transport control (delegate to clock generator if available)
     bool isInternalClock() const;

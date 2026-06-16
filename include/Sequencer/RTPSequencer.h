@@ -41,8 +41,8 @@ public:
   uint8_t getSelectedSequenceMidiChannel();
   String getSelectedSequenceTypeName();
   void addScene(RTPScene* scene);
-  void addDynamicScene();
-  void removeCurrentScene();
+  void addDynamicScene() override;
+  void removeCurrentScene() override;
   void removeScene(uint8_t scene);
   void selectParameterInSequence(uint8_t parameterIndex);
   void incSelectParameterInSequence();
@@ -70,7 +70,7 @@ public:
   void setMidiOutput(IMidiOutput* midiOutput);
 
   // For persistence manager
-  int getNumScenes() const { return (int)Sequencer.size(); }
+  int getNumScenes() const override { return (int)Sequencer.size(); }
   RTPScene* getScene(int index) const { return (index >= 0 && index < (int)Sequencer.size()) ? Sequencer[index] : nullptr; }
   MusicManager& getMusicManager() { return _musicManager; }
 
