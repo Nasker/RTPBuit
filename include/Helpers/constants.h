@@ -19,9 +19,20 @@
 #define CHANGE_LEFT 0
 #define CHANGE_CENTER 1
 #define CHANGE_RIGHT 2
+// Three-axis presence-lost events (hand left the sensor range).
+// Same THREE_AXIS controlType; consumers that don't care simply ignore them.
+#define AXIS_ABSENT_LEFT 3
+#define AXIS_ABSENT_CENTER 4
+#define AXIS_ABSENT_RIGHT 5
 
 #define ROTATING_LEFT 0
 #define ROTATING_RIGHT 1
+
+// MIDI Real-Time message bytes
+#define MIDI_RT_CLOCK    0xF8
+#define MIDI_RT_START    0xFA
+#define MIDI_RT_CONTINUE 0xFB
+#define MIDI_RT_STOP     0xFC
 
 #define PRESSED 0
 #define RELEASED 1
@@ -39,13 +50,19 @@
 #define GRID_TICK 0
 #define TRANSPORT_START 1
 #define TRANSPORT_STOP 2
+#define GRID_FINE_TICK 3  // 32nd-note resolution for live rolls
 
 #define SENSOR_1_PIN 2
 #define SENSOR_2_PIN 3
 #define SENSOR_3_PIN 4
 
 #define N_NOTES 12
-#define BASE_NOTE 48
+#define BASE_NOTE 36
+#define BASS_BASE_NOTE 12
+
+// Pattern bank
+#define PATTERN_BANK_PAGES  16
+#define PATTERN_BANK_SLOTS  16
 
 #define LEFT 0
 #define CENTER 1
@@ -59,3 +76,6 @@ enum RTPEventNoteSequenceType{
 	CONTROL_TRACK,
 	HARMONY_TRACK
 };
+
+extern const char* NOTE_NAMES[12];
+extern const char* CHORD_TYPE_NAMES[16];

@@ -1,4 +1,5 @@
 #include "MusicManager.hpp"
+#include <cstdint>
 
 MusicManager::MusicManager(){}
 
@@ -50,4 +51,47 @@ queue<int> MusicManager::getCurrentChordNotes(){
         chordNotes.push(mControl.getCurrentChordMidiNote());
     }
     return chordNotes;
+}
+
+queue<int> MusicManager::getAutoharpChordNotes(int rangeReading, int spread){
+    queue<int> chordNotes;
+    uint8_t chordSteps = mControl.chords.getChordSteps();
+    uint8_t poolSize = POLY_OCTAVES * chordSteps;
+    
+    // Use normalized float for smoother voicing transitions (0.0 to 1.0)
+    float normalizedPos = polyRange.calculateNormalisedRead(rangeReading);
+    
+    // Calculate fractional focus position for smooth transitions
+    float fractionalFocus = normalizedPos * float(poolSize - 1);
+    uint8_t focus = (uint8_t)fractionalFocus;  // Integer part for base position
+    float fracPart = fractionalFocus - focus;   // Fractional part for interpolation hint
+    
+    // Use fractional part to adjust spread for smoother feel
+    uint8_t octave = focus / chordSteps;
+    uint8_t count = max(1, (uint8_t)round(float(spread) * float(octave + 1) / float(POLY_OCTAVES)));
+    
+    // Add subtle variation based on fractional position for smoother transitions
+    if (fracPart > 0.5 && count < poolSize - focus) {
+        count = min(count + 1, poolSize - focus);
+    }
+    count = min(count, poolSize - focus);
+    
+    for(uint8_t i = focus; i < focus + count; i++){
+        mControl.setCurrentOctave(i / chordSteps);
+        mControl.setCurrentChordStep(i % chordSteps);
+        chordNotes.push(mControl.getCurrentChordMidiNote());
+    }
+    return chordNotes;
+}
+
+void MusicManager::setChordType(uint8_t chordType){
+    mControl.chords.setChordType(chordType);
+}
+
+int MusicManager::getChordStep(uint8_t step){
+    return mControl.chords.getChordStep(step);
+}
+
+uint8_t MusicManager::getChordSteps(){
+    return mControl.chords.getChordSteps();
 }

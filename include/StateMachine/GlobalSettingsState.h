@@ -4,6 +4,7 @@ class GlobalSettingsState : public BuitState{
   BuitStateMachine& _buitMachine;
 public:
   GlobalSettingsState (BuitStateMachine& voidMachine, BuitDevicesManager& devices);
+  void onEnter() override;
   void singleClick();
   void doubleClick();
   void tripleClick();

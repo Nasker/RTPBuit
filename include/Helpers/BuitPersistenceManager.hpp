@@ -25,4 +25,7 @@ public:
     bool loadSequencerFromFile(RTPSequencer& sequencer, const String& fileName = "sequences.json");
     bool parseAndLoadSequences(RTPSequencer& sequencer, const String& jsonData);
     bool loadSequenceFromJson(RTPEventNoteSequence* sequence, const JsonObject& seqObj);
+    
+    // Query methods
+    bool fileExists(const String& fileName);
 };

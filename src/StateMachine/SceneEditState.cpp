@@ -7,16 +7,16 @@ SceneEditState::SceneEditState (BuitStateMachine& buitMachine, BuitDevicesManage
   Serial.println("SceneEditState");
 }
 
+void SceneEditState::onEnter() {
+  _devices.presentScene();
+}
+
 void SceneEditState::singleClick() {
-  Serial.println("Going to Sequence Select!");
   _buitMachine.setState(_buitMachine.getSequenceSelectState());
-  _devices.printToScreen("Select a", "Sequence", "");
 }
 
 void SceneEditState::doubleClick() {
-  Serial.println("Going to Transport");
   _buitMachine.setState(_buitMachine.getTransportState());
-  _devices.presentBuitCC();
 }
 
 void SceneEditState::tripleClick() {
@@ -24,9 +24,7 @@ void SceneEditState::tripleClick() {
 }
 
 void SceneEditState::longClick() {
-  Serial.println("Going to Scene Settings!");
   _buitMachine.setState(_buitMachine.getSceneSettingsState());
-  _devices.printToScreen("Scene Settings", "","");
 }
 
 void SceneEditState::rotaryTurned(ControlCommand command) {

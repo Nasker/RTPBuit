@@ -7,14 +7,16 @@ SequenceEditState::SequenceEditState(BuitStateMachine& buitMachine, BuitDevicesM
   _buitMachine = buitMachine;
 }
 
+void SequenceEditState::onEnter() {
+  _devices.showSequence();
+}
+
 void SequenceEditState::singleClick() {
-  //Serial.println("Does nothing here!");
+  _buitMachine.setState(_buitMachine.getSequencePianoRollState());
 }
 
 void SequenceEditState::doubleClick() {
-  Serial.println("Going to Scene Edit!");
   _buitMachine.setState(_buitMachine.getSceneEditState());
-  _devices.presentScene();
 }
 
 void SequenceEditState::tripleClick() {
@@ -23,9 +25,7 @@ void SequenceEditState::tripleClick() {
 }
 
 void SequenceEditState::longClick() {
-  Serial.println("Going to Sequence Settings!");
   _buitMachine.setState(_buitMachine.getSequenceSettingsState());
-  _devices.presentSequenceSettings();
 }
 
 void SequenceEditState::rotaryTurned(ControlCommand command) {

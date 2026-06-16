@@ -14,6 +14,8 @@ class BuitStateMachine{
 	BuitState* _sequencePianoRollState;
 	BuitState* _sequenceSelectState;
 	BuitState* _sequenceSettingsState;
+	BuitState* _patternBankLoadState;
+	BuitState* _patternBankSaveState;
 
 public:
 	BuitStateMachine(BuitDevicesManager& outDevices);
@@ -49,4 +51,6 @@ public:
 	BuitState* getSequenceSelectState();
 
 	BuitState* getSequenceSettingsState();
+	BuitState* getPatternBankLoadState();
+	BuitState* getPatternBankSaveState();
 };

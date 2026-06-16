@@ -7,14 +7,16 @@ GlobalSettingsState::GlobalSettingsState (BuitStateMachine& buitMachine, BuitDev
   _buitMachine = buitMachine;
 }
 
+void GlobalSettingsState::onEnter() {
+  _devices.printToScreen("Global Settings", "", "");
+}
+
 void GlobalSettingsState::singleClick() {
   //Serial.println("Does nothing here!");
 }
 
 void GlobalSettingsState::doubleClick() {
-  Serial.println("Going to Transport");
   _buitMachine.setState(_buitMachine.getTransportState());
-  _devices.presentBuitCC();
 }
 
 void GlobalSettingsState::tripleClick() {

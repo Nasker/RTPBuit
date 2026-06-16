@@ -36,7 +36,9 @@ public:
   uint8_t getSelectedSequence();
   uint8_t getSelectedSequenceMidiChannel();
   String getSelectedSequenceTypeName();
-  void addScene(RTPScene* scene); // Change to pointer type
+  void addScene(RTPScene* scene);
+  void addDynamicScene();       // Add blank MONO_SYNTH scene at runtime (stopped only)
+  void removeCurrentScene();    // Remove selected scene safely (stopped, min 1 scene)
   void removeScene(uint8_t scene);
   void selectParameterInSequence(uint8_t parameterIndex);
   void incSelectParameterInSequence();
@@ -44,6 +46,7 @@ public:
   int getSelectedParameterInSequenceValue();
   String getSelectedParameterInSequenceName();
   void toggleSequence(uint8_t sequenceIndex);
+  void toggleAllSequencesInScene();
   RTPSequencesState getSequencesState();
   void selectSequence(uint8_t sequenceIndex);
   RTPSequenceNoteStates getSelectedSequenceNoteStates();
@@ -53,8 +56,15 @@ public:
   uint16_t getSelectedSequenceSize();
   uint32_t getSelectedSequenceColor();
   void dumpSequencesToJson();
+  void playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType);
+  void playLiveNoteOff(uint8_t rootNote, uint8_t chordType);
+  void handleLiveThreeAxis(ControlCommand command);
+  void handleLiveSequencerTick();
+  void handleLiveHalfTick();  // 32nd note resolution
+  uint8_t getLiveVelocity();
   
   // For persistence manager
-  int getNumScenes() const { return _NScenes; }
-  RTPScene* getScene(int index) const { return (index >= 0 && index < Sequencer.size()) ? Sequencer[index] : nullptr; }
+  int getNumScenes() const { return (int)Sequencer.size(); }
+  RTPScene* getScene(int index) const { return (index >= 0 && index < (int)Sequencer.size()) ? Sequencer[index] : nullptr; }
+  MusicManager& getMusicManager() { return _musicManager; }
 };

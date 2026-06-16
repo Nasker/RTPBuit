@@ -7,14 +7,16 @@ SequenceSettingsState::SequenceSettingsState(BuitStateMachine& buitMachine, Buit
   _buitMachine = buitMachine;
 }
 
+void SequenceSettingsState::onEnter() {
+  _devices.presentSequenceSettings();
+}
+
 void SequenceSettingsState::singleClick() {
   //Serial.println("Does nothing here!");
 }
 
 void SequenceSettingsState::doubleClick() {
-  Serial.println("Going to Sequence Edit!");
   _buitMachine.setState(_buitMachine.getSequenceEditState());
-  _devices.showSequence();
 }
 
 void SequenceSettingsState::tripleClick() {

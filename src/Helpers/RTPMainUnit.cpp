@@ -12,13 +12,16 @@ void RTPMainUnit::begin(){
   vlSensor.startContinuous();
   rtpTrellis.begin(this);
   SequencerManager.begin(this);
+  SequencerManager.setClockGenerator(clockGenerator);
   devicesManager.initSetup();
+  devicesManager.setClockGenerator(clockGenerator);
 }
 
 void RTPMainUnit::update(){
   rtpRotary.callbackFromRotary(this);
   rtpRotary.callbackFromClicks(this);
   rtpTrellis.read();
+  SequencerManager.update();
 }
 
 void RTPMainUnit::updatePeriodically(){
@@ -37,7 +40,10 @@ void RTPMainUnit::actOnSequencerCallback(ControlCommand callbackCommand){
 }
 
 void RTPMainUnit::linkToSequencerManager(uint8_t realtimebyte){
-  SequencerManager.handleRealTimeSystem(realtimebyte);
+  // Only process external MIDI when in External mode
+  if (clockGenerator.getMode() == rtp::SyncMode::External) {
+    SequencerManager.handleRealTimeSystem(realtimebyte);
+  }
 }
 
 void RTPMainUnit::routeControlChange(uint8_t channel, uint8_t control, uint8_t value) {

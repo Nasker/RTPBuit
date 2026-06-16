@@ -25,6 +25,10 @@ bool writeToFile(String fileName, String data){
     return true;
 }
 
+bool fileExistsOnSD(const String& fileName) {
+    return SD.exists(fileName.c_str());
+}
+
 bool readFromFile(String fileName, String &data) {
     File file = SD.open(fileName.c_str(), FILE_READ);
     if (!file) {

@@ -2,8 +2,10 @@
 
 class TransportState : public BuitState{
   BuitStateMachine& _buitMachine;
+  uint8_t _lastPressedButton = 255;  // Track which transport button was pressed (255 = none)
 public:
   TransportState(BuitStateMachine& buitMachine, BuitDevicesManager& devices);
+  void onEnter() override;
   void singleClick();
   void doubleClick();
   void tripleClick();

@@ -82,12 +82,33 @@ uint8_t RTPSequencer::getSelectScene() {
     return _selectedScene;
 }
 
-void RTPSequencer::addScene(RTPScene* scene) { // Change to pointer type
+void RTPSequencer::addScene(RTPScene* scene) {
     Sequencer.push_back(scene);
 }
 
+void RTPSequencer::addDynamicScene() {
+    if (_isPlaying) return;
+    RTPScene* scene = new RTPScene("Scene", SCENE_BLOCK_SIZE, _notesPlayer, _musicManager);
+    Sequencer.push_back(scene);
+}
+
+void RTPSequencer::removeCurrentScene() {
+    if (_isPlaying) return;
+    if (Sequencer.size() <= 1) return;
+    delete Sequencer[_selectedScene];
+    Sequencer.erase(Sequencer.begin() + _selectedScene);
+    if (_selectedScene >= Sequencer.size())
+        _selectedScene = (uint8_t)(Sequencer.size() - 1);
+}
+
 void RTPSequencer::removeScene(uint8_t scene) {
-    // Implement if needed
+    if (_isPlaying) return;
+    if (Sequencer.size() <= 1) return;
+    if (scene >= Sequencer.size()) return;
+    delete Sequencer[scene];
+    Sequencer.erase(Sequencer.begin() + scene);
+    if (_selectedScene >= Sequencer.size())
+        _selectedScene = (uint8_t)(Sequencer.size() - 1);
 }
 
 void RTPSequencer::toggleNoteInSceneInSelectedSequence(uint16_t position) {
@@ -96,6 +117,10 @@ void RTPSequencer::toggleNoteInSceneInSelectedSequence(uint16_t position) {
 
 void RTPSequencer::toggleSequence(uint8_t sequenceIndex) {
     Sequencer[_selectedScene]->toggleSequence(sequenceIndex);
+}
+
+void RTPSequencer::toggleAllSequencesInScene() {
+    Sequencer[_selectedScene]->toggleAllSequences();
 }
 
 RTPSequencesState RTPSequencer::getSequencesState() {
@@ -197,4 +222,40 @@ void RTPSequencer::dumpSequencesToJson() {
     persistenceManager.saveSequencerToFile(*this);
     
     Serial.println("Saved sequences using BuitPersistenceManager");
+}
+
+void RTPSequencer::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType) {
+    uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
+    RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);
+    if (seq) seq->playLiveNoteOn(rootNote, velocity, chordType);
+}
+
+void RTPSequencer::playLiveNoteOff(uint8_t rootNote, uint8_t chordType) {
+    uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
+    RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);
+    if (seq) seq->playLiveNoteOff(rootNote, chordType);
+}
+
+void RTPSequencer::handleLiveThreeAxis(ControlCommand command) {
+    uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
+    RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);
+    if (seq) seq->handleLiveThreeAxis(command);
+}
+
+void RTPSequencer::handleLiveSequencerTick() {
+    uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
+    RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);
+    if (seq) seq->handleLiveSequencerTick();
+}
+
+void RTPSequencer::handleLiveHalfTick() {
+    uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
+    RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);
+    if (seq) seq->handleLiveHalfTick();
+}
+
+uint8_t RTPSequencer::getLiveVelocity() {
+    uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
+    RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);
+    return seq ? seq->getLiveVelocity() : 90;
 }

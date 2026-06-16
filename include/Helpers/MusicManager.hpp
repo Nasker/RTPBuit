@@ -25,5 +25,9 @@ public:
     void setCurrentSteps(int rangeReading, int type);
     int getCurrentChordNote();
     queue<int> getCurrentChordNotes();
+    queue<int> getAutoharpChordNotes(int rangeReading, int spread);
+    void setChordType(uint8_t chordType);
+    int getChordStep(uint8_t step);
+    uint8_t getChordSteps();
     void printCurrentHarmony();
 };

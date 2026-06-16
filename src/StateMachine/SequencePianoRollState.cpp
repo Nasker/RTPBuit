@@ -1,59 +1,70 @@
 #include "Arduino.h"
-
 #include "SequencePianoRollState.h"
+#include "constants.h"
 
 SequencePianoRollState::SequencePianoRollState(BuitStateMachine& buitMachine, BuitDevicesManager& devices) : BuitState(devices), _buitMachine(buitMachine) {
   Serial.println("SequencePianoRollState");
   _buitMachine = buitMachine;
 }
 
-void SequencePianoRollState::singleClick() {
-  //Serial.println("Does nothing here!");
+void SequencePianoRollState::onEnter() {
+  _devices.paintLiveTrellis();
+
+  uint8_t seqType = _devices.getSelectedSequenceType();
+  String typeName;
+  switch (seqType) {
+    case DRUM_PART:  typeName = "Drum";  break;
+    case BASS_SYNTH: typeName = "Bass";  break;
+    case MONO_SYNTH: typeName = "Lead";  break;
+    case POLY_SYNTH: typeName = "Poly";  break;
+    default:         typeName = "Live";  break;
+  }
+  _devices.printToScreen("Piano Roll", typeName, "Live");
 }
 
+void SequencePianoRollState::singleClick() {}
+
 void SequencePianoRollState::doubleClick() {
-  Serial.println("Going to Sequence Edit!");
-  _devices.printToScreen("State:", "Sequence Edit!","");
   _buitMachine.setState(_buitMachine.getSequenceEditState());
 }
 
 void SequencePianoRollState::tripleClick() {
-  //Serial.println("Does nothing here!");
+  _devices.toggleSelectedSequenceRecording();
 }
 
-void SequencePianoRollState::longClick() {
-  //Serial.println("Does nothing here!");
-}
+void SequencePianoRollState::longClick() {}
 
 void SequencePianoRollState::rotaryTurned(ControlCommand command) {
-  //Serial.println("Does nothing here!");
+  //_devices.nudgePage(command);
 }
 
 void SequencePianoRollState::threeAxisChanged(ControlCommand command) {
-  //Serial.println("Does nothing here!");
+  uint8_t seqType = _devices.getSelectedSequenceType();
+  if (seqType == DRUM_PART)
+    _devices.handleLiveDrumRollThreeAxis(command);
+  else
+    _devices.handleLiveThreeAxis(command);
 }
 
 void SequencePianoRollState::trellisPressed(ControlCommand command) {
-  //Serial.println("Does nothing here!");
+  _devices.handleLiveTrellisPressed((uint8_t)command.value);
 }
 
 void SequencePianoRollState::trellisReleased(ControlCommand command) {
-  //Serial.println("Does nothing here!");
+  _devices.handleLiveTrellisReleased((uint8_t)command.value);
 }
 
 void SequencePianoRollState::sequencerCallback(ControlCommand command) {
-  //Serial.println("Does nothing here!");
+  if (command.commandType == GRID_TICK)
+    _devices.handleLiveSequencerTick();
+  if (command.commandType == GRID_FINE_TICK)
+    _devices.handleLiveFineTick();
+  if (_devices.isSelectedSequenceRecording())
+    _devices.displayCursorInSequence(command);
 }
 
-void SequencePianoRollState::midiNote(ControlCommand command) {
-  //Serial.println("Does nothing here!");
-}
+void SequencePianoRollState::midiNote(ControlCommand command) {}
 
-void SequencePianoRollState::midiNoteOff(ControlCommand command) {
-  // Simple implementation - just ignore note-off events
-  // No need to do anything here
-}
+void SequencePianoRollState::midiNoteOff(ControlCommand command) {}
 
-void SequencePianoRollState::midiCC(ControlCommand command) {
-  //Serial.println("Does nothing here!");
-}
+void SequencePianoRollState::midiCC(ControlCommand command) {}
