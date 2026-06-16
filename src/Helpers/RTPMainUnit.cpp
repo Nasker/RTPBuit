@@ -42,7 +42,7 @@ void RTPMainUnit::actOnSequencerCallback(ControlCommand callbackCommand){
 
 void RTPMainUnit::linkToSequencerManager(uint8_t realtimebyte){
   // Only process external MIDI when in External mode
-  if (clockGenerator.getMode() == rtp::SyncMode::External) {
+  if (clockGenerator.getMode() == SyncMode::External) {
     SequencerManager.handleRealTimeSystem(realtimebyte);
   }
 }

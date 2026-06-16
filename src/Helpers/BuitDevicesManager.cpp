@@ -73,7 +73,7 @@ void BuitDevicesManager::writeTransportPage(){
     _neoTrellis.setButtonColor(3, _neoTrellis.colorYellow());
     
     // Mode button (4) - White for internal, dim white for external
-    if (getSyncMode() == rtp::SyncMode::Internal) {
+    if (getSyncMode() == SyncMode::Internal) {
         _neoTrellis.setButtonColor(4, _neoTrellis.colorWhite());
     } else {
         _neoTrellis.setButtonColor(4, _neoTrellis.colorDim(_neoTrellis.colorWhite(), 128));
@@ -222,9 +222,9 @@ void BuitDevicesManager::showSequence(){
 }
 
 void BuitDevicesManager::presentTransport(){
-    String modeStr = (getSyncMode() == rtp::SyncMode::Internal) ? "INT" : "EXT";
+    String modeStr = (getSyncMode() == SyncMode::Internal) ? "INT" : "EXT";
     String playState = _sequencer.isPlaying() ? "Playing" : "Stopped";
-    String bpmStr = (getSyncMode() == rtp::SyncMode::Internal) ? String(getCurrentBPM(), 0) + " BPM" : "";
+    String bpmStr = (getSyncMode() == SyncMode::Internal) ? String(getCurrentBPM(), 0) + " BPM" : "";
     
     SequenceDisplayState state = _sequencer.isPlaying() ? SequenceDisplayState::Playing : SequenceDisplayState::Stopped;
     
@@ -691,7 +691,7 @@ void BuitDevicesManager::presentSceneSettings(int8_t focusedPad){
 
 // Transport control methods
 bool BuitDevicesManager::isInternalClock() const {
-    return _clockGenerator && _clockGenerator->getMode() == rtp::SyncMode::Internal;
+    return _clockGenerator && _clockGenerator->getMode() == SyncMode::Internal;
 }
 
 void BuitDevicesManager::transportPlay() {
@@ -725,7 +725,7 @@ float BuitDevicesManager::getCurrentBPM() const {
 }
 
 SyncMode BuitDevicesManager::getSyncMode() const {
-    if (!_clockGenerator) return rtp::SyncMode::External;
+    if (!_clockGenerator) return SyncMode::External;
     return _clockGenerator->getMode();
 }
 

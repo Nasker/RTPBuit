@@ -14,7 +14,7 @@ void RTPSequencerManager::begin(RTPMainUnit* _mainUnit){
 
 
 void RTPSequencerManager::update(){
-    if (!_clockGenerator || _clockGenerator->getMode() != rtp::SyncMode::Internal) return;
+    if (!_clockGenerator || _clockGenerator->getMode() != SyncMode::Internal) return;
 
     if (_clockGenerator->update()) {
         dispatchRealTime(MIDI_RT_CLOCK);

@@ -265,3 +265,57 @@ void RTPSequencer::setMidiOutput(IMidiOutput* midiOutput) {
         if (scene) scene->setMidiOutput(midiOutput);
     }
 }
+
+// --- ISequencer wrapper implementations ---
+
+void RTPSequencer::editNote(uint16_t position, bool state) {
+    if (Sequencer.empty()) return;
+    RTPScene* scene = Sequencer[_selectedScene];
+    if (!scene) return;
+    uint8_t idx = scene->getSelectedSequence();
+    RTPEventNoteSequence* seq = scene->getSequence(idx);
+    if (seq) seq->editNoteInSequence(position, state);
+}
+
+void RTPSequencer::editNote(uint16_t position, uint8_t note, uint8_t velocity) {
+    if (Sequencer.empty()) return;
+    RTPScene* scene = Sequencer[_selectedScene];
+    if (!scene) return;
+    uint8_t idx = scene->getSelectedSequence();
+    RTPEventNoteSequence* seq = scene->getSequence(idx);
+    if (seq) seq->editNoteInSequence(position, note, velocity);
+}
+
+void RTPSequencer::handleLiveThreeAxis(int left, int center, int right) {
+    if (Sequencer.empty()) return;
+    ControlCommand cmd;
+    cmd.controlType = 0;
+    cmd.commandType = 0;
+    cmd.value       = left + center + right;
+    handleLiveThreeAxis(cmd);
+}
+
+uint8_t RTPSequencer::getSequenceType() const {
+    if (Sequencer.empty()) return 0;
+    RTPScene* scene = Sequencer[_selectedScene];
+    if (!scene) return 0;
+    uint8_t idx = scene->getSelectedSequence();
+    const RTPEventNoteSequence* seq = scene->getSequence(idx);
+    return seq ? seq->getType() : 0;
+}
+
+void RTPSequencer::nextPage() {
+    ControlCommand cmd;
+    cmd.controlType = 0;
+    cmd.commandType = ROTATING_RIGHT;
+    cmd.value = 0;
+    nudgePageInSelectedSequence(cmd);
+}
+
+void RTPSequencer::previousPage() {
+    ControlCommand cmd;
+    cmd.controlType = 0;
+    cmd.commandType = ROTATING_LEFT;
+    cmd.value = 0;
+    nudgePageInSelectedSequence(cmd);
+}

@@ -14,7 +14,7 @@ This document outlines a systematic refactoring plan to transform the RTPBuit co
 | 2.3: Remove Hardcoded Dependencies | ✅ Complete | BassSequence/MonoSequence use IMidiOutput via setMidiOutput(); wired from RTPMainUnit |
 | 3.1: Decompose BuitDevicesManager | ✅ Complete | DisplayManager, InputManager, TransportManager, DeviceManager |
 | 3.2: Refactor State Machine | ✅ Complete | BuitStateMachine uses unique_ptr; BuitState has virtual destructor; no leaks |
-| 3.3: Refactor RTPMainUnit | 🚧 Blocked | RTPSequencer ↔ ISequencer / RTPClockGenerator ↔ IClockGenerator adapter layer needed first |
+| 3.3: Refactor RTPMainUnit | ✅ Complete | RTPSequencer now implements ISequencer; RTPClockGenerator now implements IClockGenerator |
 | 4: Error Handling & Validation | ✅ Complete | MidiValidator, InputValidator, RangeChecker; Result<T> used in all managers |
 | 5.1: Test Framework | ✅ Complete | Assert.hpp, MockMidiOutput, MockDisplay, teensy41_test env, TestValidation suite |
 | 5.2: Core Functionality Tests | ✅ Complete | TestMidiOutput: 11 tests covering silence, legato, roll, null-guard, MockMidiOutput contract |
@@ -23,11 +23,8 @@ This document outlines a systematic refactoring plan to transform the RTPBuit co
 
 ### Pending Work Summary
 
-**Priority: HIGH**
-- **3.3** — Wire `RTPMainUnit` to `DeviceManager`: blocked until `RTPSequencer` implements `ISequencer` and `RTPClockGenerator` implements `IClockGenerator` (different SyncMode namespace). Requires an adapter layer or refactoring both concrete classes to inherit from the interfaces.
-
 **Priority: LOW**
-- **6.2** — `BuitPersistenceManager` const/overload warnings require fixing `RTPScene::getSize()` const in upstream `RTPLib`; raise issue there
+- **6.2** — `BuitPersistenceManager` ArduinoJson v7 deprecation warnings (`StaticJsonDocument`, `DynamicJsonDocument`, `createNestedArray/Object`) — migrate to new ArduinoJson v7 API (`JsonDocument`, `doc[key].to<JsonArray>()`, `add<JsonObject>()`)
 
 ---
 
