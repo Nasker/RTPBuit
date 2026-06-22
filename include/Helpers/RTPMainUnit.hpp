@@ -3,6 +3,11 @@
 #include "Arduino.h"
 #include <Wire.h>
 #include "Hardware/Implementations/TeensyMidiOutput.hpp"
+#include "Hardware/Adapters/RTPOledAdapter.hpp"
+#include "Hardware/Adapters/RTPNeoTrellisAdapter.hpp"
+#include "Hardware/Adapters/RTPRotaryAdapter.hpp"
+#include "Hardware/Adapters/RTPThreeAxisAdapter.hpp"
+#include "RTPOled.hpp"
 #include "RTPNeoTrellis.hpp"
 #include "RTPRotaryClickChordion.hpp"
 #include "RTPThreeAxisVL.hpp"
@@ -16,16 +21,28 @@
 #include "constants.h"
   
 class RTPMainUnit{
+  // Legacy hardware (kept for backward compatibility)
+  RTPOled rtpOled;
   RTPNeoTrellis rtpTrellis;
   RTPRotaryClickDev rtpRotary{ROT_LEFT_PIN, ROT_RIGHT_PIN, BUTTON_PIN, LOW, true};
   RTPThreeAxisVL vlSensor;
+  
+  // Core components
   MusicManager musicManager;
   RTPSequencer Sequencer{N_SCENES, musicManager};
+  RTPClockGenerator clockGenerator;
+  TeensyMidiOutput midiOutput;
+  
+  // Hardware adapters (bridge legacy to interfaces) - initialized in constructor
+  RTPOledAdapter oledAdapter{rtpOled};
+  RTPNeoTrellisAdapter trellisAdapter{rtpTrellis};
+  RTPRotaryAdapter rotaryAdapter{rtpRotary};
+  RTPThreeAxisAdapter sensorAdapter{vlSensor};
+  
+  // Managers (legacy god object still in use)
   BuitDevicesManager devicesManager{rtpTrellis, Sequencer};
   StateMachineManager stateMachineManager{devicesManager};
   RTPSequencerManager SequencerManager{Sequencer};
-  RTPClockGenerator clockGenerator;
-  TeensyMidiOutput midiOutput;
   
 public:
   RTPMainUnit();

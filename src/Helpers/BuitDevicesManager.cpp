@@ -10,7 +10,10 @@ void BuitDevicesManager::initSetup(){
     _oled.init();
     initBuitSD();
     introAnimations();
-    _chordionKeys.initSetup();
+    
+    // Initialize new managers
+    _recordingManager.initialize();
+    _livePlayManager.initialize();
 }
 
 void BuitDevicesManager::introAnimations(){
@@ -166,7 +169,7 @@ void BuitDevicesManager::presentSequence(){
 }
 
 void BuitDevicesManager::paintLiveTrellis() {
-    _chordionKeys.releaseAllChords();
+    _livePlayManager.releaseAllChords();
     uint8_t seqType = getSelectedSequenceType();
     uint32_t seqColor = getSelectedSequenceColor();
     clearTrellis();
@@ -333,7 +336,7 @@ void BuitDevicesManager::handleLiveTrellisPressed(uint8_t pad) {
 
         if (seqType == POLY_SYNTH) {
             // Poly: polyphonic, full chord, momentary (released on pad release)
-            ChordAction action = _chordionKeys.beginChord(rootNote, pad);
+            ChordAction action = _livePlayManager.beginChord(rootNote, pad);
             for (uint8_t i = 0; i < action.stopCount; i++)
                 playLiveNoteOff(action.notesToStop[i], action.chordType);
             for (uint8_t i = 0; i < action.playCount; i++)
@@ -343,8 +346,8 @@ void BuitDevicesManager::handleLiveTrellisPressed(uint8_t pad) {
             // Bass/Mono: monophonic + LATCHED. The root press snapshots root + the
             // current top-row type and holds it. Keep exactly one active chord so the
             // LED shows the latched root; the sequence glides (legato) to the new note.
-            _chordionKeys.releaseAllChords();
-            ChordAction action = _chordionKeys.beginChord(rootNote, pad);
+            _livePlayManager.releaseAllChords();
+            ChordAction action = _livePlayManager.beginChord(rootNote, pad);
             playLiveNoteOn(rootNote, liveVel, action.chordType);
             chordType = action.chordType;
         }
@@ -360,9 +363,9 @@ void BuitDevicesManager::handleLiveTrellisPressed(uint8_t pad) {
     } else {
         // Modifier pads (12-15)
         uint8_t modIdx = pad - 12;
-        _chordionKeys.enableChordionKey(modIdx);
+        _livePlayManager.enableChordionKey(modIdx);
         setTrellisButtonColor(pad, 0xFFFFFF);
-        String preview = String(CHORD_TYPE_NAMES[_chordionKeys.getChordType() & 0x0F]);
+        String preview = String(CHORD_TYPE_NAMES[_livePlayManager.getChordType() & 0x0F]);
         printToScreen("Piano Roll", _sequencer.getSequenceTypeName(), "[ " + preview + " ]");
     }
 }
@@ -385,7 +388,7 @@ void BuitDevicesManager::handleLiveTrellisReleased(uint8_t pad) {
 
         if (seqType == POLY_SYNTH) {
             // Poly is momentary: releasing the pad stops the chord
-            ChordAction action = _chordionKeys.endChord(rootNote, pad);
+            ChordAction action = _livePlayManager.endChord(rootNote, pad);
             for (uint8_t i = 0; i < action.stopCount; i++)
                 playLiveNoteOff(action.notesToStop[i], action.chordType);
             syncLiveTrellis();
@@ -400,9 +403,9 @@ void BuitDevicesManager::handleLiveTrellisReleased(uint8_t pad) {
 
     // Modifier pad release (12-15): disable key (momentary), restore LED, update OLED preview
     if (pad >= 12 && pad <= 15) {
-        _chordionKeys.disableChordionKey(pad - 12);
+        _livePlayManager.disableChordionKey(pad - 12);
         setTrellisButtonColor(pad, 0x101010);
-        String preview = String(CHORD_TYPE_NAMES[_chordionKeys.getChordType() & 0x0F]);
+        String preview = String(CHORD_TYPE_NAMES[_livePlayManager.getChordType() & 0x0F]);
         printToScreen("Piano Roll", _sequencer.getSequenceTypeName(), "[ " + preview + " ]");
     }
 }
@@ -410,21 +413,20 @@ void BuitDevicesManager::handleLiveTrellisReleased(uint8_t pad) {
 void BuitDevicesManager::handleLiveSequencerTick() {
     // 16th-note grid tick: only used for display sync now.
     // All rolls run on the finer 32nd-note tick (handleLiveFineTick).
-    _tickCount++;
+    _livePlayManager.advanceTick();
     _sequencer.handleLiveTick();
-    if ((_tickCount % 4) == 0)
+    if ((_livePlayManager.getTickCount() % 4) == 0)
         syncLiveTrellis();
 }
 
 void BuitDevicesManager::handleLiveFineTick() {
     // 32nd-note resolution tick: drives all live rolls.
-    _fineTickCount++;
+    _livePlayManager.advanceFineTick();
     uint8_t seqType = getSelectedSequenceType();
 
-    // Drum roll: re-trigger at _rollDivision (1=32nd, 2=16th, 4=8th, ...)
-    if (seqType == DRUM_PART && _drumRollActive && _rollDivision > 0) {
-        if ((_fineTickCount % _rollDivision) == 0)
-            playLiveNoteOn(_drumRollNote, getLiveVelocity(), 0);
+    // Drum roll: re-trigger at division (1=32nd, 2=16th, 4=8th, ...)
+    if (seqType == DRUM_PART && _livePlayManager.shouldTriggerDrumRoll()) {
+        playLiveNoteOn(_livePlayManager.getDrumRollNote(), getLiveVelocity(), 0);
     }
 
     // Melodic rolls (Bass/Mono) handle their own division internally
@@ -434,7 +436,7 @@ void BuitDevicesManager::handleLiveFineTick() {
 void BuitDevicesManager::syncLiveTrellis() {
     uint8_t seqType = getSelectedSequenceType();
     uint32_t seqColor = getSelectedSequenceColor();
-    uint16_t heldPads = _chordionKeys.getHeldPadsMask();
+    uint16_t heldPads = _livePlayManager.getHeldPadsMask();
     static const bool isBlackKey[12] = {false,true,false,true,false,false,true,false,true,false,true,false};
     uint32_t dimmed = (((seqColor >> 16 & 0xFF) * 35 / 255) << 16)
                     | (((seqColor >>  8 & 0xFF) * 35 / 255) <<  8)
@@ -459,22 +461,22 @@ void BuitDevicesManager::handleLiveDrumRollThreeAxis(ControlCommand command) {
         case CHANGE_LEFT:
             // Note selection (like Mono/Bass left axis selects note)
             if (val <= 2) {
-                _drumRollActive = false;
+                _livePlayManager.setDrumRollActive(false);
             } else {
-                _drumRollActive = true;
+                _livePlayManager.setDrumRollActive(true);
                 uint8_t zone = (uint8_t)constrain((val * 16) / 127, 0, 15);
-                _drumRollNote = BASE_NOTE + zone;
+                _livePlayManager.setDrumRollNote(BASE_NOTE + zone);
             }
             break;
         case CHANGE_CENTER:
             // Roll speed - consistent with Mono/Bass: higher value = slower roll
             if (val >= 125) {
-                _drumRollActive = false;
+                _livePlayManager.setDrumRollActive(false);
             } else {
-                _drumRollActive = true;
+                _livePlayManager.setDrumRollActive(true);
                 // Inverted: 0-10 = fastest 32nd (1), 120 = slowest half note (16)
-                // _rollDivision values: 1=32nd, 2=16th, 4=8th, 8=quarter, 16=half
-                _rollDivision = ::map(constrain(val, 0, 120), 0, 120, 1, 16);
+                // division values: 1=32nd, 2=16th, 4=8th, 8=quarter, 16=half
+                _livePlayManager.setRollDivision(::map(constrain(val, 0, 120), 0, 120, 1, 16));
             }
             break;
         case CHANGE_RIGHT:
@@ -485,13 +487,13 @@ void BuitDevicesManager::handleLiveDrumRollThreeAxis(ControlCommand command) {
 }
 
 bool BuitDevicesManager::isSelectedSequenceWaiting(){
-    return _notesRecorder.isWaiting();
+    return _recordingManager.isWaiting();
 }
 
 SequenceDisplayState BuitDevicesManager::getSequenceDisplayState(){
-    if (_notesRecorder.isRecording()) {
+    if (_recordingManager.isRecording()) {
         return SequenceDisplayState::Recording;
-    } else if (_notesRecorder.isWaiting()) {
+    } else if (_recordingManager.isWaiting()) {
         return SequenceDisplayState::Waiting;
     } else if (_sequencer.isRecording()) {
         // Sequencer thinks it's recording but recorder is not yet active (shouldn't happen, but handle it)
@@ -507,43 +509,43 @@ void BuitDevicesManager::toggleSelectedSequenceRecording(){
         uint16_t seqSize = _sequencer.getSequenceLength();
         uint8_t midiChannel = _sequencer.getMidiChannel();
         uint16_t currentPos = _sequencer.getCurrentPosition();
-        _notesRecorder.startRecording(seqSize, midiChannel, currentPos);
+        _recordingManager.startRecording(seqSize, midiChannel, currentPos);
     } else {
-        _notesRecorder.stopRecording();
+        _recordingManager.stopRecording();
         recorderDumpToSequence();
     }
     showSequence();
 }
 
 void BuitDevicesManager::recorderNoteOn(uint8_t note, uint8_t velocity) {
-    if (_notesRecorder.isRecording())
-        _notesRecorder.recordNoteOn(note, velocity);
+    if (_recordingManager.isRecording())
+        _recordingManager.recordNoteOn(note, velocity);
 }
 
 void BuitDevicesManager::recorderNoteOff(uint8_t note) {
-    if (_notesRecorder.isRecording())
-        _notesRecorder.recordNoteOff(note);
+    if (_recordingManager.isRecording())
+        _recordingManager.recordNoteOff(note);
 }
 
 void BuitDevicesManager::recorderAdvanceTick() {
     // Advance tick if recording OR waiting to start
-    if (!_notesRecorder.isRecording() && !_notesRecorder.isWaiting()) return;
+    if (!_recordingManager.isRecording() && !_recordingManager.isWaiting()) return;
     
-    _notesRecorder.advanceTick();
+    _recordingManager.advanceTick();
     
     // Check for end of one-shot recording
-    if (_notesRecorder.isRecording() && _notesRecorder.isEndOfSequence()) {
-        _notesRecorder.stopRecording();
+    if (_recordingManager.isRecording() && _recordingManager.isEndOfSequence()) {
+        _recordingManager.stopRecording();
         
         // Only dump if we actually recorded something
-        auto notes = _notesRecorder.dumpRecordedSequence();
+        auto notes = _recordingManager.dumpRecordedSequence();
         if (!notes.empty()) {
             // Apply to sequence
             RTPScene* scene = _concreteSequencer.getScene(_concreteSequencer.getSelectScene());
             if (scene) {
                 RTPEventNoteSequence* seq = scene->getSequence(_concreteSequencer.getSelectedSequence());
                 if (seq) {
-                    uint16_t seqSize = _notesRecorder.getSequenceLength();
+                    uint16_t seqSize = _recordingManager.getSequenceLength();
                     seq->clearSequence();
                     seq->resizeSequence(seqSize);
                     for (auto& note : notes) {
@@ -566,13 +568,13 @@ void BuitDevicesManager::recorderAdvanceTick() {
 }
 
 void BuitDevicesManager::recorderDumpToSequence() {
-    auto notes = _notesRecorder.dumpRecordedSequence();
+    auto notes = _recordingManager.dumpRecordedSequence();
     if (notes.empty()) return;
     RTPScene* scene = _concreteSequencer.getScene(_concreteSequencer.getSelectScene());
     if (!scene) return;
     RTPEventNoteSequence* seq = scene->getSequence(_concreteSequencer.getSelectedSequence());
     if (!seq) return;
-    uint16_t seqSize = _notesRecorder.getSequenceLength();
+    uint16_t seqSize = _recordingManager.getSequenceLength();
     seq->clearSequence();
     seq->resizeSequence(seqSize);
     for (auto& note : notes) {
@@ -742,7 +744,7 @@ void BuitDevicesManager::setQuantizeStrength(int strength) {
     _quantizeStrength = strength;
     if (_quantizeStrength < 0) _quantizeStrength = 0;
     if (_quantizeStrength > 100) _quantizeStrength = 100;
-    _notesRecorder.setQuantizeStrength(_quantizeStrength);
+    _recordingManager.setQuantizeStrength(_quantizeStrength);
 }
 
 void BuitDevicesManager::incrementQuantizeStrength(int delta) {

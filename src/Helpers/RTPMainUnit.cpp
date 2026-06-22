@@ -8,10 +8,15 @@ void RTPMainUnit::begin(){
   Serial.begin(9600);
   Wire.begin();
   Wire1.begin();
+  
+  // Initialize hardware
+  rtpOled.init();
   Sequencer.setMidiOutput(&midiOutput);
   vlSensor.initSetup();
   vlSensor.startContinuous();
   rtpTrellis.begin(this);
+  
+  // Initialize managers
   SequencerManager.begin(this);
   SequencerManager.setClockGenerator(clockGenerator);
   devicesManager.initSetup();
