@@ -26,6 +26,27 @@ main.cpp
 
 ### Hardware Abstraction Layer
 
+#### Adapter Pattern for Legacy Hardware
+
+The system uses the **Adapter Pattern** to bridge legacy hardware classes to modern interfaces:
+
+```
+Legacy Hardware          Adapter                 Interface
+───────────────         ────────                ─────────
+RTPOled          →  RTPOledAdapter       →  IDisplay
+RTPNeoTrellis    →  RTPNeoTrellisAdapter →  IButtonMatrix
+RTPRotaryClickDev →  RTPRotaryAdapter     →  IRotaryEncoder
+RTPThreeAxisVL   →  RTPThreeAxisAdapter  →  IThreeAxisSensor
+```
+
+**Benefits:**
+- Enables use of decomposed managers (DisplayManager, InputManager, TransportManager) without rewriting hardware drivers
+- Maintains backward compatibility with existing `BuitDevicesManager`
+- Allows incremental migration to interface-based architecture
+- Facilitates testing with mock implementations
+
+**Location:** `/include/Hardware/Adapters/`
+
 #### Device Drivers (`src/Devices/`)
 
 **RTPThreeAxisVL** - Three-Axis Distance Sensing

@@ -15,7 +15,27 @@
 #include "Helpers/RTPClockGenerator.hpp"
 #include "BuitFunctions/ChordionKeys.hpp"
 
-
+/**
+ * @brief Legacy device manager (God Object - 759 lines)
+ * 
+ * @deprecated This class violates Single Responsibility Principle by handling:
+ * - Display operations (should use DisplayManager)
+ * - Input handling (should use InputManager)
+ * - Transport controls (should use TransportManager)
+ * - Recording (NotesRecorder)
+ * - Persistence (BuitPersistenceManager)
+ * - Live-play orchestration (ChordionKeys, drum rolls)
+ * 
+ * @note Currently in production and working. Refactoring deferred due to:
+ * - Deep coupling with state machine (10 state classes depend on this)
+ * - Complex live-play logic (chordion, drum rolls, legato, presence gating)
+ * - High risk of regression if migrated in one step
+ * 
+ * @see /include/Managers/DeviceManager.hpp for decomposed architecture
+ * @see /include/Hardware/Adapters/ for adapter pattern bridging legacy hardware
+ * 
+ * Migration path: Gradually move state classes to use DeviceManager, then deprecate this class.
+ */
 class BuitDevicesManager {
     RTPOled _oled;
     RTPNeoTrellis& _neoTrellis;
