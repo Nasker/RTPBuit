@@ -1,5 +1,6 @@
 #include "RTPSequencerManager.hpp"
 #include "RTPMainUnit.hpp"
+#include "Config/MusicConfig.hpp"
 
 RTPMainUnit* RTPSequencerManager::mainUnit;
 
@@ -70,7 +71,7 @@ void RTPSequencerManager::sendTransportCallback(uint8_t transportCommand){
 }
 
 void RTPSequencerManager::gridClockUp(uint8_t realtimebyte){
-    if (counter % CLOCK_GRID == 0){
+    if (counter % MusicConfig::Timing::CLOCK_GRID == 0){
         _sequencer.play();
         ControlCommand callbackCommand;
         callbackCommand.controlType = SEQUENCER;
@@ -80,7 +81,7 @@ void RTPSequencerManager::gridClockUp(uint8_t realtimebyte){
     }
 
     // Finer 32nd-note callback for live rolls (does NOT advance the sequencer step)
-    if (counter % FINE_GRID == 0){
+    if (counter % MusicConfig::Timing::FINE_GRID == 0){
         ControlCommand fineCommand;
         fineCommand.controlType = SEQUENCER;
         fineCommand.commandType = GRID_FINE_TICK;
@@ -93,7 +94,7 @@ void RTPSequencerManager::gridClockUp(uint8_t realtimebyte){
 
 void RTPSequencerManager::increaseCounter(){
     counter++;
-    if (counter == TICKS_PER_BAR) 
+    if (counter == MusicConfig::Timing::TICKS_PER_BAR) 
         resetCounter();
 }
 
@@ -105,9 +106,9 @@ int RTPSequencerManager::getNearestStepPosition() {
     // Calculate the current position in the sequence
     int currentPos = _sequencer.getCurrentPosition();
     
-    int positionInStep = counter % CLOCK_GRID;
+    int positionInStep = counter % MusicConfig::Timing::CLOCK_GRID;
     
-    if (positionInStep < CLOCK_GRID / 2) {
+    if (positionInStep < MusicConfig::Timing::CLOCK_GRID / 2) {
         return currentPos;
     } else {
         int nextPos = currentPos + 1;

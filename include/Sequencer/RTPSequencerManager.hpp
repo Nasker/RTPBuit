@@ -7,12 +7,11 @@
 #include "constants.h"
 
 #define CLOCK 248
+// MIDI Real-Time messages
 #define START 250
 #define CONTINUE 251
 #define STOP 252
-#define TICKS_PER_BAR 96
-#define CLOCK_GRID 6
-#define FINE_GRID 3   // 32nd-note resolution (24 PPQN / 3 = 8 per quarter)
+// Note: TICKS_PER_BAR, CLOCK_GRID, FINE_GRID now in MusicConfig::Timing
 
 class RTPMainUnit;
 class RTPSequencerManager{
