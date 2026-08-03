@@ -66,4 +66,38 @@ public:
     uint8_t getButtonCount() const override {
         return 16; // 4x4 matrix
     }
+
+    void writeSequenceStates(RTPSequenceNoteStates seqStates, int color, bool show = true) override {
+        _trellis.writeSequenceStates(seqStates, color, show);
+    }
+
+    void writeSceneStates(RTPSequencesState sceneStates) override {
+        _trellis.writeSceneStates(sceneStates);
+    }
+
+    void writeBuitCCStates(RTPSequencesState ccStates, int color) override {
+        _trellis.writeBuitCCStates(ccStates, color);
+    }
+
+    void writeSequenceSettingsPage(SequenceSettings sequenceSettings) override {
+        _trellis.writeSequenceSettingsPage(sequenceSettings);
+    }
+
+    void moveCursor(int cursorPos) override {
+        _trellis.moveCursor(cursorPos);
+    }
+
+    void introAnimation() override {
+        _trellis.introAnimation();
+    }
+
+    uint32_t getColorGreen() override { return RTPNeoTrellis::colorGreen(); }
+    uint32_t getColorRed() override { return RTPNeoTrellis::colorRed(); }
+    uint32_t getColorYellow() override { return RTPNeoTrellis::colorYellow(); }
+    uint32_t getColorBlue() override { return RTPNeoTrellis::colorBlue(); }
+    uint32_t getColorWhite() override { return RTPNeoTrellis::colorWhite(); }
+    uint32_t getColorOff() override { return RTPNeoTrellis::colorOff(); }
+    uint32_t getColorDim(uint32_t color, uint8_t brightness) override { return RTPNeoTrellis::colorDim(color, brightness); }
+    uint32_t getColorForPage(uint8_t page) override { return RTPNeoTrellis::colorForPage(page); }
+    uint32_t getColorForSlot(uint8_t page, bool exists) override { return RTPNeoTrellis::colorForSlot(page, exists); }
 };

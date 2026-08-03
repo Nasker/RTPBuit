@@ -61,23 +61,29 @@ void OledDisplay::printFourLinesWithRecording(const String& line1, const String&
 
 void OledDisplay::showIntroAnimation(const String& text, int iterations) {
     if (!_ready) return;
-    
+
     int x = HardwareConfig::Display::SCREEN_WIDTH;
-    
+
     for (int i = 0; i < iterations; i++) {
-        _display.firstPage();
-        do {
-            _display.setCursor(x, 32);
-            _display.print(text);
-        } while (_display.nextPage());
-        
-        x -= UiConfig::Animation::SCROLL_SPEED;
-        if (x < -(int)text.length() * 6) {  // Approximate character width
-            x = HardwareConfig::Display::SCREEN_WIDTH;
-        }
-        
-        delay(UiConfig::Animation::BLINK_PERIOD_MS / 10);
+        showIntroFrame(x, text);
     }
+}
+
+void OledDisplay::showIntroFrame(int& offset, const String& text) {
+    if (!_ready) return;
+
+    _display.firstPage();
+    do {
+        _display.setCursor(offset, 32);
+        _display.print(text);
+    } while (_display.nextPage());
+
+    offset -= UiConfig::Animation::SCROLL_SPEED;
+    if (offset < -(int)text.length() * 6) {  // Approximate character width
+        offset = HardwareConfig::Display::SCREEN_WIDTH;
+    }
+
+    delay(UiConfig::Animation::BLINK_PERIOD_MS / 10);
 }
 
 void OledDisplay::setAfterIntro() {
@@ -105,6 +111,13 @@ void OledDisplay::printToScreen(const String& firstLine, const String& secondLin
 
 void OledDisplay::printToScreen(const String& firstLine, const String& secondLine, const String& thirdLine, const String& fourthLine, bool isRecording) {
     printFourLinesWithRecording(firstLine, secondLine, thirdLine, fourthLine, isRecording);
+}
+
+void OledDisplay::printFourLinesWithState(const String& firstLine, const String& secondLine, const String& thirdLine, const String& fourthLine, SequenceDisplayState state, bool blinkState) {
+    // This implementation renders Recording/Waiting states via its recording indicator.
+    // (RTPOledAdapter is the production display path; it renders all states natively.)
+    bool showRecording = (state == SequenceDisplayState::Recording || state == SequenceDisplayState::Waiting);
+    printToScreen(firstLine, secondLine, thirdLine, fourthLine, showRecording, blinkState);
 }
 
 void OledDisplay::printToScreen(const String& firstLine, const String& secondLine, const String& thirdLine, const String& fourthLine, bool isRecording, bool blinkState) {

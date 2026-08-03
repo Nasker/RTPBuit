@@ -39,11 +39,20 @@ RTPRotaryClickDev →  RTPRotaryAdapter     →  IRotaryEncoder
 RTPThreeAxisVL   →  RTPThreeAxisAdapter  →  IThreeAxisSensor
 ```
 
+**Production wiring (RTPMainUnit):**
+- One `RTPOled` instance and one `RTPNeoTrellis` instance exist; both are shared by:
+  - `DeviceManager` → `DisplayManager` / `InputManager` (via `shared_ptr` to the adapters)
+  - `BuitDevicesManager` (state-machine facade) — depends **only** on `IDisplay&` / `IButtonMatrix&`, constructor-injected with the same adapters
+- OLED is initialized once via `DeviceManager::initialize()` → `DisplayManager` → `RTPOledAdapter::initialize()`
+- Hardware **polling** stays in the legacy path (`rtpTrellis.read()`, `rtpRotary.read()`, `vlSensor`); `DeviceManager::update()` is intentionally not called to avoid double-polling shared hardware
+
 **Benefits:**
-- Enables use of decomposed managers (DisplayManager, InputManager, TransportManager) without rewriting hardware drivers
-- Maintains backward compatibility with existing `BuitDevicesManager`
-- Allows incremental migration to interface-based architecture
+- Single driver instance per physical device (previously two `U8G2` drivers drove one display)
+- State machine code depends on interfaces, enabling mock-based tests
+- Decomposed managers (DisplayManager, InputManager, TransportManager) operate on the same live hardware without duplication
 - Facilitates testing with mock implementations
+
+**Interface surface:** `IDisplay` includes `printFourLinesWithState(...)` for the state-aware pages (play/stop/rec indicators). `IButtonMatrix` includes the domain page writers (`writeSequenceStates`, `writeSceneStates`, `writeBuitCCStates`, `writeSequenceSettingsPage`, `moveCursor`, `introAnimation`) and `get*` color helpers used by the UI states.
 
 **Location:** `/include/Hardware/Adapters/`
 

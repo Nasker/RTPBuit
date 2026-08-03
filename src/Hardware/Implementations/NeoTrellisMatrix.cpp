@@ -265,3 +265,47 @@ void NeoTrellisMatrix::setButtonState(uint8_t button, bool pressed) {
     if (!validateButton(button)) return;
     _buttonStates[button] = pressed ? millis() : 0;
 }
+
+// IButtonMatrix domain page writers
+// Note: RTPNeoTrellisAdapter is the production path (velocity scaling, cursor, matrix
+// rotation). These are functional equivalents for this alternative implementation.
+void NeoTrellisMatrix::writeSequenceStates(RTPSequenceNoteStates seqStates, int color, bool showPixels) {
+    if (!_ready) return;
+    for (uint8_t i = 0; i < getButtonCount(); i++) {
+        setButtonColor(i, seqStates.val[i] ? color : 0);
+    }
+    if (showPixels) show();
+}
+
+void NeoTrellisMatrix::writeSceneStates(RTPSequencesState sceneStates) {
+    if (!_ready) return;
+    for (uint8_t i = 0; i < getButtonCount(); i++) {
+        setButtonColor(i, sceneStates.sequenceState[i].state ? sceneStates.sequenceState[i].color : 0);
+    }
+    show();
+}
+
+void NeoTrellisMatrix::writeBuitCCStates(RTPSequencesState ccStates, int color) {
+    if (!_ready) return;
+    for (uint8_t i = 0; i < getButtonCount(); i++) {
+        setButtonColor(i, ccStates.sequenceState[i].state ? color : 0);
+    }
+    show();
+}
+
+void NeoTrellisMatrix::writeSequenceSettingsPage(SequenceSettings sequenceSettings) {
+    if (!_ready) return;
+    clearAllButtons();
+    show();
+}
+
+// IButtonMatrix color helpers
+uint32_t NeoTrellisMatrix::getColorGreen() { return colorGreen(); }
+uint32_t NeoTrellisMatrix::getColorRed() { return colorRed(); }
+uint32_t NeoTrellisMatrix::getColorYellow() { return colorYellow(); }
+uint32_t NeoTrellisMatrix::getColorBlue() { return colorBlue(); }
+uint32_t NeoTrellisMatrix::getColorWhite() { return colorWhite(); }
+uint32_t NeoTrellisMatrix::getColorOff() { return colorOff(); }
+uint32_t NeoTrellisMatrix::getColorDim(uint32_t color, uint8_t brightness) { return colorDim(color, brightness); }
+uint32_t NeoTrellisMatrix::getColorForPage(uint8_t page) { return colorForPage(page); }
+uint32_t NeoTrellisMatrix::getColorForSlot(uint8_t page, bool exists) { return colorForSlot(page, exists); }

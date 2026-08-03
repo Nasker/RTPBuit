@@ -45,15 +45,22 @@ Adapters are located in `/include/Hardware/Adapters/` and compile cleanly.
 - Test framework with mocks and 11 passing tests
 - Configuration system eliminates magic numbers
 - Hardware adapters wired in `RTPMainUnit`
+- `BuitDevicesManager` cut over to interfaces: depends on `IDisplay` + `IButtonMatrix` (injected adapters), no longer owns concrete `RTPOled`/`RTPNeoTrellis`. Single OLED driver instance (previously two `U8G2` drivers fought over one display); dead `printToScreen(ControlCommand)` removed; `PatternBankState` uses facade color pass-throughs.
 
 **Architecture Transformation Complete:**
 - **Before:** God object with 759 lines, 7 responsibilities
 - **After:** Composition of focused managers, each with single responsibility
 - **Recording:** `RecordingManager` wraps `NotesRecorder`
 - **Live Play:** `LivePlayManager` wraps `ChordionKeys` + drum roll state
+- **Display/Input:** `BuitDevicesManager` → `IDisplay`/`IButtonMatrix` interfaces, sharing the same adapter instances as `DeviceManager`'s `DisplayManager`/`InputManager`
 - **Result:** Clean separation of concerns, fully testable, zero regressions
 
-**Current Status:** Build is clean (0 errors, 0 warnings). System is production-ready with **100% architecture refactored**. All planned work complete.
+**Known Boundaries (documented, intentional):**
+- `DeviceManager` is live through **shared adapter instances** (same underlying display/trellis objects as the legacy facade). `DeviceManager::update()` is deliberately **not** called in the main loop — hardware polling stays in the legacy path (`rtpTrellis.read()`, `rtpRotary.read()`, `vlSensor`) to avoid double-polling.
+- Transport goes through `IClockGenerator` directly from `BuitDevicesManager`; `TransportManager`'s swing/quantize state is a parallel implementation, not yet the single source of truth.
+- `InputManager`'s domain writers (`writeSequenceStates(const bool[16])` etc.) use unsafe `static_pointer_cast<NeoTrellisMatrix>` downcasts and are unused in production; the production path is the `IButtonMatrix` domain API on the adapter.
+
+**Current Status:** Build is clean (0 errors). Both `teensy41` and `teensy41_test` environments compile and link. System is production-ready.
 
 ---
 

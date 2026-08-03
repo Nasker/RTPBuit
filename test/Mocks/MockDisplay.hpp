@@ -30,11 +30,31 @@ public:
         printCallCount++;
     }
 
+    void printFourLinesWithRecording(const String& l1, const String& l2, const String& l3, const String& l4, bool) override {
+        lastLine1 = l1; lastLine2 = l2; lastLine3 = l3; lastLine4 = l4;
+        printCallCount++;
+    }
+
+    void printFourLinesWithState(const String& l1, const String& l2, const String& l3, const String& l4, SequenceDisplayState, bool) override {
+        lastLine1 = l1; lastLine2 = l2; lastLine3 = l3; lastLine4 = l4;
+        printCallCount++;
+    }
+
     void clear() override { cleared = true; }
 
     void show() override {}
 
     void showIntroAnimation(const String&, int) override {}
+
+    void showIntroFrame(int&, const String&) override {}
+
+    void setAfterIntro() override {}
+
+    bool isReady() const override { return initialized; }
+
+    uint16_t getWidth() const override { return 128; }
+
+    uint16_t getHeight() const override { return 64; }
 
     void reset() {
         lastLine1 = lastLine2 = lastLine3 = lastLine4 = "";

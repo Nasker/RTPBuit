@@ -43,11 +43,28 @@ public:
     uint8_t getButtonCount() const override;
 
     // Additional methods
-    void introAnimation();
+    void introAnimation() override;
     void writeSequenceStates(const bool states[16], int color);
     void writeSceneStates(const bool states[16]);
     void writeTransportPage();
-    void moveCursor(int cursorPos);
+    void moveCursor(int cursorPos) override;
+
+    // IButtonMatrix domain page writers
+    void writeSequenceStates(RTPSequenceNoteStates seqStates, int color, bool show = true) override;
+    void writeSceneStates(RTPSequencesState sceneStates) override;
+    void writeBuitCCStates(RTPSequencesState ccStates, int color) override;
+    void writeSequenceSettingsPage(SequenceSettings sequenceSettings) override;
+
+    // IButtonMatrix color helpers (instance wrappers around the static utilities)
+    uint32_t getColorGreen() override;
+    uint32_t getColorRed() override;
+    uint32_t getColorYellow() override;
+    uint32_t getColorBlue() override;
+    uint32_t getColorWhite() override;
+    uint32_t getColorOff() override;
+    uint32_t getColorDim(uint32_t color, uint8_t brightness) override;
+    uint32_t getColorForPage(uint8_t page) override;
+    uint32_t getColorForSlot(uint8_t page, bool exists) override;
 
     // Color utilities
     static uint32_t colorGreen();

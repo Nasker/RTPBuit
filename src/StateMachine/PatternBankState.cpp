@@ -1,6 +1,5 @@
 #include "Arduino.h"
 #include "PatternBankState.h"
-#include "RTPNeoTrellis.hpp"
 #include "constants.h"
 
 PatternBankState::PatternBankState(BuitStateMachine& machine, BuitDevicesManager& devices, PatternBankMode mode)
@@ -26,7 +25,7 @@ void PatternBankState::resetState() {
 void PatternBankState::renderPageGrid() {
     _devices.clearTrellis();
     for (uint8_t i = 0; i < PATTERN_BANK_PAGES; i++) {
-        _devices.setTrellisButtonColor(i, RTPNeoTrellis::colorForPage(i));
+        _devices.setTrellisButtonColor(i, _devices.colorForPage(i));
     }
     _devices.showTrellis();
     const char* modeLabel = (_mode == PatternBankMode::Load) ? "Load" : "Save";
@@ -37,7 +36,7 @@ void PatternBankState::renderSlotGrid(uint8_t page) {
     _devices.clearTrellis();
     for (uint8_t i = 0; i < PATTERN_BANK_SLOTS; i++) {
         bool exists = _devices.patternFileExists(buildFileName(page, i));
-        _devices.setTrellisButtonColor(i, RTPNeoTrellis::colorForSlot(page, exists));
+        _devices.setTrellisButtonColor(i, _devices.colorForSlot(page, exists));
     }
     _devices.showTrellis();
     const char* modeLabel = (_mode == PatternBankMode::Load) ? "Load" : "Save";

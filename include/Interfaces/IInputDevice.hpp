@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ControlCommand.h"
+#include "Structs.h"
 #include <Arduino.h>
 #include <functional>
 
@@ -89,6 +90,55 @@ public:
      * @return Number of buttons (typically 16 for 4x4)
      */
     virtual uint8_t getButtonCount() const = 0;
+
+    /**
+     * @brief Write sequence note states to the matrix
+     * @param seqStates Note states for the current page
+     * @param color Base color for active notes
+     * @param show Whether to push pixels to hardware immediately
+     */
+    virtual void writeSequenceStates(RTPSequenceNoteStates seqStates, int color, bool show = true) = 0;
+
+    /**
+     * @brief Write scene sequence states to the matrix
+     * @param sceneStates Per-sequence state/color pairs
+     */
+    virtual void writeSceneStates(RTPSequencesState sceneStates) = 0;
+
+    /**
+     * @brief Write Buit CC toggle states to the matrix
+     * @param ccStates Per-CC state pairs
+     * @param color Color for active CCs
+     */
+    virtual void writeBuitCCStates(RTPSequencesState ccStates, int color) = 0;
+
+    /**
+     * @brief Write sequence settings page to the matrix
+     * @param sequenceSettings Settings to visualize
+     */
+    virtual void writeSequenceSettingsPage(SequenceSettings sequenceSettings) = 0;
+
+    /**
+     * @brief Move the cursor highlight to a position
+     * @param cursorPos Position within the current page
+     */
+    virtual void moveCursor(int cursorPos) = 0;
+
+    /**
+     * @brief Show one frame of the intro animation
+     */
+    virtual void introAnimation() = 0;
+
+    // Color helpers (GRB NeoPixel format)
+    virtual uint32_t getColorGreen() = 0;
+    virtual uint32_t getColorRed() = 0;
+    virtual uint32_t getColorYellow() = 0;
+    virtual uint32_t getColorBlue() = 0;
+    virtual uint32_t getColorWhite() = 0;
+    virtual uint32_t getColorOff() = 0;
+    virtual uint32_t getColorDim(uint32_t color, uint8_t brightness) = 0;
+    virtual uint32_t getColorForPage(uint8_t page) = 0;
+    virtual uint32_t getColorForSlot(uint8_t page, bool exists) = 0;
 };
 
 /**

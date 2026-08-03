@@ -53,8 +53,8 @@ class RTPMainUnit{
   // Modern device manager (composition of focused managers)
   std::unique_ptr<DeviceManager> deviceManager;
   
-  // Legacy managers (being phased out)
-  BuitDevicesManager devicesManager{rtpTrellis, Sequencer};
+  // Legacy facade (interface-based, shared adapters with DeviceManager)
+  BuitDevicesManager devicesManager{oledAdapter, trellisAdapter, Sequencer};
   StateMachineManager stateMachineManager{devicesManager};
   RTPSequencerManager SequencerManager{Sequencer};
   

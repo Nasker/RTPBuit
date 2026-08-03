@@ -1,7 +1,7 @@
 #pragma once
 
-#include "RTPOled.hpp"
-#include "RTPNeoTrellis.hpp"
+#include "Interfaces/IDisplay.hpp"
+#include "Interfaces/IInputDevice.hpp"
 #include "RTPSequencer.h"
 #include "RTPSequencerManager.hpp"
 #include "Interfaces/ISequencer.hpp"
@@ -15,36 +15,24 @@
 #include "Managers/LivePlayManager.hpp"
 
 /**
- * @brief Device manager - REFACTORED via Composition Pattern
+ * @brief Device facade for the state machine - interface-based
  * 
- * This class has been successfully refactored from a 759-line god object to use
- * the composition pattern with focused managers:
- * 
- * **Decomposed Responsibilities:**
- * - Recording → `RecordingManager` (wraps NotesRecorder)
- * - Live-play orchestration → `LivePlayManager` (wraps ChordionKeys + drum roll state)
- * - Display operations → Still uses RTPOled directly (can migrate to DisplayManager)
- * - Input handling → Still uses RTPNeoTrellis directly (can migrate to InputManager)
- * - Persistence → BuitPersistenceManager
- * 
- * **Refactoring Status:** ✅ Complete
- * - All recording operations delegated to RecordingManager
- * - All live-play operations delegated to LivePlayManager
- * - Legacy NotesRecorder and ChordionKeys members removed
- * - Zero regressions, clean build
- * 
- * **Future Improvements (Optional):**
- * - Migrate display operations to DisplayManager
- * - Migrate input operations to InputManager
- * - Extract persistence to PersistenceManager wrapper
+ * Hardware access goes through interfaces, injected via constructor:
+ * - Display → `IDisplay` (production: RTPOledAdapter, shared with DisplayManager)
+ * - Button matrix → `IButtonMatrix` (production: RTPNeoTrellisAdapter, shared with InputManager)
+ * - Sequencer → `ISequencer` / `RTPSequencer`
+ * - Clock → `IClockGenerator`
+ * - Recording → `RecordingManager` (composition)
+ * - Live-play → `LivePlayManager` (composition)
+ * - Persistence → `BuitPersistenceManager`
  * 
  * @see /include/Managers/RecordingManager.hpp
  * @see /include/Managers/LivePlayManager.hpp
  * @see /include/Hardware/Adapters/ for adapter pattern bridging legacy hardware
  */
 class BuitDevicesManager {
-    RTPOled _oled;
-    RTPNeoTrellis& _neoTrellis;
+    IDisplay& _display;
+    IButtonMatrix& _trellis;
     ISequencer& _sequencer;
     RTPSequencer& _concreteSequencer;
     BuitPersistenceManager _persistenceManager;
@@ -56,11 +44,10 @@ class BuitDevicesManager {
     LivePlayManager _livePlayManager;
 
 public:
-    BuitDevicesManager(RTPNeoTrellis& neoTrellis, RTPSequencer& sequencer);
+    BuitDevicesManager(IDisplay& display, IButtonMatrix& trellis, RTPSequencer& sequencer);
     void initSetup();
     void introAnimations();
     void printToScreen(String firstLine, String secondLine, String thirdLine);
-    void printToScreen(ControlCommand command);
 
     void selectScene(ControlCommand command);
     void selectSequence(ControlCommand command);
@@ -130,6 +117,8 @@ public:
     void clearTrellis();
     void setTrellisButtonColor(uint8_t index, uint32_t color);
     void showTrellis();
+    uint32_t colorForPage(uint8_t page);
+    uint32_t colorForSlot(uint8_t page, bool exists);
 
     // Sequencer and music manager access
     ISequencer& getSequencer() { return _sequencer; }

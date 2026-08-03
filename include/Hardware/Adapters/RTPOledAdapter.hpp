@@ -45,11 +45,21 @@ public:
         _oled.printToScreen(line1, line2, line3, line4, isRecording);
     }
 
+    void printFourLinesWithState(const String& line1, const String& line2, const String& line3, const String& line4, SequenceDisplayState state, bool blinkState) override {
+        _oled.printToScreen(line1, line2, line3, line4, state, blinkState);
+    }
+
     void showIntroAnimation(const String& text, int iterations) override {
+        // Legacy semantics: x starts at screen width and is mutated by reference
+        // on each frame, producing the scroll-in effect.
+        int x = SCREEN_WIDTH;
         for (int i = 0; i < iterations; i++) {
-            int x = i;
             _oled.introAnimation(x, text);
         }
+    }
+
+    void showIntroFrame(int& offset, const String& text) override {
+        _oled.introAnimation(offset, text);
     }
 
     void setAfterIntro() override {

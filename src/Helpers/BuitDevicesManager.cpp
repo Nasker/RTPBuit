@@ -1,17 +1,18 @@
 #include "BuitDevicesManager.hpp"
 #include "Sequencer/RTPEventNoteSequence.h"
 
-BuitDevicesManager::BuitDevicesManager(RTPNeoTrellis& nT, RTPSequencer& seq):
-_neoTrellis(nT),
+BuitDevicesManager::BuitDevicesManager(IDisplay& display, IButtonMatrix& trellis, RTPSequencer& seq):
+_display(display),
+_trellis(trellis),
 _sequencer(seq),
 _concreteSequencer(seq){}
 
 void BuitDevicesManager::initSetup(){
-    _oled.init();
+    // Display is initialized via DeviceManager -> DisplayManager -> IDisplay::initialize()
     initBuitSD();
     introAnimations();
     
-    // Initialize new managers
+    // Initialize composed managers
     _recordingManager.initialize();
     _livePlayManager.initialize();
 }
@@ -20,70 +21,66 @@ void BuitDevicesManager::introAnimations(){
     int x = 128;
     String text = "I'm RTP's BUIT!!";
     for (int i = 0; i < 55; i++) {
-        _oled.introAnimation(x, text);
-        _neoTrellis.introAnimation();
+        _display.showIntroFrame(x, text);
+        _trellis.introAnimation();
     }
-    _oled.setAfterIntro();
+    _display.setAfterIntro();
 }
 
 void BuitDevicesManager::printToScreen(String firstLine, String secondLine, String thirdLine){
-    _oled.printToScreen(firstLine, secondLine, thirdLine);
-}
-
-void BuitDevicesManager::printToScreen(ControlCommand command){
-    _oled.printToScreen(command);
+    _display.printThreeLines(firstLine, secondLine, thirdLine);
 }
 
 void BuitDevicesManager::writeSequenceToNeoTrellis(RTPSequenceNoteStates sequenceStates, int color){
-    _neoTrellis.writeSequenceStates(sequenceStates, color);
+    _trellis.writeSequenceStates(sequenceStates, color);
 }
 
 void BuitDevicesManager::writeSceneToNeoTrellis(RTPSequencesState sequencesState){
-    _neoTrellis.writeSceneStates(sequencesState);
+    _trellis.writeSceneStates(sequencesState);
 }
 
 void BuitDevicesManager::writeTransportPage(){
     // Light up transport control buttons on trellis
     // Layout: [Play][Stop][Rec][Tap][Mode] on first row
     // Colors: Play=Green, Stop=Blue, Rec=Red, Tap=Yellow, Mode=White
-    _neoTrellis.clearAllButtons();
+    _trellis.clearAllButtons();
     
     // Play button (0) - Green if playing, dim green if stopped
     if (_sequencer.isPlaying()) {
-        _neoTrellis.setButtonColor(0, _neoTrellis.colorGreen());
+        _trellis.setButtonColor(0, _trellis.getColorGreen());
     } else {
-        _neoTrellis.setButtonColor(0, _neoTrellis.colorDim(_neoTrellis.colorGreen(), 128));
+        _trellis.setButtonColor(0, _trellis.getColorDim(_trellis.getColorGreen(), 128));
     }
     
     // Stop button (1) - Blue when stopped, dim when playing
     if (!_sequencer.isPlaying()) {
-        _neoTrellis.setButtonColor(1, _neoTrellis.colorBlue());
+        _trellis.setButtonColor(1, _trellis.getColorBlue());
     } else {
-        _neoTrellis.setButtonColor(1, _neoTrellis.colorDim(_neoTrellis.colorBlue(), 128));
+        _trellis.setButtonColor(1, _trellis.getColorDim(_trellis.getColorBlue(), 128));
     }
     
     // Rec button (2) - Red when recording, yellow when waiting
     if (isSelectedSequenceRecording()) {
         if (isSelectedSequenceWaiting()) {
-            _neoTrellis.setButtonColor(2, _neoTrellis.colorYellow()); // Waiting
+            _trellis.setButtonColor(2, _trellis.getColorYellow()); // Waiting
         } else {
-            _neoTrellis.setButtonColor(2, _neoTrellis.colorRed()); // Recording
+            _trellis.setButtonColor(2, _trellis.getColorRed()); // Recording
         }
     } else {
-        _neoTrellis.setButtonColor(2, _neoTrellis.colorDim(_neoTrellis.colorRed(), 64));
+        _trellis.setButtonColor(2, _trellis.getColorDim(_trellis.getColorRed(), 64));
     }
     
     // Tap button (3) - Yellow
-    _neoTrellis.setButtonColor(3, _neoTrellis.colorYellow());
+    _trellis.setButtonColor(3, _trellis.getColorYellow());
     
     // Mode button (4) - White for internal, dim white for external
     if (getSyncMode() == SyncMode::Internal) {
-        _neoTrellis.setButtonColor(4, _neoTrellis.colorWhite());
+        _trellis.setButtonColor(4, _trellis.getColorWhite());
     } else {
-        _neoTrellis.setButtonColor(4, _neoTrellis.colorDim(_neoTrellis.colorWhite(), 128));
+        _trellis.setButtonColor(4, _trellis.getColorDim(_trellis.getColorWhite(), 128));
     }
     
-    _neoTrellis.show();
+    _trellis.show();
 }
 
 void BuitDevicesManager::editScene(ControlCommand command){
@@ -104,11 +101,11 @@ void BuitDevicesManager::editCurrentNote(ControlCommand command){
 void BuitDevicesManager::displayCursorInSequence(ControlCommand command){
     int cursorPos = _sequencer.getCurrentPosition() - _sequencer.getPageOffset();
     if (cursorPos >= 0 && cursorPos < SEQ_BLOCK_SIZE){
-        _neoTrellis.writeSequenceStates(_sequencer.getNoteStates(), _sequencer.getSequenceColor(), false);
-        _neoTrellis.moveCursor(cursorPos);
+        _trellis.writeSequenceStates(_sequencer.getNoteStates(), _sequencer.getSequenceColor(), false);
+        _trellis.moveCursor(cursorPos);
     }
     else {
-        _neoTrellis.writeSequenceStates(_sequencer.getNoteStates(), _sequencer.getSequenceColor());
+        _trellis.writeSequenceStates(_sequencer.getNoteStates(), _sequencer.getSequenceColor());
     }
 }   
 
@@ -152,7 +149,7 @@ void BuitDevicesManager::presentScene(){
     // Determine scene display state based on sequencer playing status
     SequenceDisplayState state = _sequencer.isPlaying() ? SequenceDisplayState::Playing : SequenceDisplayState::Stopped;
     
-    _oled.printToScreen(
+    _display.printFourLinesWithState(
         "Scene",
         "Scene " + String(_sequencer.getCurrentScene() + 1),
         "",
@@ -209,7 +206,7 @@ void BuitDevicesManager::showSequence(){
     bool blinkState = (_displayBlinkCounter / 8) % 2 == 0;
     
     // Use the state-based display method
-    _oled.printToScreen(
+    _display.printFourLinesWithState(
         sequenceType,
         "Sequence "+ String(_sequencer.getCurrentSequence()+1),
         "Page "+ String(currentPage) + " of " + String(totalPages),
@@ -228,7 +225,7 @@ void BuitDevicesManager::presentTransport(){
     
     SequenceDisplayState state = _sequencer.isPlaying() ? SequenceDisplayState::Playing : SequenceDisplayState::Stopped;
     
-    _oled.printToScreen(
+    _display.printFourLinesWithState(
         "Transport",
         playState + "  " + modeStr,
         bpmStr,
@@ -259,12 +256,12 @@ void BuitDevicesManager::presentSequenceSettings(){
     }
 
     printToScreen("Seq Settings", paramName, valueStr);
-    _neoTrellis.writeSequenceSettingsPage(s);
+    _trellis.writeSequenceSettingsPage(s);
 }
 
 void BuitDevicesManager::presentBuitCC(){
     printToScreen("CCs Matrix", "", "");
-    _neoTrellis.writeBuitCCStates(_matrixBuitCC.getBuitCCStates(), TRANSPORT_COLOR);
+    _trellis.writeBuitCCStates(_matrixBuitCC.getBuitCCStates(), TRANSPORT_COLOR);
 }
 
 void BuitDevicesManager::selectScene(ControlCommand command){
@@ -277,7 +274,7 @@ void BuitDevicesManager::selectSequence(ControlCommand command){
 
 void BuitDevicesManager::editBuitCC(ControlCommand command){
     _matrixBuitCC.toggleBuitCC(command.value);
-    _neoTrellis.writeBuitCCStates(_matrixBuitCC.getBuitCCStates(), TRANSPORT_COLOR);
+    _trellis.writeBuitCCStates(_matrixBuitCC.getBuitCCStates(), TRANSPORT_COLOR);
 }
 
 void BuitDevicesManager::sendBuitCC(ControlCommand command){
@@ -608,15 +605,23 @@ bool BuitDevicesManager::patternFileExists(const String& fileName){
 }
 
 void BuitDevicesManager::clearTrellis(){
-    _neoTrellis.clearAllButtons();
+    _trellis.clearAllButtons();
 }
 
 void BuitDevicesManager::setTrellisButtonColor(uint8_t index, uint32_t color){
-    _neoTrellis.setButtonColor(index, color);
+    _trellis.setButtonColor(index, color);
 }
 
 void BuitDevicesManager::showTrellis(){
-    _neoTrellis.show();
+    _trellis.show();
+}
+
+uint32_t BuitDevicesManager::colorForPage(uint8_t page){
+    return _trellis.getColorForPage(page);
+}
+
+uint32_t BuitDevicesManager::colorForSlot(uint8_t page, bool exists){
+    return _trellis.getColorForSlot(page, exists);
 }
 
 void BuitDevicesManager::sceneAdd(){
@@ -654,33 +659,33 @@ void BuitDevicesManager::presentSceneSettings(int8_t focusedPad){
     int  nScenes  = _sequencer.getNumScenes();
     int  curScene = _sequencer.getCurrentScene() + 1;
 
-    _neoTrellis.clearAllButtons();
+    _trellis.clearAllButtons();
 
     // Pad 0 — Load (cyan)
-    _neoTrellis.setButtonColor(0, _neoTrellis.colorDim(_neoTrellis.colorBlue(), 200));
+    _trellis.setButtonColor(0, _trellis.getColorDim(_trellis.getColorBlue(), 200));
 
     // Pad 1 — Save (magenta: full red + blue)
-    _neoTrellis.setButtonColor(1, _neoTrellis.colorDim(_neoTrellis.colorRed(), 180));
+    _trellis.setButtonColor(1, _trellis.getColorDim(_trellis.getColorRed(), 180));
 
     // Pad 2 — Add scene (green, dim if playing)
-    _neoTrellis.setButtonColor(2, playing
-        ? _neoTrellis.colorDim(_neoTrellis.colorGreen(), 40)
-        : _neoTrellis.colorGreen());
+    _trellis.setButtonColor(2, playing
+        ? _trellis.getColorDim(_trellis.getColorGreen(), 40)
+        : _trellis.getColorGreen());
 
     // Pad 3 — Remove scene (red, dim if playing or only 1 scene)
     bool canRemove = !playing && nScenes > 1;
-    _neoTrellis.setButtonColor(3, canRemove
-        ? _neoTrellis.colorRed()
-        : _neoTrellis.colorDim(_neoTrellis.colorRed(), 40));
+    _trellis.setButtonColor(3, canRemove
+        ? _trellis.getColorRed()
+        : _trellis.getColorDim(_trellis.getColorRed(), 40));
 
     // Pad 4 — Toggle all sequences in scene (white)
-    _neoTrellis.setButtonColor(4, _neoTrellis.colorWhite());
+    _trellis.setButtonColor(4, _trellis.getColorWhite());
 
     // Highlight focused pad with full brightness white overlay
     if (focusedPad >= 0 && focusedPad <= 4)
-        _neoTrellis.setButtonColor(focusedPad, _neoTrellis.colorWhite());
+        _trellis.setButtonColor(focusedPad, _trellis.getColorWhite());
 
-    _neoTrellis.show();
+    _trellis.show();
 
     printToScreen(
         "Scene Settings",

@@ -30,7 +30,7 @@ void RTPMainUnit::begin(){
   Wire1.begin();
   
   // Initialize hardware
-  rtpOled.init();
+  // Note: rtpOled is initialized via deviceManager->initialize() (DisplayManager -> adapter)
   Sequencer.setMidiOutput(&midiOutput);
   vlSensor.initSetup();
   vlSensor.startContinuous();

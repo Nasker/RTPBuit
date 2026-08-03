@@ -29,7 +29,9 @@ public:
     void printThreeLines(const String& line1, const String& line2, const String& line3) override;
     void printFourLines(const String& line1, const String& line2, const String& line3, const String& line4) override;
     void printFourLinesWithRecording(const String& line1, const String& line2, const String& line3, const String& line4, bool isRecording) override;
+    void printFourLinesWithState(const String& line1, const String& line2, const String& line3, const String& line4, SequenceDisplayState state, bool blinkState) override;
     void showIntroAnimation(const String& text, int iterations) override;
+    void showIntroFrame(int& offset, const String& text) override;
     void setAfterIntro() override;
     bool isReady() const override;
     uint16_t getWidth() const override;
