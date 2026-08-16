@@ -75,8 +75,8 @@ namespace MusicConfig {
 
     // Timing Configuration
     namespace Timing {
-        constexpr uint8_t CLOCK_GRID = 24;        // 24 PPQN
-        constexpr uint8_t FINE_GRID = 6;          // 32nd notes (24/4)
+        constexpr uint8_t CLOCK_GRID = 6;         // Step every 6 ticks = 16th note (24 PPQN / 4)
+        constexpr uint8_t FINE_GRID = 3;          // 32nd-note resolution (24 PPQN / 8)
         constexpr uint16_t TICKS_PER_BAR = 96;    // 24 PPQN * 4 beats
         constexpr uint8_t MIN_BPM = 40;
         constexpr uint8_t MAX_BPM = 240;
