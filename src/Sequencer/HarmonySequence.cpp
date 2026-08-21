@@ -22,6 +22,7 @@ void HarmonySequence::setTypeSpecificColor(){
 void HarmonySequence::playCurrentEventNote(){
     pointIterator(_currentPosition);
     it->setMidiChannel(getMidiChannel());
+    it->setDestPort(getPortAsMidiPort());
     if(isCurrentSequenceEnabled() && it->eventState()){
         int rootNote = it->getEventRead();
         int chord  = it->getEventVelocity();

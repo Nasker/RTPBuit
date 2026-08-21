@@ -11,10 +11,12 @@ RTPEventNoteSequence::RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents
   RTPParameter parameterMidiChannel = RTPParameter(1, N_MIDI_CHANNELS, midiChannel, "Midi CH");
   RTPParameter parameterColor = RTPParameter(0, N_COLORS-1, 0, "Color");
   RTPParameter parameterLenght = RTPParameter(1, N_PAGES, 0, "Lenght");
+  RTPParameter parameterPort = RTPParameter(0, 4, 0, "Port");
   sequenceParameters.push_back(parameterType);
   sequenceParameters.push_back(parameterMidiChannel);
   sequenceParameters.push_back(parameterColor);
   sequenceParameters.push_back(parameterLenght);
+  sequenceParameters.push_back(parameterPort);
   _baseNote = baseNote;
   _currentPosition = 0;
   _isRecording = false;
@@ -134,6 +136,25 @@ uint8_t RTPEventNoteSequence::getType(){
 
 uint8_t RTPEventNoteSequence::getType() const {
   return sequenceParameters[TYPE].getValue();
+}
+
+uint8_t RTPEventNoteSequence::getPort(){
+  return sequenceParameters[PORT].getValue();
+}
+
+void RTPEventNoteSequence::setPort(uint8_t port){
+  sequenceParameters[PORT].setValue(port);
+}
+
+MidiPort RTPEventNoteSequence::getPortAsMidiPort(){
+  switch(sequenceParameters[PORT].getValue()){
+    case 0: return MidiPort::NONE;        // Default: use routing table
+    case 1: return MidiPort::USB_DEVICE;
+    case 2: return MidiPort::USB_HOST;
+    case 3: return MidiPort::DIN;
+    case 4: return MidiPort::USB_DEVICE | MidiPort::USB_HOST | MidiPort::DIN;  // ALL external
+    default: return MidiPort::NONE;
+  }
 }
 
 size_t RTPEventNoteSequence::getSequenceSize(){

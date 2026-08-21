@@ -12,6 +12,7 @@ void DrumSequence::setTypeSpecificColor(){
 void DrumSequence::playCurrentEventNote(){
     pointIterator(_currentPosition);
     it->setMidiChannel(getMidiChannel());
+    it->setDestPort(getPortAsMidiPort());
     if(isCurrentSequenceEnabled() && it->eventState()){
         it->setLength(1);
         _notesPlayer.queueNote(*it);

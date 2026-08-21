@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "Interfaces/IMidiOutput.hpp"
+#include "Midi/MidiPort.hpp"
 #include "RTPEventNotePlus.h"
 #include "RTPParameter.hpp"
 #include "NotesPlayer.hpp"
@@ -24,7 +25,8 @@ enum SequenceParametersIndex{
 	TYPE,
 	MIDI_CHANNEL,
 	COLOR,
-	LENGTH
+	LENGTH,
+	PORT
 };
 
 class RTPEventNoteSequence{
@@ -86,6 +88,9 @@ public:
 	virtual void decreasePage();
 	uint8_t getParameterValue();
 	String getParameterName();
+	uint8_t getPort();
+	void setPort(uint8_t port);
+	MidiPort getPortAsMidiPort();
 	list<RTPEventNotePlus> getEventNoteSequence();
 	const list<RTPEventNotePlus>& getEventNoteSequence() const;  // Const version for JSON serialization
 	String dumpSequenceToJson();
