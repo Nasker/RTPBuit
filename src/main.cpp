@@ -2,6 +2,7 @@
 #include "RTPMainUnit.hpp"
 #include "RTPPeriodicBang.h"
 #include "USBHost_t36.h"
+#include "Midi/MidiMessage.hpp"
 
 #define UPDATE_PERIOD 10
 
@@ -14,38 +15,59 @@ void actOnPeriodicUpdate(String callbackString){
   mUnit.updatePeriodically();
 }
 
-void linkToSequencerManager(uint8_t realtimebyte){
-  mUnit.linkToSequencerManager(realtimebyte);
+// --- USB Device MIDI callbacks (source = USB_DEVICE) ---
+
+void usbDeviceRealTime(uint8_t realtimebyte){
+  MidiMessage msg { MidiMessage::RealTime, 0, realtimebyte, 0, MidiPort::USB_DEVICE };
+  mUnit.getMidiRouter().route(msg);
 }
 
-void routeControlChange(uint8_t channel, uint8_t control, uint8_t value){
-  mUnit.routeControlChange(channel, control, value);
+void usbDeviceControlChange(uint8_t channel, uint8_t control, uint8_t value){
+  MidiMessage msg { MidiMessage::ControlChange, channel, control, value, MidiPort::USB_DEVICE };
+  mUnit.getMidiRouter().route(msg);
 }
 
-void routeNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
-  mUnit.routeNoteOnOff(channel, note, velocity);
-  //usbMIDI.sendNoteOn(note, velocity, channel);
+void usbDeviceNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
+  MidiMessage msg { MidiMessage::NoteOn, channel, note, velocity, MidiPort::USB_DEVICE };
+  mUnit.getMidiRouter().route(msg);
 }
 
-void routeNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
-  mUnit.routeNoteOnOff(channel, note, 0);
-  //usbMIDI.sendNoteOff(note, velocity, channel);
+void usbDeviceNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
+  MidiMessage msg { MidiMessage::NoteOff, channel, note, velocity, MidiPort::USB_DEVICE };
+  mUnit.getMidiRouter().route(msg);
+}
+
+// --- USB Host MIDI callbacks (source = USB_HOST) ---
+
+void usbHostControlChange(uint8_t channel, uint8_t control, uint8_t value){
+  MidiMessage msg { MidiMessage::ControlChange, channel, control, value, MidiPort::USB_HOST };
+  mUnit.getMidiRouter().route(msg);
+}
+
+void usbHostNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
+  MidiMessage msg { MidiMessage::NoteOn, channel, note, velocity, MidiPort::USB_HOST };
+  mUnit.getMidiRouter().route(msg);
+}
+
+void usbHostNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
+  MidiMessage msg { MidiMessage::NoteOff, channel, note, velocity, MidiPort::USB_HOST };
+  mUnit.getMidiRouter().route(msg);
 }
 
 void setup() {
   mUnit.begin();
   myusb.begin();
   
-  // USB MIDI handlers
-  usbMIDI.setHandleRealTimeSystem(linkToSequencerManager);
-  usbMIDI.setHandleControlChange(routeControlChange);
-  usbMIDI.setHandleNoteOn(routeNoteOn);
-  usbMIDI.setHandleNoteOff(routeNoteOff);
+  // USB MIDI handlers (tagged as USB_DEVICE source)
+  usbMIDI.setHandleRealTimeSystem(usbDeviceRealTime);
+  usbMIDI.setHandleControlChange(usbDeviceControlChange);
+  usbMIDI.setHandleNoteOn(usbDeviceNoteOn);
+  usbMIDI.setHandleNoteOff(usbDeviceNoteOff);
   
-  // USB Host MIDI handlers (for USB MIDI devices connected to host port)
-  midi1.setHandleControlChange(routeControlChange);
-  midi1.setHandleNoteOn(routeNoteOn);
-  midi1.setHandleNoteOff(routeNoteOff);
+  // USB Host MIDI handlers (tagged as USB_HOST source)
+  midi1.setHandleControlChange(usbHostControlChange);
+  midi1.setHandleNoteOn(usbHostNoteOn);
+  midi1.setHandleNoteOff(usbHostNoteOff);
   
   // Hardware Serial MIDI on Serial1 (5-pin DIN) - pins 0=RX, 1=TX
   Serial1.begin(31250);  // Standard MIDI baud rate
@@ -59,12 +81,13 @@ void loop() {
   
   // Read hardware serial MIDI (5-pin DIN on Serial1)
   while (Serial1.available()) {
-    uint8_t byte = Serial1.read();
-    // Route real-time messages to sequencer
-    if (byte >= 0xF8) {
-      linkToSequencerManager(byte);
+    uint8_t inByte = Serial1.read();
+    // Route real-time messages through the router (tagged as DIN source)
+    if (inByte >= 0xF8) {
+      MidiMessage msg { MidiMessage::RealTime, 0, inByte, 0, MidiPort::DIN };
+      mUnit.getMidiRouter().route(msg);
     }
-    // Note: Full MIDI parsing would need a state machine for channel messages
+    // Note: Full MIDI parsing (Phase 6) will handle channel messages from DIN
   }
   
   periodicUpdate.callbackPeriodBang(actOnPeriodicUpdate);

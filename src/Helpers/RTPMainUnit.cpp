@@ -29,6 +29,9 @@ void RTPMainUnit::begin(){
   Wire.begin();
   Wire1.begin();
   
+  // Initialize MIDI Router (must happen before sequencer uses outputs)
+  initMidiRouter();
+  
   // Initialize hardware
   // Note: rtpOled is initialized via deviceManager->initialize() (DisplayManager -> adapter)
   Sequencer.setMidiOutput(&midiOutput);
@@ -96,4 +99,31 @@ void RTPMainUnit::routeNoteOnOff(uint8_t channel, uint8_t note, uint8_t velocity
   
   ControlCommand command = ControlCommand{controlType, note, velocity};
   stateMachineManager.handleActions(command, channel);
+}
+
+void RTPMainUnit::initMidiRouter() {
+  // Register per-port outputs
+  midiRouter.setOutput(MidiPort::USB_DEVICE, &usbDeviceOutput);
+  midiRouter.setOutput(MidiPort::DIN, &dinOutput);
+  midiRouter.setOutput(MidiPort::INTERNAL, &internalSink);
+  // USB_HOST output will be registered in Phase 3
+  
+  // Wire InternalMidiSink callbacks to existing handlers
+  internalSink.setNoteOnCallback([this](uint8_t ch, uint8_t note, uint8_t vel) {
+    routeNoteOnOff(ch, note, vel);
+  });
+  internalSink.setNoteOffCallback([this](uint8_t ch, uint8_t note, uint8_t vel) {
+    routeNoteOnOff(ch, note, 0);
+  });
+  internalSink.setCCCallback([this](uint8_t ch, uint8_t ctrl, uint8_t val) {
+    routeControlChange(ch, ctrl, val);
+  });
+  internalSink.setRealTimeCallback([this](uint8_t rt) {
+    linkToSequencerManager(rt);
+  });
+  
+  // Set backward-compatible default routes
+  midiRouter.setDefaultRoutes();
+  
+  Serial.println("MIDI Router initialized with default routes");
 }
