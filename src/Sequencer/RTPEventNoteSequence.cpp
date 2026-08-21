@@ -19,14 +19,14 @@ RTPEventNoteSequence::RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents
   RTPParameter parameterMidiChannel = RTPParameter(1, N_MIDI_CHANNELS, midiChannel, "Midi CH");
   RTPParameter parameterColor = RTPParameter(0, N_COLORS-1, 0, "Color");
   RTPParameter parameterLenght = RTPParameter(1, N_PAGES, 0, "Lenght");
-  RTPParameter parameterPort = RTPParameter(0, 8, 0, "Port");
   RTPParameter parameterInput = RTPParameter(0, 8, 0, "Input");
+  RTPParameter parameterPort = RTPParameter(0, 8, 0, "Output");
   sequenceParameters.push_back(parameterType);
   sequenceParameters.push_back(parameterMidiChannel);
   sequenceParameters.push_back(parameterColor);
   sequenceParameters.push_back(parameterLenght);
-  sequenceParameters.push_back(parameterPort);
   sequenceParameters.push_back(parameterInput);
+  sequenceParameters.push_back(parameterPort);
   _baseNote = baseNote;
   _currentPosition = 0;
   _isRecording = false;

@@ -28,8 +28,8 @@ enum SequenceParametersIndex{
 	MIDI_CHANNEL,
 	COLOR,
 	LENGTH,
-	PORT,
-	INPUT_PORT
+	INPUT_PORT,
+	PORT
 };
 
 class RTPEventNoteSequence{

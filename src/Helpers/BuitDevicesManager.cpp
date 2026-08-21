@@ -252,7 +252,7 @@ void BuitDevicesManager::presentSequenceSettings(){
         valueStr = "Col " + String(paramValue);
     } else if (paramName == "Lenght") {
         valueStr = String(paramValue) + " pages";
-    } else if (paramName == "Port") {
+    } else if (paramName == "Output") {
         const char* portNames[] = {"Default", "USB", "USB Host", "DIN", "ALL",
                                     "Host 1", "Host 2", "Host 3", "Host 4"};
         valueStr = (paramValue >= 0 && paramValue <= 8) ? portNames[paramValue] : "?";

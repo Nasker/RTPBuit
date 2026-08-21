@@ -20,8 +20,8 @@ struct SequenceSettings{
   int type;
   int color; 
   int lenght;
-  int port;
   int input;
+  int port;
 };
 
 // Display states for sequence recording/playback indicator

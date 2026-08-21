@@ -146,8 +146,8 @@ SequenceSettings RTPScene::getSelectedSequenceSettings() {
   settings.lenght = SequencerScene[_selectedSequence]->getSequenceSize();
   settings.color = SequencerScene[_selectedSequence]->getColor();
   settings.midiChannel = SequencerScene[_selectedSequence]->getMidiChannel();
-  settings.port = SequencerScene[_selectedSequence]->getPort();
   settings.input = SequencerScene[_selectedSequence]->getInput();
+  settings.port = SequencerScene[_selectedSequence]->getPort();
   return settings;
 }
 
