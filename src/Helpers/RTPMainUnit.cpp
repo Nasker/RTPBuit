@@ -108,7 +108,7 @@ void RTPMainUnit::initMidiRouter() {
   midiRouter.setOutput(MidiPort::USB_DEVICE, &usbDeviceOutput);
   midiRouter.setOutput(MidiPort::DIN, &dinOutput);
   midiRouter.setOutput(MidiPort::INTERNAL, &internalSink);
-  // USB_HOST output will be registered in Phase 3
+  midiRouter.setOutput(MidiPort::USB_HOST, &usbHostOutput);
   
   // Wire InternalMidiSink callbacks to existing handlers
   internalSink.setNoteOnCallback([this](uint8_t ch, uint8_t note, uint8_t vel) {
@@ -138,4 +138,8 @@ void RTPMainUnit::initMidiRouter() {
   midiRouter.setDefaultRoutes();
   
   Serial.println("MIDI Router initialized with default routes");
+}
+
+void RTPMainUnit::setUsbHostDevice(MIDIDevice* device) {
+  usbHostOutput.setDevice(device);
 }

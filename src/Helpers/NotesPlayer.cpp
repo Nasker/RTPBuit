@@ -34,7 +34,6 @@ void NotesPlayer::decreaseTimeToLive(){
     for(size_t i = 0; i < _ringingNotes.size(); i++){
         for(it = _ringingNotes[i].begin(); it != _ringingNotes[i].end();){
             if(!it->second.decreaseTimeToLive()){
-                it->second.playNoteOff();
                 _ringingNotes[i].erase(it++);
             } 
             else

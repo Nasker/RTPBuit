@@ -25,6 +25,8 @@
 #include "Midi/UsbDeviceMidiOutput.hpp"
 #include "Midi/DinMidiOutput.hpp"
 #include "Midi/InternalMidiSink.hpp"
+#include "Midi/UsbHostMidiOutput.hpp"
+#include "Midi/UsbHostManager.hpp"
   
 class RTPMainUnit{
   // Legacy hardware (kept for backward compatibility)
@@ -42,8 +44,10 @@ class RTPMainUnit{
   // MIDI Router and per-port outputs
   MidiRouter midiRouter;
   UsbDeviceMidiOutput usbDeviceOutput;
+  UsbHostMidiOutput usbHostOutput;
   DinMidiOutput dinOutput;
   InternalMidiSink internalSink;
+  UsbHostManager usbHostManager;
   
   // Hardware adapters (bridge legacy to interfaces)
   RTPOledAdapter oledAdapter{rtpOled};
@@ -80,6 +84,8 @@ public:
   void routeControlChange(uint8_t channel, uint8_t control, uint8_t value);
   void routeNoteOnOff(uint8_t channel, uint8_t note, uint8_t velocity);
   MidiRouter& getMidiRouter() { return midiRouter; }
+  UsbHostManager& getUsbHostManager() { return usbHostManager; }
+  void setUsbHostDevice(MIDIDevice* device);
 private:
   void initMidiRouter();
 };

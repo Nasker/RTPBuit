@@ -54,9 +54,18 @@ void usbHostNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
   mUnit.getMidiRouter().route(msg);
 }
 
+void usbHostRealTime(uint8_t realtimebyte) {
+  MidiMessage msg { MidiMessage::RealTime, 0, realtimebyte, 0, MidiPort::USB_HOST };
+  mUnit.getMidiRouter().route(msg);
+}
+
 void setup() {
   mUnit.begin();
   myusb.begin();
+  
+  // Wire USB Host device into MidiRouter output and manager
+  mUnit.setUsbHostDevice(&midi1);
+  mUnit.getUsbHostManager().begin(myusb, &midi1);
   
   // USB MIDI handlers (tagged as USB_DEVICE source)
   usbMIDI.setHandleRealTimeSystem(usbDeviceRealTime);
@@ -68,6 +77,7 @@ void setup() {
   midi1.setHandleControlChange(usbHostControlChange);
   midi1.setHandleNoteOn(usbHostNoteOn);
   midi1.setHandleNoteOff(usbHostNoteOff);
+  midi1.setHandleRealTimeSystem(usbHostRealTime);
   
   // Hardware Serial MIDI on Serial1 (5-pin DIN) - pins 0=RX, 1=TX
   Serial1.begin(31250);  // Standard MIDI baud rate
@@ -78,6 +88,7 @@ void loop() {
   mUnit.update();
   myusb.Task();
 	midi1.read();
+  mUnit.getUsbHostManager().update();
   
   // Read hardware serial MIDI (5-pin DIN on Serial1)
   while (Serial1.available()) {
