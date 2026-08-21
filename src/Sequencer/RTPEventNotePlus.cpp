@@ -1,4 +1,12 @@
 #include "Sequencer/RTPEventNotePlus.h"
+#include "Midi/MidiRouter.hpp"
+#include "Midi/MidiMessage.hpp"
+
+MidiRouter* RTPEventNotePlus::_router = nullptr;
+
+void RTPEventNotePlus::setRouter(MidiRouter* router) {
+    _router = router;
+}
 
 uint8_t RTPEventNotePlus::getMidiChannel(){
     return _midiChannel;
@@ -18,26 +26,20 @@ void RTPEventNotePlus::playNoteOn(){
     uint8_t note = getEventNote();
     uint8_t velocity = getEventVelocity();
     
-    // USB MIDI
-    usbMIDI.sendNoteOn(note, velocity, channel);
-    
-    // Hardware Serial1 MIDI - send raw bytes: 0x90 | (channel-1), note, velocity
-    Serial1.write(0x90 | ((channel - 1) & 0x0F));
-    Serial1.write(note & 0x7F);
-    Serial1.write(velocity & 0x7F);
+    if (_router) {
+        MidiMessage msg { MidiMessage::NoteOn, channel, note, velocity, MidiPort::INTERNAL };
+        _router->route(msg);
+    }
 }
 
 void RTPEventNotePlus::playNoteOff(){
     uint8_t channel = getMidiChannel();
     uint8_t note = getEventNote();
     
-    // USB MIDI
-    usbMIDI.sendNoteOff(note, 0, channel);
-    
-    // Hardware Serial1 MIDI - send raw bytes: 0x80 | (channel-1), note, velocity(0)
-    Serial1.write(0x80 | ((channel - 1) & 0x0F));
-    Serial1.write(note & 0x7F);
-    Serial1.write(0x00);
+    if (_router) {
+        MidiMessage msg { MidiMessage::NoteOff, channel, note, 0, MidiPort::INTERNAL };
+        _router->route(msg);
+    }
 }
 
 void RTPEventNotePlus::setLength(uint8_t length){

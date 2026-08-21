@@ -1,5 +1,7 @@
 #include "RTPMainUnit.hpp"
 #include "ControlCommand.h"
+#include "SequenceEditState.h"
+#include "BuitControlChanger.hpp"
 
 RTPMainUnit::RTPMainUnit(){
   // Create shared pointers to adapters for DeviceManager
@@ -121,6 +123,16 @@ void RTPMainUnit::initMidiRouter() {
   internalSink.setRealTimeCallback([this](uint8_t rt) {
     linkToSequencerManager(rt);
   });
+  
+  // Inject router into RTPEventNotePlus (replaces hard-coded usbMIDI/Serial1)
+  RTPEventNotePlus::setRouter(&midiRouter);
+  
+  // Inject router into SequencerManager (replaces hard-coded clock output)
+  SequencerManager.setMidiRouter(&midiRouter);
+  
+  // Inject router into remaining classes with direct usbMIDI usage
+  SequenceEditState::setRouter(&midiRouter);
+  BuitControlChanger::setRouter(&midiRouter);
   
   // Set backward-compatible default routes
   midiRouter.setDefaultRoutes();

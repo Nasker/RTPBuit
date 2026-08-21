@@ -2,7 +2,8 @@
 
 #include <cstdint>
 #include "Sequencer/RTPEventNote.hpp"
-#include "Arduino.h"
+
+class MidiRouter;
 
 
 class RTPEventNotePlus: public RTPEventNote{
@@ -35,4 +36,9 @@ class RTPEventNotePlus: public RTPEventNote{
     bool decreaseTimeToLive();
     bool isLiteralPitch() const;
     void setLiteralPitch(bool literal);
+    
+    // Static router injection — set once at startup
+    static void setRouter(MidiRouter* router);
+private:
+    static MidiRouter* _router;
 };

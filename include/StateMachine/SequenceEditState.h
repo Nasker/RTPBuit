@@ -1,5 +1,7 @@
 #include "BuitStateMachine.h"
 
+class MidiRouter;
+
 class SequenceEditState : public BuitState{
   BuitStateMachine& _buitMachine;
 public:
@@ -17,4 +19,7 @@ public:
   void midiNote(ControlCommand command);
   void midiNoteOff(ControlCommand command);
   void midiCC(ControlCommand command);
+  static void setRouter(MidiRouter* router);
+private:
+  static MidiRouter* _router;
 };

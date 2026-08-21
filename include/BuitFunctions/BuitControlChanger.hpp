@@ -4,6 +4,8 @@
 #include "ControlCommand.h"
 #include "constants.h"
 
+class MidiRouter;
+
 class BuitControlChanger {
     int _ID;
     int _lastValues[3];
@@ -15,6 +17,8 @@ public:
     void enable();
     bool isEnabled();
     void disable();
+    static void setRouter(MidiRouter* router);
 private:
+    static MidiRouter* _router;
     void send(ControlCommand command);
 };

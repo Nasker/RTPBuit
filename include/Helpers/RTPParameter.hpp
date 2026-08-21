@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Arduino.h"
+
 class RTPParameter{ 
     int _minValue;
     int _maxValue;

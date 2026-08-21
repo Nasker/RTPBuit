@@ -1,6 +1,14 @@
 #include "Arduino.h"
 
 #include "SequenceEditState.h"
+#include "Midi/MidiRouter.hpp"
+#include "Midi/MidiMessage.hpp"
+
+MidiRouter* SequenceEditState::_router = nullptr;
+
+void SequenceEditState::setRouter(MidiRouter* router) {
+    _router = router;
+}
 
 SequenceEditState::SequenceEditState(BuitStateMachine& buitMachine, BuitDevicesManager& devices) : BuitState(devices), _buitMachine(buitMachine) {
   Serial.println("SequenceEditState");
@@ -51,9 +59,16 @@ void SequenceEditState::sequencerCallback(ControlCommand command) {
 }
 
 void SequenceEditState::midiNote(ControlCommand command) {
-  // Always play the note via MIDI
+  // Always play the note via MIDI router
   int midiChannel = _devices.getSelectedSequenceMidichannel();
-  usbMIDI.sendNoteOn(command.commandType, command.value, midiChannel);
+  if (_router) {
+    MidiMessage msg { MidiMessage::NoteOn,
+                      static_cast<uint8_t>(midiChannel),
+                      static_cast<uint8_t>(command.commandType),
+                      static_cast<uint8_t>(command.value),
+                      MidiPort::INTERNAL };
+    _router->route(msg);
+  }
   
   // Record via NotesRecorder when recording is active
   if(_devices.isSelectedSequenceRecording()) {
@@ -62,9 +77,16 @@ void SequenceEditState::midiNote(ControlCommand command) {
 }
 
 void SequenceEditState::midiNoteOff(ControlCommand command) {
-  // Send MIDI note-off message
+  // Send MIDI note-off via router
   int midiChannel = _devices.getSelectedSequenceMidichannel();
-  usbMIDI.sendNoteOff(command.commandType, 0, midiChannel);
+  if (_router) {
+    MidiMessage msg { MidiMessage::NoteOff,
+                      static_cast<uint8_t>(midiChannel),
+                      static_cast<uint8_t>(command.commandType),
+                      0,
+                      MidiPort::INTERNAL };
+    _router->route(msg);
+  }
   
   if(_devices.isSelectedSequenceRecording()) {
     _devices.recorderNoteOff(command.commandType);

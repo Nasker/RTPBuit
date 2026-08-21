@@ -1,6 +1,8 @@
 #include "RTPSequencerManager.hpp"
 #include "RTPMainUnit.hpp"
 #include "Config/MusicConfig.hpp"
+#include "Midi/MidiRouter.hpp"
+#include "Midi/MidiMessage.hpp"
 
 RTPMainUnit* RTPSequencerManager::mainUnit;
 
@@ -36,9 +38,9 @@ void RTPSequencerManager::update(){
 
 void RTPSequencerManager::dispatchRealTime(uint8_t realtimebyte){
     handleRealTimeSystem(realtimebyte);
-    if (_clockGenerator && _clockGenerator->isSendingMidiRealtime()) {
-        usbMIDI.sendRealTime(realtimebyte);
-        Serial1.write(realtimebyte);
+    if (_clockGenerator && _clockGenerator->isSendingMidiRealtime() && _midiRouter) {
+        MidiMessage msg { MidiMessage::RealTime, 0, realtimebyte, 0, MidiPort::INTERNAL };
+        _midiRouter->route(msg);
     }
 }
 

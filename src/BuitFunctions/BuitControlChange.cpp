@@ -1,4 +1,12 @@
 #include "BuitControlChanger.hpp"
+#include "Midi/MidiRouter.hpp"
+#include "Midi/MidiMessage.hpp"
+
+MidiRouter* BuitControlChanger::_router = nullptr;
+
+void BuitControlChanger::setRouter(MidiRouter* router) {
+    _router = router;
+}
 
 BuitControlChanger::BuitControlChanger(int ID){
     _ID = ID;
@@ -18,7 +26,14 @@ void BuitControlChanger::updateAndSend(ControlCommand command){
 }
 
 void BuitControlChanger::send(ControlCommand command){
-    usbMIDI.sendControlChange(command.commandType, command.value, _ID + 1);
+    if (_router) {
+        MidiMessage msg { MidiMessage::ControlChange,
+                          static_cast<uint8_t>(_ID + 1),
+                          static_cast<uint8_t>(command.commandType),
+                          static_cast<uint8_t>(command.value),
+                          MidiPort::INTERNAL };
+        _router->route(msg);
+    }
 }
 
 void BuitControlChanger::enable(){
