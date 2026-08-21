@@ -28,7 +28,8 @@ enum SequenceParametersIndex{
 	MIDI_CHANNEL,
 	COLOR,
 	LENGTH,
-	PORT
+	PORT,
+	INPUT_PORT
 };
 
 class RTPEventNoteSequence{
@@ -95,6 +96,10 @@ public:
 	void setPort(uint8_t port);
 	MidiPort getPortAsMidiPort();
 	uint8_t getUsbHostDeviceIndex();
+	uint8_t getInput();
+	uint8_t getInput() const;
+	void setInput(uint8_t input);
+	bool acceptsInput(uint8_t srcPort, uint8_t srcDevice);
 	static void setRouter(MidiRouter* router);
 	list<RTPEventNotePlus> getEventNoteSequence();
 	const list<RTPEventNotePlus>& getEventNoteSequence() const;  // Const version for JSON serialization

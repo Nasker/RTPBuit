@@ -68,6 +68,7 @@ public:
   uint8_t getLiveVelocity() override;
 
   void setMidiOutput(IMidiOutput* midiOutput);
+  RTPEventNoteSequence* getActiveSequence();
 
   // For persistence manager
   int getNumScenes() const override { return (int)Sequencer.size(); }

@@ -16,6 +16,7 @@ String BuitPersistenceManager::sequenceToJson(const RTPEventNoteSequence* sequen
     doc["t"] = sequence->getType();
     doc["c"] = sequence->getMidiChannel();
     doc["p"] = sequence->getPort();
+    doc["i"] = sequence->getInput();
     
     JsonArray seq = doc["s"].to<JsonArray>();
     for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
@@ -42,6 +43,7 @@ String BuitPersistenceManager::sceneToJson(const RTPScene* scene) {
             seqObj["t"] = sequence->getType();
             seqObj["c"] = sequence->getMidiChannel();
             seqObj["p"] = sequence->getPort();
+            seqObj["i"] = sequence->getInput();
             JsonArray seqArray = seqObj["s"].to<JsonArray>();
             for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
                 JsonObject noteObj = seqArray.add<JsonObject>();
@@ -80,6 +82,7 @@ String BuitPersistenceManager::sequencerToJson(const RTPSequencer& sequencer) {
                     seqObj["t"] = sequence->getType();
                     seqObj["c"] = sequence->getMidiChannel();
                     seqObj["p"] = sequence->getPort();
+                    seqObj["i"] = sequence->getInput();
                     JsonArray seqArray = seqObj["s"].to<JsonArray>();
                     for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
                         JsonObject noteObj = seqArray.add<JsonObject>();
@@ -117,9 +120,11 @@ bool BuitPersistenceManager::loadSequenceFromJson(RTPEventNoteSequence* sequence
     int type = seqObj["t"];
     int midiChannel = seqObj["c"];
     int port = seqObj["p"] | 0;  // Default to 0 (routing table) if missing
+    int input = seqObj["i"] | 0; // Default to 0 (Any) if missing
     sequence->setType(type);
     sequence->setMidiChannel(midiChannel);
     sequence->setPort(port);
+    sequence->setInput(input);
     sequence->clearSequence();
 
     JsonArray notesArray = seqObj["s"];

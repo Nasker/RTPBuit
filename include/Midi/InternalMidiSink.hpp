@@ -12,8 +12,10 @@
  */
 class InternalMidiSink : public IMidiOutput {
 public:
-    using NoteCallback = std::function<void(uint8_t channel, uint8_t note, uint8_t velocity)>;
-    using CCCallback = std::function<void(uint8_t channel, uint8_t controller, uint8_t value)>;
+    using NoteCallback = std::function<void(uint8_t channel, uint8_t note, uint8_t velocity,
+                                              uint8_t srcPort, uint8_t srcDevice)>;
+    using CCCallback = std::function<void(uint8_t channel, uint8_t controller, uint8_t value,
+                                          uint8_t srcPort, uint8_t srcDevice)>;
     using RealTimeCallback = std::function<void(uint8_t realtimebyte)>;
 
     InternalMidiSink() = default;
@@ -22,6 +24,11 @@ public:
     void setNoteOffCallback(NoteCallback cb)   { _onNoteOff = cb; }
     void setCCCallback(CCCallback cb)          { _onCC = cb; }
     void setRealTimeCallback(RealTimeCallback cb) { _onRealTime = cb; }
+
+    /** Called by the router before dispatching to set message origin */
+    void setSourceContext(uint8_t port, uint8_t deviceIdx) {
+        _srcPort = port; _srcDevice = deviceIdx;
+    }
 
     // IMidiOutput interface
     void sendNoteOn(uint8_t note, uint8_t velocity, uint8_t channel) override;
@@ -39,4 +46,6 @@ private:
     NoteCallback     _onNoteOff;
     CCCallback       _onCC;
     RealTimeCallback _onRealTime;
+    uint8_t _srcPort   = 0;
+    uint8_t _srcDevice = 0xFF;
 };

@@ -279,6 +279,31 @@ void BuitDevicesManager::presentSequenceSettings(){
                 valueStr = "Host " + String(idx + 1) + " (none)";
             }
         }
+    } else if (paramName == "Input") {
+        const char* inputNames[] = {"Any", "USB", "USB Host", "DIN", "ALL",
+                                     "Host 1", "Host 2", "Host 3", "Host 4"};
+        valueStr = (paramValue >= 0 && paramValue <= 8) ? inputNames[paramValue] : "?";
+        if (paramValue == 2 && _usbHostManager) {
+            uint8_t count = _usbHostManager->getDeviceCount();
+            if (count == 1) {
+                for (uint8_t i = 0; i < 4; i++) {
+                    if (_usbHostManager->isDeviceConnected(i)) {
+                        valueStr = _usbHostManager->getDeviceName(i);
+                        break;
+                    }
+                }
+            } else if (count > 1) {
+                valueStr = String(count) + " USB devs";
+            }
+        }
+        if (paramValue >= 5 && paramValue <= 8 && _usbHostManager) {
+            uint8_t idx = paramValue - 5;
+            if (_usbHostManager->isDeviceConnected(idx)) {
+                valueStr = _usbHostManager->getDeviceName(idx);
+            } else {
+                valueStr = "Host " + String(idx + 1) + " (none)";
+            }
+        }
     } else {
         valueStr = String(paramValue);
     }
@@ -323,6 +348,12 @@ uint32_t BuitDevicesManager::getSelectedSequenceColor(){
 
 bool BuitDevicesManager::isSelectedSequenceRecording(){
     return _sequencer.isRecording();
+}
+
+bool BuitDevicesManager::acceptsInputFrom(uint8_t srcPort, uint8_t srcDevice){
+    RTPEventNoteSequence* seq = _concreteSequencer.getActiveSequence();
+    if (!seq) return true;
+    return seq->acceptsInput(srcPort, srcDevice);
 }
 
 void BuitDevicesManager::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType){

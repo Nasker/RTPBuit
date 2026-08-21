@@ -84,6 +84,7 @@ public:
     uint8_t getSelectedSequenceType();
     uint32_t getSelectedSequenceColor();
     bool isSelectedSequenceRecording();
+    bool acceptsInputFrom(uint8_t srcPort, uint8_t srcDevice);
     void playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType);
     void playLiveNoteOff(uint8_t rootNote, uint8_t chordType);
     void handleLiveThreeAxis(ControlCommand command);

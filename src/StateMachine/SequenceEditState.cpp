@@ -59,6 +59,8 @@ void SequenceEditState::sequencerCallback(ControlCommand command) {
 }
 
 void SequenceEditState::midiNote(ControlCommand command) {
+  // Filter by input port setting
+  if (!_devices.acceptsInputFrom(command.sourcePort, command.sourceDevice)) return;
   // Always play the note via MIDI router
   int midiChannel = _devices.getSelectedSequenceMidichannel();
   if (_router) {
@@ -77,6 +79,7 @@ void SequenceEditState::midiNote(ControlCommand command) {
 }
 
 void SequenceEditState::midiNoteOff(ControlCommand command) {
+  if (!_devices.acceptsInputFrom(command.sourcePort, command.sourceDevice)) return;
   // Send MIDI note-off via router
   int midiChannel = _devices.getSelectedSequenceMidichannel();
   if (_router) {
@@ -94,5 +97,6 @@ void SequenceEditState::midiNoteOff(ControlCommand command) {
 }
 
 void SequenceEditState::midiCC(ControlCommand command) {
+  if (!_devices.acceptsInputFrom(command.sourcePort, command.sourceDevice)) return;
   _devices.editCurrentNote(command);
 } 

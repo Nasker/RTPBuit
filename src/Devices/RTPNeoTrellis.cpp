@@ -128,6 +128,24 @@ void RTPNeoTrellis::writeSequenceSettingsPage(SequenceSettings sequenceSettings)
     myTrellis.pixels.setPixelColor(convertMatrix[4], pCol);
   }
 
+  // Pad 5 — Input: same scheme but 0=Any (cyan)
+  {
+    const uint32_t inputColors[] = {
+      0x00FFFF,  // 0: Any (cyan)
+      0x0000FF,  // 1: USB Device (blue)
+      0x00FF00,  // 2: USB Host ALL (green)
+      0xFFFF00,  // 3: DIN (yellow)
+      0xFFFFFF,  // 4: ALL (white)
+      0x00FF40,  // 5: USB Host 1
+      0x00CC00,  // 6: USB Host 2
+      0x008800,  // 7: USB Host 3
+      0x004400   // 8: USB Host 4
+    };
+    uint8_t inp = sequenceSettings.input;
+    uint32_t iCol = (inp <= 8) ? inputColors[inp] : 0x000000;
+    myTrellis.pixels.setPixelColor(convertMatrix[5], iCol);
+  }
+
   myTrellis.pixels.show();
 }
 

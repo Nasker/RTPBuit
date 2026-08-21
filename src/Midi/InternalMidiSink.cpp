@@ -1,15 +1,15 @@
 #include "Midi/InternalMidiSink.hpp"
 
 void InternalMidiSink::sendNoteOn(uint8_t note, uint8_t velocity, uint8_t channel) {
-    if (_onNoteOn) _onNoteOn(channel, note, velocity);
+    if (_onNoteOn) _onNoteOn(channel, note, velocity, _srcPort, _srcDevice);
 }
 
 void InternalMidiSink::sendNoteOff(uint8_t note, uint8_t velocity, uint8_t channel) {
-    if (_onNoteOff) _onNoteOff(channel, note, velocity);
+    if (_onNoteOff) _onNoteOff(channel, note, velocity, _srcPort, _srcDevice);
 }
 
 void InternalMidiSink::sendControlChange(uint8_t controller, uint8_t value, uint8_t channel) {
-    if (_onCC) _onCC(channel, controller, value);
+    if (_onCC) _onCC(channel, controller, value, _srcPort, _srcDevice);
 }
 
 void InternalMidiSink::sendProgramChange(uint8_t program, uint8_t channel) {

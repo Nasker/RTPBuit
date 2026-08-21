@@ -224,6 +224,11 @@ void RTPSequencer::dumpSequencesToJson() {
     Serial.println("Saved sequences using BuitPersistenceManager");
 }
 
+RTPEventNoteSequence* RTPSequencer::getActiveSequence() {
+    uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
+    return Sequencer[_selectedScene]->getSequence(idx);
+}
+
 void RTPSequencer::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType) {
     uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
     RTPEventNoteSequence* seq = Sequencer[_selectedScene]->getSequence(idx);

@@ -20,11 +20,13 @@ RTPEventNoteSequence::RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents
   RTPParameter parameterColor = RTPParameter(0, N_COLORS-1, 0, "Color");
   RTPParameter parameterLenght = RTPParameter(1, N_PAGES, 0, "Lenght");
   RTPParameter parameterPort = RTPParameter(0, 8, 0, "Port");
+  RTPParameter parameterInput = RTPParameter(0, 8, 0, "Input");
   sequenceParameters.push_back(parameterType);
   sequenceParameters.push_back(parameterMidiChannel);
   sequenceParameters.push_back(parameterColor);
   sequenceParameters.push_back(parameterLenght);
   sequenceParameters.push_back(parameterPort);
+  sequenceParameters.push_back(parameterInput);
   _baseNote = baseNote;
   _currentPosition = 0;
   _isRecording = false;
@@ -177,6 +179,36 @@ uint8_t RTPEventNoteSequence::getUsbHostDeviceIndex(){
   uint8_t port = sequenceParameters[PORT].getValue();
   if (port >= 5 && port <= 8) return port - 5;  // 0-3
   return 0xFF;  // broadcast
+}
+
+uint8_t RTPEventNoteSequence::getInput(){
+  return sequenceParameters[INPUT_PORT].getValue();
+}
+
+uint8_t RTPEventNoteSequence::getInput() const {
+  return sequenceParameters[INPUT_PORT].getValue();
+}
+
+void RTPEventNoteSequence::setInput(uint8_t input){
+  sequenceParameters[INPUT_PORT].setValue(input);
+}
+
+bool RTPEventNoteSequence::acceptsInput(uint8_t srcPort, uint8_t srcDevice){
+  uint8_t inp = sequenceParameters[INPUT_PORT].getValue();
+  if (inp == 0) return true;  // Any — accept everything
+  // Map input parameter to expected source port
+  // 1=USB_DEVICE(0x01), 2=USB_HOST(0x02), 3=DIN(0x04), 4=ALL(accept any)
+  // 5-8=USB Host device 1-4
+  switch (inp) {
+    case 1: return srcPort == static_cast<uint8_t>(MidiPort::USB_DEVICE);
+    case 2: return srcPort == static_cast<uint8_t>(MidiPort::USB_HOST);
+    case 3: return srcPort == static_cast<uint8_t>(MidiPort::DIN);
+    case 4: return true;  // ALL — accept any source
+    case 5: case 6: case 7: case 8:
+      return srcPort == static_cast<uint8_t>(MidiPort::USB_HOST)
+             && srcDevice == (inp - 5);
+    default: return true;
+  }
 }
 
 size_t RTPEventNoteSequence::getSequenceSize(){

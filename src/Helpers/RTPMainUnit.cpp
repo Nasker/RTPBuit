@@ -92,19 +92,21 @@ void RTPMainUnit::linkToSequencerManager(uint8_t realtimebyte){
   }
 }
 
-void RTPMainUnit::routeControlChange(uint8_t channel, uint8_t control, uint8_t value) {
+void RTPMainUnit::routeControlChange(uint8_t channel, uint8_t control, uint8_t value,
+                                     uint8_t srcPort, uint8_t srcDevice) {
   musicManager.setCurrentHarmony(channel, control, value);
-  ControlCommand command = ControlCommand{MIDI_CC, control, value};
+  ControlCommand command = ControlCommand{MIDI_CC, control, value, srcPort, srcDevice};
   stateMachineManager.handleActions(command);
 }
 
-void RTPMainUnit::routeNoteOnOff(uint8_t channel, uint8_t note, uint8_t velocity){
+void RTPMainUnit::routeNoteOnOff(uint8_t channel, uint8_t note, uint8_t velocity,
+                                 uint8_t srcPort, uint8_t srcDevice){
   // Create a control command with different control types for note-on and note-off
   // For note-on: controlType = MIDI_NOTE (7)
   // For note-off: controlType = MIDI_NOTE + 100 (107)
   int controlType = (velocity > 0) ? MIDI_NOTE : MIDI_NOTE + 100;
   
-  ControlCommand command = ControlCommand{controlType, note, velocity};
+  ControlCommand command = ControlCommand{controlType, note, velocity, srcPort, srcDevice};
   stateMachineManager.handleActions(command, channel);
 }
 
@@ -116,14 +118,17 @@ void RTPMainUnit::initMidiRouter() {
   midiRouter.setOutput(MidiPort::USB_HOST, &usbHostOutput);
   
   // Wire InternalMidiSink callbacks to existing handlers
-  internalSink.setNoteOnCallback([this](uint8_t ch, uint8_t note, uint8_t vel) {
-    routeNoteOnOff(ch, note, vel);
+  internalSink.setNoteOnCallback([this](uint8_t ch, uint8_t note, uint8_t vel,
+                                         uint8_t sp, uint8_t sd) {
+    routeNoteOnOff(ch, note, vel, sp, sd);
   });
-  internalSink.setNoteOffCallback([this](uint8_t ch, uint8_t note, uint8_t vel) {
-    routeNoteOnOff(ch, note, 0);
+  internalSink.setNoteOffCallback([this](uint8_t ch, uint8_t note, uint8_t vel,
+                                          uint8_t sp, uint8_t sd) {
+    routeNoteOnOff(ch, note, 0, sp, sd);
   });
-  internalSink.setCCCallback([this](uint8_t ch, uint8_t ctrl, uint8_t val) {
-    routeControlChange(ch, ctrl, val);
+  internalSink.setCCCallback([this](uint8_t ch, uint8_t ctrl, uint8_t val,
+                                     uint8_t sp, uint8_t sd) {
+    routeControlChange(ch, ctrl, val, sp, sd);
   });
   internalSink.setRealTimeCallback([this](uint8_t rt) {
     linkToSequencerManager(rt);
