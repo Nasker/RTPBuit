@@ -58,8 +58,8 @@ namespace MusicConfig {
     // Sequence Configuration
     namespace Sequences {
         constexpr uint8_t N_SCENES = 3;
-        constexpr uint8_t N_PAGES = 4;
-        constexpr uint8_t N_TYPES = 4;
+        constexpr uint8_t N_PAGES = 16;
+        constexpr uint8_t N_TYPES = 6;
         constexpr uint8_t N_COLORS = 32;
         constexpr uint16_t SEQ_BLOCK_SIZE = 16;
         constexpr uint16_t SCENE_BLOCK_SIZE = 16;

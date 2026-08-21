@@ -103,11 +103,11 @@ void RTPNeoTrellis::writeSequenceSettingsPage(SequenceSettings sequenceSettings)
   // Pad 2 — Color: show the chosen colour from the wheel
   myTrellis.pixels.setPixelColor(convertMatrix[2], colorMapper(sequenceSettings.color));
 
-  // Pad 3 — Length: white scaled by number of pages (1-4 -> dim to bright)
+  // Pad 3 — Length: white scaled by number of pages (1-16 -> dim to bright)
   uint8_t pages = sequenceSettings.lenght;
   if (pages < 1) pages = 1;
-  if (pages > 4) pages = 4;
-  uint8_t brightness = (uint8_t)(pages * 63);  // 63, 126, 189, 252
+  if (pages > 16) pages = 16;
+  uint8_t brightness = (uint8_t)(pages * 15 + 15);  // 30..255
   myTrellis.pixels.setPixelColor(convertMatrix[3], myTrellis.pixels.Color(brightness, brightness, brightness));
 
   // Pad 4 — Input: distinct color per input source

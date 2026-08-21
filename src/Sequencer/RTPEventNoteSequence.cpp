@@ -18,7 +18,7 @@ RTPEventNoteSequence::RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents
   RTPParameter parameterType = RTPParameter(0, N_TYPES-1, type, "Type");
   RTPParameter parameterMidiChannel = RTPParameter(1, N_MIDI_CHANNELS, midiChannel, "Midi CH");
   RTPParameter parameterColor = RTPParameter(0, N_COLORS-1, 0, "Color");
-  RTPParameter parameterLenght = RTPParameter(1, N_PAGES, 0, "Lenght");
+  RTPParameter parameterLenght = RTPParameter(1, N_PAGES, 1, "Lenght");
   RTPParameter parameterInput = RTPParameter(0, 8, 0, "Input");
   RTPParameter parameterPort = RTPParameter(0, 8, 0, "Output");
   sequenceParameters.push_back(parameterType);
@@ -100,7 +100,8 @@ void RTPEventNoteSequence::decreaseParameterValue(){
 }
 
 void RTPEventNoteSequence::increasePage(){
-  if(_selectedPage < _pages - 1)
+  uint8_t maxPages = sequenceParameters[LENGTH].getValue();
+  if(_selectedPage < maxPages - 1)
     _selectedPage++;
 }
 
@@ -212,7 +213,7 @@ bool RTPEventNoteSequence::acceptsInput(uint8_t srcPort, uint8_t srcDevice){
 }
 
 size_t RTPEventNoteSequence::getSequenceSize(){
-  return EventNoteSequence.size();
+  return sequenceParameters[LENGTH].getValue() * SEQ_BLOCK_SIZE;
 }
 
 void RTPEventNoteSequence::editNoteInSequence(size_t position, bool eventState){

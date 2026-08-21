@@ -3,8 +3,8 @@
 #include <Arduino.h>
 
 #define N_SCENES 3
-#define N_PAGES 4
-#define N_TYPES 4
+#define N_PAGES 16
+#define N_TYPES 6
 #define N_COLORS 32
 #define N_MIDI_CHANNELS 16
 
