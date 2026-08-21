@@ -1,42 +1,53 @@
 #pragma once
 
-#include "RTPOled.hpp"
-#include "RTPNeoTrellis.hpp"
+#include "Interfaces/IDisplay.hpp"
+#include "Interfaces/IInputDevice.hpp"
 #include "RTPSequencer.h"
 #include "RTPSequencerManager.hpp"
+#include "Interfaces/ISequencer.hpp"
+#include "Interfaces/IClockGenerator.hpp"
 #include "MatrixBuitControlChanger.hpp"
 #include "Structs.h"
 #include "RTPTypeColors.h"
 #include "RTPSDManager.hpp"
 #include "BuitPersistenceManager.hpp"
-#include "Helpers/NotesRecorder.hpp"
-#include "Helpers/RTPClockGenerator.hpp"
-#include "BuitFunctions/ChordionKeys.hpp"
+#include "Managers/RecordingManager.hpp"
+#include "Managers/LivePlayManager.hpp"
 
-
+/**
+ * @brief Device facade for the state machine - interface-based
+ * 
+ * Hardware access goes through interfaces, injected via constructor:
+ * - Display → `IDisplay` (production: RTPOledAdapter, shared with DisplayManager)
+ * - Button matrix → `IButtonMatrix` (production: RTPNeoTrellisAdapter, shared with InputManager)
+ * - Sequencer → `ISequencer` / `RTPSequencer`
+ * - Clock → `IClockGenerator`
+ * - Recording → `RecordingManager` (composition)
+ * - Live-play → `LivePlayManager` (composition)
+ * - Persistence → `BuitPersistenceManager`
+ * 
+ * @see /include/Managers/RecordingManager.hpp
+ * @see /include/Managers/LivePlayManager.hpp
+ * @see /include/Hardware/Adapters/ for adapter pattern bridging legacy hardware
+ */
 class BuitDevicesManager {
-    RTPOled _oled;
-    RTPNeoTrellis& _neoTrellis;
-    RTPSequencer& _sequencer;
+    IDisplay& _display;
+    IButtonMatrix& _trellis;
+    ISequencer& _sequencer;
+    RTPSequencer& _concreteSequencer;
     BuitPersistenceManager _persistenceManager;
     MatrixBuitControlChanger _matrixBuitCC;
-    NotesRecorder _notesRecorder;
-    RTPClockGenerator* _clockGenerator = nullptr;
-    ChordionKeys _chordionKeys;
+    IClockGenerator* _clockGenerator = nullptr;
 
-    // Live-play state (moved from SequencePianoRollState)
-    bool     _drumRollActive = false;
-    uint8_t  _drumRollNote   = 36;
-    uint8_t  _rollDivision   = 1;
-    uint32_t _tickCount      = 0;
-    uint32_t _fineTickCount  = 0;
+    // Decomposed managers (composition pattern)
+    RecordingManager _recordingManager;
+    LivePlayManager _livePlayManager;
 
 public:
-    BuitDevicesManager(RTPNeoTrellis& neoTrellis, RTPSequencer& sequencer);
+    BuitDevicesManager(IDisplay& display, IButtonMatrix& trellis, RTPSequencer& sequencer);
     void initSetup();
     void introAnimations();
     void printToScreen(String firstLine, String secondLine, String thirdLine);
-    void printToScreen(ControlCommand command);
 
     void selectScene(ControlCommand command);
     void selectSequence(ControlCommand command);
@@ -106,13 +117,16 @@ public:
     void clearTrellis();
     void setTrellisButtonColor(uint8_t index, uint32_t color);
     void showTrellis();
+    uint32_t colorForPage(uint8_t page);
+    uint32_t colorForSlot(uint8_t page, bool exists);
 
     // Sequencer and music manager access
-    RTPSequencer& getSequencer() { return _sequencer; }
-    MusicManager& getMusicManager() { return _sequencer.getMusicManager(); }
+    ISequencer& getSequencer() { return _sequencer; }
+    RTPSequencer& getConcreteSequencer() { return _concreteSequencer; }
+    MusicManager& getMusicManager() { return _concreteSequencer.getMusicManager(); }
 
     // Clock generator access (set by RTPMainUnit)
-    void setClockGenerator(RTPClockGenerator& clockGenerator) { _clockGenerator = &clockGenerator; }
+    void setClockGenerator(IClockGenerator& clockGenerator) { _clockGenerator = &clockGenerator; }
     
     // Transport control (delegate to clock generator if available)
     bool isInternalClock() const;

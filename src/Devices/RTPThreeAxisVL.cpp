@@ -3,8 +3,8 @@
 #include "ReMap.hpp"
 
 RTPThreeAxisVL::RTPThreeAxisVL(){
-    _maxLimitReading = DEFAULT_MAX_READING;
-    _minLimitReading = DEFAULT_MIN_READING;
+    _maxLimitReading = HardwareConfig::Sensors::DEFAULT_MAX_READING;
+    _minLimitReading = HardwareConfig::Sensors::DEFAULT_MIN_READING;
 }
 
 void RTPThreeAxisVL::initSetup(){

@@ -222,7 +222,7 @@ bool NotesRecorder::isEndOfSequence() const {
     if (_sequenceLength == 0) return false;
     // Trigger at the LAST tick of the sequence (position sequenceLength-1)
     // This ensures dump happens at the END of the loop, not at start of next loop
-    return (_tickCounter % _sequenceLength) == (_sequenceLength - 1);
+    return (_tickCounter % _sequenceLength) == static_cast<uint32_t>(_sequenceLength - 1);
 }
 
 vector<RTPEventNotePlus> NotesRecorder::dumpRecordedSequence() {

@@ -5,9 +5,8 @@
 #include "ControlCommand.h"
 #include "constants.h"
 #include "Structs.h"
-
-#define DEFAULT_MAX_READING 306
-#define DEFAULT_MIN_READING 50
+#include "Interfaces/IInputDevice.hpp"
+#include "Config/HardwareConfig.hpp"
 
 class RTPMainUnit;
 

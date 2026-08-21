@@ -9,11 +9,10 @@ int colorScaler(int color, int scalar, int max){
 }
 
 int colorMapper(int colorIndex){
-  int r, g, b;
+  int r = 0, g = 0, b = 0;
   float hue = (float(colorIndex) / N_COLORS)  * 360.0;
   float c = 255.0;
   float x = c * (1 - abs(fmod(hue / 60.0, 2) - 1));
-  float m = 0;
   if(hue >= 0 && hue < 60){
     r = c;
     g = x;

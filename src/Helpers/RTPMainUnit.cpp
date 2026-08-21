@@ -2,15 +2,51 @@
 #include "ControlCommand.h"
 
 RTPMainUnit::RTPMainUnit(){
+  // Create shared pointers to adapters for DeviceManager
+  // Using shared_ptr with custom no-op deleter since adapters are stack objects
+  displayPtr = std::shared_ptr<IDisplay>(&oledAdapter, [](IDisplay*){});
+  buttonMatrixPtr = std::shared_ptr<IButtonMatrix>(&trellisAdapter, [](IButtonMatrix*){});
+  rotaryPtr = std::shared_ptr<IRotaryEncoder>(&rotaryAdapter, [](IRotaryEncoder*){});
+  sensorPtr = std::shared_ptr<IThreeAxisSensor>(&sensorAdapter, [](IThreeAxisSensor*){});
+  midiOutputPtr = std::shared_ptr<IMidiOutput>(&midiOutput, [](IMidiOutput*){});
+  clockGenPtr = std::shared_ptr<IClockGenerator>(&clockGenerator, [](IClockGenerator*){});
+  sequencerPtr = std::shared_ptr<ISequencer>(&Sequencer, [](ISequencer*){});
+  
+  // Create DeviceManager with all adapters
+  deviceManager = std::make_unique<DeviceManager>(
+    displayPtr,
+    buttonMatrixPtr,
+    rotaryPtr,
+    sensorPtr,
+    clockGenPtr,
+    sequencerPtr,
+    midiOutputPtr
+  );
 }
 
 void RTPMainUnit::begin(){  
   Serial.begin(9600);
   Wire.begin();
   Wire1.begin();
+  
+  // Initialize hardware
+  // Note: rtpOled is initialized via deviceManager->initialize() (DisplayManager -> adapter)
+  Sequencer.setMidiOutput(&midiOutput);
   vlSensor.initSetup();
   vlSensor.startContinuous();
   rtpTrellis.begin(this);
+  
+  // Initialize modern DeviceManager
+  if (deviceManager) {
+    auto result = deviceManager->initialize();
+    if (result.isError()) {
+      Serial.println("ERROR: DeviceManager initialization failed");
+    } else {
+      Serial.println("DeviceManager initialized successfully");
+    }
+  }
+  
+  // Initialize legacy managers
   SequencerManager.begin(this);
   SequencerManager.setClockGenerator(clockGenerator);
   devicesManager.initSetup();
@@ -41,7 +77,7 @@ void RTPMainUnit::actOnSequencerCallback(ControlCommand callbackCommand){
 
 void RTPMainUnit::linkToSequencerManager(uint8_t realtimebyte){
   // Only process external MIDI when in External mode
-  if (clockGenerator.getMode() == rtp::SyncMode::External) {
+  if (clockGenerator.getMode() == SyncMode::External) {
     SequencerManager.handleRealTimeSystem(realtimebyte);
   }
 }

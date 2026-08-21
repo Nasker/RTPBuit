@@ -4,7 +4,6 @@
 
 SequencePianoRollState::SequencePianoRollState(BuitStateMachine& buitMachine, BuitDevicesManager& devices) : BuitState(devices), _buitMachine(buitMachine) {
   Serial.println("SequencePianoRollState");
-  _buitMachine = buitMachine;
 }
 
 void SequencePianoRollState::onEnter() {

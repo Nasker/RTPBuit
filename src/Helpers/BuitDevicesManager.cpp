@@ -1,85 +1,86 @@
 #include "BuitDevicesManager.hpp"
 #include "Sequencer/RTPEventNoteSequence.h"
 
-BuitDevicesManager::BuitDevicesManager(RTPNeoTrellis& nT, RTPSequencer& seq):
-_neoTrellis(nT),
-_sequencer(seq){}
+BuitDevicesManager::BuitDevicesManager(IDisplay& display, IButtonMatrix& trellis, RTPSequencer& seq):
+_display(display),
+_trellis(trellis),
+_sequencer(seq),
+_concreteSequencer(seq){}
 
 void BuitDevicesManager::initSetup(){
-    _oled.init();
+    // Display is initialized via DeviceManager -> DisplayManager -> IDisplay::initialize()
     initBuitSD();
     introAnimations();
-    _chordionKeys.initSetup();
+    
+    // Initialize composed managers
+    _recordingManager.initialize();
+    _livePlayManager.initialize();
 }
 
 void BuitDevicesManager::introAnimations(){
     int x = 128;
     String text = "I'm RTP's BUIT!!";
     for (int i = 0; i < 55; i++) {
-        _oled.introAnimation(x, text);
-        _neoTrellis.introAnimation();
+        _display.showIntroFrame(x, text);
+        _trellis.introAnimation();
     }
-    _oled.setAfterIntro();
+    _display.setAfterIntro();
 }
 
 void BuitDevicesManager::printToScreen(String firstLine, String secondLine, String thirdLine){
-    _oled.printToScreen(firstLine, secondLine, thirdLine);
-}
-
-void BuitDevicesManager::printToScreen(ControlCommand command){
-    _oled.printToScreen(command);
+    _display.printThreeLines(firstLine, secondLine, thirdLine);
 }
 
 void BuitDevicesManager::writeSequenceToNeoTrellis(RTPSequenceNoteStates sequenceStates, int color){
-    _neoTrellis.writeSequenceStates(sequenceStates, color);
+    _trellis.writeSequenceStates(sequenceStates, color);
 }
 
 void BuitDevicesManager::writeSceneToNeoTrellis(RTPSequencesState sequencesState){
-    _neoTrellis.writeSceneStates(sequencesState);
+    _trellis.writeSceneStates(sequencesState);
 }
 
 void BuitDevicesManager::writeTransportPage(){
     // Light up transport control buttons on trellis
     // Layout: [Play][Stop][Rec][Tap][Mode] on first row
     // Colors: Play=Green, Stop=Blue, Rec=Red, Tap=Yellow, Mode=White
-    _neoTrellis.clearAllButtons();
+    _trellis.clearAllButtons();
     
     // Play button (0) - Green if playing, dim green if stopped
     if (_sequencer.isPlaying()) {
-        _neoTrellis.setButtonColor(0, _neoTrellis.colorGreen());
+        _trellis.setButtonColor(0, _trellis.getColorGreen());
     } else {
-        _neoTrellis.setButtonColor(0, _neoTrellis.colorDim(_neoTrellis.colorGreen(), 128));
+        _trellis.setButtonColor(0, _trellis.getColorDim(_trellis.getColorGreen(), 128));
     }
     
     // Stop button (1) - Blue when stopped, dim when playing
     if (!_sequencer.isPlaying()) {
-        _neoTrellis.setButtonColor(1, _neoTrellis.colorBlue());
+        _trellis.setButtonColor(1, _trellis.getColorBlue());
     } else {
-        _neoTrellis.setButtonColor(1, _neoTrellis.colorDim(_neoTrellis.colorBlue(), 128));
+        _trellis.setButtonColor(1, _trellis.getColorDim(_trellis.getColorBlue(), 128));
     }
     
     // Rec button (2) - Red when recording, yellow when waiting
     if (isSelectedSequenceRecording()) {
         if (isSelectedSequenceWaiting()) {
-            _neoTrellis.setButtonColor(2, _neoTrellis.colorYellow()); // Waiting
+            _trellis.setButtonColor(2, _trellis.getColorYellow()); // Waiting
         } else {
-            _neoTrellis.setButtonColor(2, _neoTrellis.colorRed()); // Recording
+            _trellis.setButtonColor(2, _trellis.getColorRed()); // Recording
         }
     } else {
-        _neoTrellis.setButtonColor(2, _neoTrellis.colorDim(_neoTrellis.colorRed(), 64));
+        _trellis.setButtonColor(2, _trellis.getColorDim(_trellis.getColorRed(), 64));
     }
     
     // Tap button (3) - Yellow
-    _neoTrellis.setButtonColor(3, _neoTrellis.colorYellow());
+    _trellis.setButtonColor(3, _trellis.getColorYellow());
     
     // Mode button (4) - White for internal, dim white for external
-    if (getSyncMode() == rtp::SyncMode::Internal) {
-        _neoTrellis.setButtonColor(4, _neoTrellis.colorWhite());
+    if (getSyncMode() == SyncMode::Internal) {
+        _trellis.setButtonColor(4, _trellis.getColorWhite());
     } else {
-        _neoTrellis.setButtonColor(4, _neoTrellis.colorDim(_neoTrellis.colorWhite(), 128));
+        _trellis.setButtonColor(4, _trellis.getColorDim(_trellis.getColorWhite(), 128));
     }
     
-    _neoTrellis.show();
+    _trellis.show();
 }
 
 void BuitDevicesManager::editScene(ControlCommand command){
@@ -88,55 +89,54 @@ void BuitDevicesManager::editScene(ControlCommand command){
 }
 
 void BuitDevicesManager::editSequence(ControlCommand command){
-    _sequencer.toggleNoteInSceneInSelectedSequence(command.value);
+    _sequencer.toggleNote(command.value);
 }
 
 void BuitDevicesManager::editCurrentNote(ControlCommand command){
-    _sequencer.editNoteInCurrentPosition(command);
+    _concreteSequencer.editNoteInCurrentPosition(command);
 }
 
 
 
 void BuitDevicesManager::displayCursorInSequence(ControlCommand command){
-    int cursorPos = _sequencer.getSelectedSequencePosition() - _sequencer.getSelectedSequencePageOffset();
+    int cursorPos = _sequencer.getCurrentPosition() - _sequencer.getPageOffset();
     if (cursorPos >= 0 && cursorPos < SEQ_BLOCK_SIZE){
-        _neoTrellis.writeSequenceStates(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor(), false);
-        _neoTrellis.moveCursor(cursorPos);
+        _trellis.writeSequenceStates(_sequencer.getNoteStates(), _sequencer.getSequenceColor(), false);
+        _trellis.moveCursor(cursorPos);
     }
     else {
-        _neoTrellis.writeSequenceStates(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor());
+        _trellis.writeSequenceStates(_sequencer.getNoteStates(), _sequencer.getSequenceColor());
     }
 }   
 
 void BuitDevicesManager::changeScene(ControlCommand command){
     switch(command.commandType){
         case ROTATING_RIGHT:
-            _sequencer.increaseSelectedScene();
+            _sequencer.nextScene();
             break;
         case ROTATING_LEFT:
-            _sequencer.decreaseSelectedScene();
+            _sequencer.previousScene();
             break;
     }
     presentScene();
 }
 
 void  BuitDevicesManager::nudgePage(ControlCommand command){
-    _sequencer.nudgePageInSelectedSequence(command);
-    // Call showSequence to ensure consistent display with recording status
+    _concreteSequencer.nudgePageInSelectedSequence(command);
     showSequence();
 }
 
 void BuitDevicesManager::selectParameter(ControlCommand command){
-    _sequencer.selectParameterInSequence(command.value);
+    _sequencer.selectParameter(command.value);
 }
 
 void BuitDevicesManager::rotateParameter(ControlCommand command){
     switch(command.commandType){
         case ROTATING_RIGHT:
-            _sequencer.incSelectParameterInSequence();
+            _sequencer.increaseParameter();
             break;
         case ROTATING_LEFT:
-            _sequencer.decSelectParameterInSequence();
+            _sequencer.decreaseParameter();
             break;
     }
 }
@@ -145,14 +145,13 @@ void BuitDevicesManager::presentSequenceSelect(){
     writeSceneToNeoTrellis(_sequencer.getSequencesState());
 }
 
-
 void BuitDevicesManager::presentScene(){
     // Determine scene display state based on sequencer playing status
     SequenceDisplayState state = _sequencer.isPlaying() ? SequenceDisplayState::Playing : SequenceDisplayState::Stopped;
     
-    _oled.printToScreen(
+    _display.printFourLinesWithState(
         "Scene",
-        "Scene " + String(_sequencer.getSelectScene() + 1),
+        "Scene " + String(_sequencer.getCurrentScene() + 1),
         "",
         "",
         state,
@@ -167,7 +166,7 @@ void BuitDevicesManager::presentSequence(){
 }
 
 void BuitDevicesManager::paintLiveTrellis() {
-    _chordionKeys.releaseAllChords();
+    _livePlayManager.releaseAllChords();
     uint8_t seqType = getSelectedSequenceType();
     uint32_t seqColor = getSelectedSequenceColor();
     clearTrellis();
@@ -192,13 +191,11 @@ void BuitDevicesManager::paintLiveTrellis() {
 
 void BuitDevicesManager::showSequence(){
     // Get the sequence type name
-    String sequenceType = _sequencer.getSelectedSequenceTypeName();
+    String sequenceType = _sequencer.getSequenceTypeName();
     
-    // Get the sequence MIDI channel
-    int midiChannel = _sequencer.getSelectedSequenceMidiChannel();
+    int midiChannel = _sequencer.getMidiChannel();
     
-    // Get the current page and total pages (assuming 4 pages total)
-    int currentPage = _sequencer.getSelectedSequencePage() + 1; // +1 for 1-based display
+    int currentPage = _sequencer.getCurrentPage() + 1;
     int totalPages = 4; // Assuming 4 pages total
     
     // Determine display state
@@ -209,30 +206,30 @@ void BuitDevicesManager::showSequence(){
     bool blinkState = (_displayBlinkCounter / 8) % 2 == 0;
     
     // Use the state-based display method
-    _oled.printToScreen(
+    _display.printFourLinesWithState(
         sequenceType,
-        "Sequence "+ String(_sequencer.getSelectedSequence()+1),
+        "Sequence "+ String(_sequencer.getCurrentSequence()+1),
         "Page "+ String(currentPage) + " of " + String(totalPages),
         "Ch " + String(midiChannel),
         state,
         blinkState
     );
     
-    writeSequenceToNeoTrellis(_sequencer.getSelectedSequenceNoteStates(), _sequencer.getSelectedSequenceColor()); 
+    writeSequenceToNeoTrellis(_sequencer.getNoteStates(), _sequencer.getSequenceColor()); 
 }
 
 void BuitDevicesManager::presentTransport(){
-    String modeStr = (getSyncMode() == rtp::SyncMode::Internal) ? "INT" : "EXT";
+    String modeStr = (getSyncMode() == SyncMode::Internal) ? "INT" : "EXT";
     String playState = _sequencer.isPlaying() ? "Playing" : "Stopped";
-    String bpmStr = (getSyncMode() == rtp::SyncMode::Internal) ? String(getCurrentBPM(), 0) + " BPM" : "";
+    String bpmStr = (getSyncMode() == SyncMode::Internal) ? String(getCurrentBPM(), 0) + " BPM" : "";
     
     SequenceDisplayState state = _sequencer.isPlaying() ? SequenceDisplayState::Playing : SequenceDisplayState::Stopped;
     
-    _oled.printToScreen(
+    _display.printFourLinesWithState(
         "Transport",
         playState + "  " + modeStr,
         bpmStr,
-        "Scene " + String(_sequencer.getSelectScene() + 1),
+        "Scene " + String(_sequencer.getCurrentScene() + 1),
         state,
         false
     );
@@ -241,13 +238,13 @@ void BuitDevicesManager::presentTransport(){
 }
 
 void BuitDevicesManager::presentSequenceSettings(){
-    SequenceSettings s = _sequencer.getSelectedSequenceSettings();
-    String paramName  = _sequencer.getSelectedParameterInSequenceName();
-    int    paramValue = _sequencer.getSelectedParameterInSequenceValue();
+    SequenceSettings s = _concreteSequencer.getSelectedSequenceSettings();
+    String paramName  = _sequencer.getParameterName();
+    int    paramValue = _sequencer.getParameterValue();
 
     String valueStr;
     if (paramName == "Type") {
-        valueStr = _sequencer.getSelectedSequenceTypeName();
+        valueStr = _sequencer.getSequenceTypeName();
     } else if (paramName == "Midi CH") {
         valueStr = "CH " + String(paramValue);
     } else if (paramName == "Color") {
@@ -259,12 +256,12 @@ void BuitDevicesManager::presentSequenceSettings(){
     }
 
     printToScreen("Seq Settings", paramName, valueStr);
-    _neoTrellis.writeSequenceSettingsPage(s);
+    _trellis.writeSequenceSettingsPage(s);
 }
 
 void BuitDevicesManager::presentBuitCC(){
     printToScreen("CCs Matrix", "", "");
-    _neoTrellis.writeBuitCCStates(_matrixBuitCC.getBuitCCStates(), TRANSPORT_COLOR);
+    _trellis.writeBuitCCStates(_matrixBuitCC.getBuitCCStates(), TRANSPORT_COLOR);
 }
 
 void BuitDevicesManager::selectScene(ControlCommand command){
@@ -277,7 +274,7 @@ void BuitDevicesManager::selectSequence(ControlCommand command){
 
 void BuitDevicesManager::editBuitCC(ControlCommand command){
     _matrixBuitCC.toggleBuitCC(command.value);
-    _neoTrellis.writeBuitCCStates(_matrixBuitCC.getBuitCCStates(), TRANSPORT_COLOR);
+    _trellis.writeBuitCCStates(_matrixBuitCC.getBuitCCStates(), TRANSPORT_COLOR);
 }
 
 void BuitDevicesManager::sendBuitCC(ControlCommand command){
@@ -285,19 +282,19 @@ void BuitDevicesManager::sendBuitCC(ControlCommand command){
 }
 
 int BuitDevicesManager::getSelectedSequenceMidichannel(){
-    return _sequencer.getSelectedSequenceMidiChannel();
+    return _sequencer.getMidiChannel();
 }
 
 uint8_t BuitDevicesManager::getSelectedSequenceType(){
-    return (uint8_t)_sequencer.getSelectedSequenceSettings().type;
+    return _sequencer.getSequenceType();
 }
 
 uint32_t BuitDevicesManager::getSelectedSequenceColor(){
-    return _sequencer.getSelectedSequenceColor();
+    return _sequencer.getSequenceColor();
 }
 
 bool BuitDevicesManager::isSelectedSequenceRecording(){
-    return _sequencer.isSelectedSequenceRecording();
+    return _sequencer.isRecording();
 }
 
 void BuitDevicesManager::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType){
@@ -309,7 +306,7 @@ void BuitDevicesManager::playLiveNoteOff(uint8_t rootNote, uint8_t chordType){
 }
 
 void BuitDevicesManager::handleLiveThreeAxis(ControlCommand command){
-    _sequencer.handleLiveThreeAxis(command);
+    _concreteSequencer.handleLiveThreeAxis(command);
 }
 
 uint8_t BuitDevicesManager::getLiveVelocity(){
@@ -336,7 +333,7 @@ void BuitDevicesManager::handleLiveTrellisPressed(uint8_t pad) {
 
         if (seqType == POLY_SYNTH) {
             // Poly: polyphonic, full chord, momentary (released on pad release)
-            ChordAction action = _chordionKeys.beginChord(rootNote, pad);
+            ChordAction action = _livePlayManager.beginChord(rootNote, pad);
             for (uint8_t i = 0; i < action.stopCount; i++)
                 playLiveNoteOff(action.notesToStop[i], action.chordType);
             for (uint8_t i = 0; i < action.playCount; i++)
@@ -346,8 +343,8 @@ void BuitDevicesManager::handleLiveTrellisPressed(uint8_t pad) {
             // Bass/Mono: monophonic + LATCHED. The root press snapshots root + the
             // current top-row type and holds it. Keep exactly one active chord so the
             // LED shows the latched root; the sequence glides (legato) to the new note.
-            _chordionKeys.releaseAllChords();
-            ChordAction action = _chordionKeys.beginChord(rootNote, pad);
+            _livePlayManager.releaseAllChords();
+            ChordAction action = _livePlayManager.beginChord(rootNote, pad);
             playLiveNoteOn(rootNote, liveVel, action.chordType);
             chordType = action.chordType;
         }
@@ -359,14 +356,14 @@ void BuitDevicesManager::handleLiveTrellisPressed(uint8_t pad) {
 
         setTrellisButtonColor(pad, 0xFFFFFF);
         String chordStr = String(NOTE_NAMES[pad % 12]) + " " + String(CHORD_TYPE_NAMES[chordType & 0x0F]);
-        printToScreen("Piano Roll", getSequencer().getSelectedSequenceTypeName(), chordStr);
+        printToScreen("Piano Roll", _sequencer.getSequenceTypeName(), chordStr);
     } else {
         // Modifier pads (12-15)
         uint8_t modIdx = pad - 12;
-        _chordionKeys.enableChordionKey(modIdx);
+        _livePlayManager.enableChordionKey(modIdx);
         setTrellisButtonColor(pad, 0xFFFFFF);
-        String preview = String(CHORD_TYPE_NAMES[_chordionKeys.getChordType() & 0x0F]);
-        printToScreen("Piano Roll", getSequencer().getSelectedSequenceTypeName(), "[ " + preview + " ]");
+        String preview = String(CHORD_TYPE_NAMES[_livePlayManager.getChordType() & 0x0F]);
+        printToScreen("Piano Roll", _sequencer.getSequenceTypeName(), "[ " + preview + " ]");
     }
 }
 
@@ -388,7 +385,7 @@ void BuitDevicesManager::handleLiveTrellisReleased(uint8_t pad) {
 
         if (seqType == POLY_SYNTH) {
             // Poly is momentary: releasing the pad stops the chord
-            ChordAction action = _chordionKeys.endChord(rootNote, pad);
+            ChordAction action = _livePlayManager.endChord(rootNote, pad);
             for (uint8_t i = 0; i < action.stopCount; i++)
                 playLiveNoteOff(action.notesToStop[i], action.chordType);
             syncLiveTrellis();
@@ -403,41 +400,40 @@ void BuitDevicesManager::handleLiveTrellisReleased(uint8_t pad) {
 
     // Modifier pad release (12-15): disable key (momentary), restore LED, update OLED preview
     if (pad >= 12 && pad <= 15) {
-        _chordionKeys.disableChordionKey(pad - 12);
+        _livePlayManager.disableChordionKey(pad - 12);
         setTrellisButtonColor(pad, 0x101010);
-        String preview = String(CHORD_TYPE_NAMES[_chordionKeys.getChordType() & 0x0F]);
-        printToScreen("Piano Roll", getSequencer().getSelectedSequenceTypeName(), "[ " + preview + " ]");
+        String preview = String(CHORD_TYPE_NAMES[_livePlayManager.getChordType() & 0x0F]);
+        printToScreen("Piano Roll", _sequencer.getSequenceTypeName(), "[ " + preview + " ]");
     }
 }
 
 void BuitDevicesManager::handleLiveSequencerTick() {
     // 16th-note grid tick: only used for display sync now.
     // All rolls run on the finer 32nd-note tick (handleLiveFineTick).
-    _tickCount++;
-    _sequencer.handleLiveSequencerTick();
-    if ((_tickCount % 4) == 0)
+    _livePlayManager.advanceTick();
+    _sequencer.handleLiveTick();
+    if ((_livePlayManager.getTickCount() % 4) == 0)
         syncLiveTrellis();
 }
 
 void BuitDevicesManager::handleLiveFineTick() {
     // 32nd-note resolution tick: drives all live rolls.
-    _fineTickCount++;
+    _livePlayManager.advanceFineTick();
     uint8_t seqType = getSelectedSequenceType();
 
-    // Drum roll: re-trigger at _rollDivision (1=32nd, 2=16th, 4=8th, ...)
-    if (seqType == DRUM_PART && _drumRollActive && _rollDivision > 0) {
-        if ((_fineTickCount % _rollDivision) == 0)
-            playLiveNoteOn(_drumRollNote, getLiveVelocity(), 0);
+    // Drum roll: re-trigger at division (1=32nd, 2=16th, 4=8th, ...)
+    if (seqType == DRUM_PART && _livePlayManager.shouldTriggerDrumRoll()) {
+        playLiveNoteOn(_livePlayManager.getDrumRollNote(), getLiveVelocity(), 0);
     }
 
     // Melodic rolls (Bass/Mono) handle their own division internally
-    _sequencer.handleLiveHalfTick();
+    _sequencer.handleLiveFineTick();
 }
 
 void BuitDevicesManager::syncLiveTrellis() {
     uint8_t seqType = getSelectedSequenceType();
     uint32_t seqColor = getSelectedSequenceColor();
-    uint16_t heldPads = _chordionKeys.getHeldPadsMask();
+    uint16_t heldPads = _livePlayManager.getHeldPadsMask();
     static const bool isBlackKey[12] = {false,true,false,true,false,false,true,false,true,false,true,false};
     uint32_t dimmed = (((seqColor >> 16 & 0xFF) * 35 / 255) << 16)
                     | (((seqColor >>  8 & 0xFF) * 35 / 255) <<  8)
@@ -462,22 +458,22 @@ void BuitDevicesManager::handleLiveDrumRollThreeAxis(ControlCommand command) {
         case CHANGE_LEFT:
             // Note selection (like Mono/Bass left axis selects note)
             if (val <= 2) {
-                _drumRollActive = false;
+                _livePlayManager.setDrumRollActive(false);
             } else {
-                _drumRollActive = true;
+                _livePlayManager.setDrumRollActive(true);
                 uint8_t zone = (uint8_t)constrain((val * 16) / 127, 0, 15);
-                _drumRollNote = BASE_NOTE + zone;
+                _livePlayManager.setDrumRollNote(BASE_NOTE + zone);
             }
             break;
         case CHANGE_CENTER:
             // Roll speed - consistent with Mono/Bass: higher value = slower roll
             if (val >= 125) {
-                _drumRollActive = false;
+                _livePlayManager.setDrumRollActive(false);
             } else {
-                _drumRollActive = true;
+                _livePlayManager.setDrumRollActive(true);
                 // Inverted: 0-10 = fastest 32nd (1), 120 = slowest half note (16)
-                // _rollDivision values: 1=32nd, 2=16th, 4=8th, 8=quarter, 16=half
-                _rollDivision = ::map(constrain(val, 0, 120), 0, 120, 1, 16);
+                // division values: 1=32nd, 2=16th, 4=8th, 8=quarter, 16=half
+                _livePlayManager.setRollDivision(::map(constrain(val, 0, 120), 0, 120, 1, 16));
             }
             break;
         case CHANGE_RIGHT:
@@ -488,15 +484,15 @@ void BuitDevicesManager::handleLiveDrumRollThreeAxis(ControlCommand command) {
 }
 
 bool BuitDevicesManager::isSelectedSequenceWaiting(){
-    return _notesRecorder.isWaiting();
+    return _recordingManager.isWaiting();
 }
 
 SequenceDisplayState BuitDevicesManager::getSequenceDisplayState(){
-    if (_notesRecorder.isRecording()) {
+    if (_recordingManager.isRecording()) {
         return SequenceDisplayState::Recording;
-    } else if (_notesRecorder.isWaiting()) {
+    } else if (_recordingManager.isWaiting()) {
         return SequenceDisplayState::Waiting;
-    } else if (_sequencer.isSelectedSequenceRecording()) {
+    } else if (_sequencer.isRecording()) {
         // Sequencer thinks it's recording but recorder is not yet active (shouldn't happen, but handle it)
         return SequenceDisplayState::Waiting;
     } else {
@@ -505,48 +501,48 @@ SequenceDisplayState BuitDevicesManager::getSequenceDisplayState(){
 }
 
 void BuitDevicesManager::toggleSelectedSequenceRecording(){
-    _sequencer.toggleSelectedSequenceRecording();
-    if (_sequencer.isSelectedSequenceRecording()) {
-        uint16_t seqSize = _sequencer.getSelectedSequenceSize();
-        uint8_t midiChannel = _sequencer.getSelectedSequenceMidiChannel();
-        uint16_t currentPos = _sequencer.getSelectedSequencePosition();
-        _notesRecorder.startRecording(seqSize, midiChannel, currentPos);
+    _sequencer.toggleRecording();
+    if (_sequencer.isRecording()) {
+        uint16_t seqSize = _sequencer.getSequenceLength();
+        uint8_t midiChannel = _sequencer.getMidiChannel();
+        uint16_t currentPos = _sequencer.getCurrentPosition();
+        _recordingManager.startRecording(seqSize, midiChannel, currentPos);
     } else {
-        _notesRecorder.stopRecording();
+        _recordingManager.stopRecording();
         recorderDumpToSequence();
     }
     showSequence();
 }
 
 void BuitDevicesManager::recorderNoteOn(uint8_t note, uint8_t velocity) {
-    if (_notesRecorder.isRecording())
-        _notesRecorder.recordNoteOn(note, velocity);
+    if (_recordingManager.isRecording())
+        _recordingManager.recordNoteOn(note, velocity);
 }
 
 void BuitDevicesManager::recorderNoteOff(uint8_t note) {
-    if (_notesRecorder.isRecording())
-        _notesRecorder.recordNoteOff(note);
+    if (_recordingManager.isRecording())
+        _recordingManager.recordNoteOff(note);
 }
 
 void BuitDevicesManager::recorderAdvanceTick() {
     // Advance tick if recording OR waiting to start
-    if (!_notesRecorder.isRecording() && !_notesRecorder.isWaiting()) return;
+    if (!_recordingManager.isRecording() && !_recordingManager.isWaiting()) return;
     
-    _notesRecorder.advanceTick();
+    _recordingManager.advanceTick();
     
     // Check for end of one-shot recording
-    if (_notesRecorder.isRecording() && _notesRecorder.isEndOfSequence()) {
-        _notesRecorder.stopRecording();
+    if (_recordingManager.isRecording() && _recordingManager.isEndOfSequence()) {
+        _recordingManager.stopRecording();
         
         // Only dump if we actually recorded something
-        auto notes = _notesRecorder.dumpRecordedSequence();
+        auto notes = _recordingManager.dumpRecordedSequence();
         if (!notes.empty()) {
             // Apply to sequence
-            RTPScene* scene = _sequencer.getScene(_sequencer.getSelectScene());
+            RTPScene* scene = _concreteSequencer.getScene(_concreteSequencer.getSelectScene());
             if (scene) {
-                RTPEventNoteSequence* seq = scene->getSequence(_sequencer.getSelectedSequence());
+                RTPEventNoteSequence* seq = scene->getSequence(_concreteSequencer.getSelectedSequence());
                 if (seq) {
-                    uint16_t seqSize = _notesRecorder.getSequenceLength();
+                    uint16_t seqSize = _recordingManager.getSequenceLength();
                     seq->clearSequence();
                     seq->resizeSequence(seqSize);
                     for (auto& note : notes) {
@@ -563,19 +559,19 @@ void BuitDevicesManager::recorderAdvanceTick() {
         // else: empty recording, don't overwrite existing pattern
         
         // Turn off recording mode and update display
-        _sequencer.toggleSelectedSequenceRecording();
+        _sequencer.toggleRecording();
         showSequence();
     }
 }
 
 void BuitDevicesManager::recorderDumpToSequence() {
-    auto notes = _notesRecorder.dumpRecordedSequence();
+    auto notes = _recordingManager.dumpRecordedSequence();
     if (notes.empty()) return;
-    RTPScene* scene = _sequencer.getScene(_sequencer.getSelectScene());
+    RTPScene* scene = _concreteSequencer.getScene(_concreteSequencer.getSelectScene());
     if (!scene) return;
-    RTPEventNoteSequence* seq = scene->getSequence(_sequencer.getSelectedSequence());
+    RTPEventNoteSequence* seq = scene->getSequence(_concreteSequencer.getSelectedSequence());
     if (!seq) return;
-    uint16_t seqSize = _notesRecorder.getSequenceLength();
+    uint16_t seqSize = _recordingManager.getSequenceLength();
     seq->clearSequence();
     seq->resizeSequence(seqSize);
     for (auto& note : notes) {
@@ -591,14 +587,14 @@ void BuitDevicesManager::recorderDumpToSequence() {
 
 
 void BuitDevicesManager::saveSequencer(const String& fileName){
-    if(_persistenceManager.saveSequencerToFile(_sequencer, fileName))
+    if(_persistenceManager.saveSequencerToFile(_concreteSequencer, fileName))
         printToScreen("Saved", fileName, "");
     else
         printToScreen("Failed to save", fileName, "");
 }
 
 void BuitDevicesManager::loadSequencer(const String& fileName){
-    if(_persistenceManager.loadSequencerFromFile(_sequencer, fileName))
+    if(_persistenceManager.loadSequencerFromFile(_concreteSequencer, fileName))
         printToScreen("Loaded", fileName, "");
     else
         printToScreen("Failed to load", fileName, "");
@@ -609,20 +605,29 @@ bool BuitDevicesManager::patternFileExists(const String& fileName){
 }
 
 void BuitDevicesManager::clearTrellis(){
-    _neoTrellis.clearAllButtons();
+    _trellis.clearAllButtons();
 }
 
 void BuitDevicesManager::setTrellisButtonColor(uint8_t index, uint32_t color){
-    _neoTrellis.setButtonColor(index, color);
+    _trellis.setButtonColor(index, color);
 }
 
 void BuitDevicesManager::showTrellis(){
-    _neoTrellis.show();
+    _trellis.show();
+}
+
+uint32_t BuitDevicesManager::colorForPage(uint8_t page){
+    return _trellis.getColorForPage(page);
+}
+
+uint32_t BuitDevicesManager::colorForSlot(uint8_t page, bool exists){
+    return _trellis.getColorForSlot(page, exists);
 }
 
 void BuitDevicesManager::sceneAdd(){
     _sequencer.addDynamicScene();
     int count = _sequencer.getNumScenes();
+
     printToScreen("Scene Added", String(count) + " scenes", "");
 }
 
@@ -641,7 +646,7 @@ void BuitDevicesManager::sceneRemove(){
 }
 
 void BuitDevicesManager::sceneToggleAll(){
-    _sequencer.toggleAllSequencesInScene();
+    _sequencer.toggleAllSequences();
     presentScene();
 }
 
@@ -652,35 +657,35 @@ int BuitDevicesManager::getSceneCount() const {
 void BuitDevicesManager::presentSceneSettings(int8_t focusedPad){
     bool playing  = _sequencer.isPlaying();
     int  nScenes  = _sequencer.getNumScenes();
-    int  curScene = _sequencer.getSelectScene() + 1;
+    int  curScene = _sequencer.getCurrentScene() + 1;
 
-    _neoTrellis.clearAllButtons();
+    _trellis.clearAllButtons();
 
     // Pad 0 — Load (cyan)
-    _neoTrellis.setButtonColor(0, _neoTrellis.colorDim(_neoTrellis.colorBlue(), 200));
+    _trellis.setButtonColor(0, _trellis.getColorDim(_trellis.getColorBlue(), 200));
 
     // Pad 1 — Save (magenta: full red + blue)
-    _neoTrellis.setButtonColor(1, _neoTrellis.colorDim(_neoTrellis.colorRed(), 180));
+    _trellis.setButtonColor(1, _trellis.getColorDim(_trellis.getColorRed(), 180));
 
     // Pad 2 — Add scene (green, dim if playing)
-    _neoTrellis.setButtonColor(2, playing
-        ? _neoTrellis.colorDim(_neoTrellis.colorGreen(), 40)
-        : _neoTrellis.colorGreen());
+    _trellis.setButtonColor(2, playing
+        ? _trellis.getColorDim(_trellis.getColorGreen(), 40)
+        : _trellis.getColorGreen());
 
     // Pad 3 — Remove scene (red, dim if playing or only 1 scene)
     bool canRemove = !playing && nScenes > 1;
-    _neoTrellis.setButtonColor(3, canRemove
-        ? _neoTrellis.colorRed()
-        : _neoTrellis.colorDim(_neoTrellis.colorRed(), 40));
+    _trellis.setButtonColor(3, canRemove
+        ? _trellis.getColorRed()
+        : _trellis.getColorDim(_trellis.getColorRed(), 40));
 
     // Pad 4 — Toggle all sequences in scene (white)
-    _neoTrellis.setButtonColor(4, _neoTrellis.colorWhite());
+    _trellis.setButtonColor(4, _trellis.getColorWhite());
 
     // Highlight focused pad with full brightness white overlay
     if (focusedPad >= 0 && focusedPad <= 4)
-        _neoTrellis.setButtonColor(focusedPad, _neoTrellis.colorWhite());
+        _trellis.setButtonColor(focusedPad, _trellis.getColorWhite());
 
-    _neoTrellis.show();
+    _trellis.show();
 
     printToScreen(
         "Scene Settings",
@@ -691,7 +696,7 @@ void BuitDevicesManager::presentSceneSettings(int8_t focusedPad){
 
 // Transport control methods
 bool BuitDevicesManager::isInternalClock() const {
-    return _clockGenerator && _clockGenerator->getMode() == rtp::SyncMode::Internal;
+    return _clockGenerator && _clockGenerator->getMode() == SyncMode::Internal;
 }
 
 void BuitDevicesManager::transportPlay() {
@@ -725,7 +730,7 @@ float BuitDevicesManager::getCurrentBPM() const {
 }
 
 SyncMode BuitDevicesManager::getSyncMode() const {
-    if (!_clockGenerator) return rtp::SyncMode::External;
+    if (!_clockGenerator) return SyncMode::External;
     return _clockGenerator->getMode();
 }
 
@@ -744,7 +749,7 @@ void BuitDevicesManager::setQuantizeStrength(int strength) {
     _quantizeStrength = strength;
     if (_quantizeStrength < 0) _quantizeStrength = 0;
     if (_quantizeStrength > 100) _quantizeStrength = 100;
-    _notesRecorder.setQuantizeStrength(_quantizeStrength);
+    _recordingManager.setQuantizeStrength(_quantizeStrength);
 }
 
 void BuitDevicesManager::incrementQuantizeStrength(int delta) {

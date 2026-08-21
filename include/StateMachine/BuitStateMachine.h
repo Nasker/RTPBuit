@@ -2,20 +2,21 @@
 
 #include "BuitState.h"
 #include "BuitDevicesManager.hpp"
+#include <memory>
 
 class BuitStateMachine{
-	BuitState* _state;
-	BuitState* _initState;
-	BuitState* _transportState;
-	BuitState* _globalSettingsState;
-	BuitState* _sceneEditState;
-	BuitState* _sceneSettingsState;
-	BuitState* _sequenceEditState;
-	BuitState* _sequencePianoRollState;
-	BuitState* _sequenceSelectState;
-	BuitState* _sequenceSettingsState;
-	BuitState* _patternBankLoadState;
-	BuitState* _patternBankSaveState;
+	BuitState* _state = nullptr;  // Non-owning observer pointer to active state
+	std::unique_ptr<BuitState> _initState;
+	std::unique_ptr<BuitState> _transportState;
+	std::unique_ptr<BuitState> _globalSettingsState;
+	std::unique_ptr<BuitState> _sceneEditState;
+	std::unique_ptr<BuitState> _sceneSettingsState;
+	std::unique_ptr<BuitState> _sequenceEditState;
+	std::unique_ptr<BuitState> _sequencePianoRollState;
+	std::unique_ptr<BuitState> _sequenceSelectState;
+	std::unique_ptr<BuitState> _sequenceSettingsState;
+	std::unique_ptr<BuitState> _patternBankLoadState;
+	std::unique_ptr<BuitState> _patternBankSaveState;
 
 public:
 	BuitStateMachine(BuitDevicesManager& outDevices);

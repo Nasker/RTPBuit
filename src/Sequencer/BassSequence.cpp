@@ -47,10 +47,7 @@ uint8_t BassSequence::_computeSlot() {
 void BassSequence::_silence() {
     if (!_sounding) return;
     uint8_t ch = getMidiChannel();
-    usbMIDI.sendNoteOff(_currentNote, 0, ch);
-    Serial1.write(0x80 | ((ch - 1) & 0x0F));
-    Serial1.write(_currentNote & 0x7F);
-    Serial1.write(0x00);
+    if (_midiOutput) _midiOutput->sendNoteOff(_currentNote, 0, ch);
     _sounding = false;
 }
 
@@ -90,17 +87,11 @@ void BassSequence::_retriggerLiveNote() {
     bool wasSounding = _sounding;
 
     // Legato: start the new note first
-    usbMIDI.sendNoteOn(targetNote, _liveVelocity, ch);
-    Serial1.write(0x90 | ((ch - 1) & 0x0F));
-    Serial1.write(targetNote & 0x7F);
-    Serial1.write(_liveVelocity & 0x7F);
+    if (_midiOutput) _midiOutput->sendNoteOn(targetNote, _liveVelocity, ch);
 
     // ...then release the previous one (overlap = glide, no envelope re-attack)
     if (wasSounding && oldNote != targetNote) {
-        usbMIDI.sendNoteOff(oldNote, 0, ch);
-        Serial1.write(0x80 | ((ch - 1) & 0x0F));
-        Serial1.write(oldNote & 0x7F);
-        Serial1.write(0x00);
+        if (_midiOutput) _midiOutput->sendNoteOff(oldNote, 0, ch);
     }
 
     _currentNote = targetNote;
@@ -180,15 +171,8 @@ void BassSequence::handleLiveHalfTick() {
     if (_rollActive && _sounding && _rollDivision > 0) {
         if ((_tickCount % _rollDivision) == 0) {
             uint8_t ch = getMidiChannel();
-            usbMIDI.sendNoteOff(_currentNote, 0, ch);
-            Serial1.write(0x80 | ((ch - 1) & 0x0F));
-            Serial1.write(_currentNote & 0x7F);
-            Serial1.write(0x00);
-
-            usbMIDI.sendNoteOn(_currentNote, _liveVelocity, ch);
-            Serial1.write(0x90 | ((ch - 1) & 0x0F));
-            Serial1.write(_currentNote & 0x7F);
-            Serial1.write(_liveVelocity & 0x7F);
+            if (_midiOutput) _midiOutput->sendNoteOff(_currentNote, 0, ch);
+            if (_midiOutput) _midiOutput->sendNoteOn(_currentNote, _liveVelocity, ch);
         }
     }
 }

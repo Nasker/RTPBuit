@@ -2,6 +2,14 @@
 
 #include "Arduino.h"
 #include <Wire.h>
+#include "Hardware/Implementations/TeensyMidiOutput.hpp"
+#include "Hardware/Adapters/RTPOledAdapter.hpp"
+#include "Hardware/Adapters/RTPNeoTrellisAdapter.hpp"
+#include "Hardware/Adapters/RTPRotaryAdapter.hpp"
+#include "Hardware/Adapters/RTPThreeAxisAdapter.hpp"
+#include "Managers/DeviceManager.hpp"
+#include <memory>
+#include "RTPOled.hpp"
 #include "RTPNeoTrellis.hpp"
 #include "RTPRotaryClickChordion.hpp"
 #include "RTPThreeAxisVL.hpp"
@@ -15,15 +23,40 @@
 #include "constants.h"
   
 class RTPMainUnit{
+  // Legacy hardware (kept for backward compatibility)
+  RTPOled rtpOled;
   RTPNeoTrellis rtpTrellis;
   RTPRotaryClickDev rtpRotary{ROT_LEFT_PIN, ROT_RIGHT_PIN, BUTTON_PIN, LOW, true};
   RTPThreeAxisVL vlSensor;
+  
+  // Core components
   MusicManager musicManager;
-  RTPSequencer Sequencer{N_SCENES, musicManager};
-  BuitDevicesManager devicesManager{rtpTrellis, Sequencer};
+  RTPSequencer Sequencer{MusicConfig::Sequences::N_SCENES, musicManager};
+  RTPClockGenerator clockGenerator;
+  TeensyMidiOutput midiOutput;
+  
+  // Hardware adapters (bridge legacy to interfaces)
+  RTPOledAdapter oledAdapter{rtpOled};
+  RTPNeoTrellisAdapter trellisAdapter{rtpTrellis};
+  RTPRotaryAdapter rotaryAdapter{rtpRotary};
+  RTPThreeAxisAdapter sensorAdapter{vlSensor};
+  
+  // Shared pointers for DeviceManager
+  std::shared_ptr<IDisplay> displayPtr;
+  std::shared_ptr<IButtonMatrix> buttonMatrixPtr;
+  std::shared_ptr<IRotaryEncoder> rotaryPtr;
+  std::shared_ptr<IThreeAxisSensor> sensorPtr;
+  std::shared_ptr<IMidiOutput> midiOutputPtr;
+  std::shared_ptr<IClockGenerator> clockGenPtr;
+  std::shared_ptr<ISequencer> sequencerPtr;
+  
+  // Modern device manager (composition of focused managers)
+  std::unique_ptr<DeviceManager> deviceManager;
+  
+  // Legacy facade (interface-based, shared adapters with DeviceManager)
+  BuitDevicesManager devicesManager{oledAdapter, trellisAdapter, Sequencer};
   StateMachineManager stateMachineManager{devicesManager};
   RTPSequencerManager SequencerManager{Sequencer};
-  RTPClockGenerator clockGenerator;
   
 public:
   RTPMainUnit();

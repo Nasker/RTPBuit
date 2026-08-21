@@ -1,102 +1,124 @@
 # RTPBuit
 
-## Overview
-RTPBuit is a custom MIDI sequencer firmware designed for the Teensy 4.1 platform. It combines hardware control surfaces, MIDI sequencing capabilities, and a state machine architecture to create a versatile electronic music instrument. The project features real-time note recording, multiple sequence types, and an intuitive user interface with OLED display and NeoTrellis grid feedback.
+A modular music sequencer firmware for the **Teensy 4.1** platform, built with the Arduino framework using PlatformIO.
+
+---
 
 ## Hardware
-- **Microcontroller**: Teensy 4.1
-- **Display**: OLED screen for visual feedback
-- **Control Surface**: Adafruit NeoTrellis grid (16 buttons with RGB LEDs)
-- **Input Controls**: Rotary encoder with push button, VL53L0X proximity sensor
-- **Connectivity**: MIDI I/O via USB and hardware MIDI ports
 
-## Features
-- **Multi-track Sequencing**: Support for multiple sequence types:
-  - Drum sequences
-  - Bass sequences
-  - Monophonic lead sequences
-  - Polyphonic sequences
-  - Control sequences
-  - Harmony sequences
-- **Real-time Recording**: Record MIDI notes in real-time with quantization
-- **Scene Management**: Organize sequences into scenes for live performance
-- **State Machine Architecture**: Clean separation of concerns with different operational states
-- **Persistence**: Save and load sequences to/from SD card
-- **Visual Feedback**: OLED display and RGB button feedback
-- **MIDI Routing**: Process incoming MIDI and route to appropriate sequences
+| Component | Part |
+|---|---|
+| MCU | Teensy 4.1 |
+| Display | OLED via U8g2 |
+| Button grid | Adafruit NeoTrellis |
+| Sensors | VL53L0X three-axis sensor |
+| MIDI | USB MIDI + Serial1 (5-pin DIN) |
+
+---
+
+## Build
+
+```bash
+# Normal firmware build
+platformio run --environment teensy41
+
+# Upload
+platformio run --environment teensy41 --target upload
+
+# Clean
+platformio run --environment teensy41 --target clean
+
+# Unit tests (flashes test firmware, read results over Serial at 115200 baud)
+platformio run --environment teensy41_test --target upload
+```
+
+---
 
 ## Project Structure
 
-### Core Components
-- **State Machine**: Manages application state and user interactions
-- **Sequencer**: Handles timing, playback, and recording of musical events
-- **Device Managers**: Interface with hardware components
-- **Persistence**: JSON-based storage of sequences and settings
+```
+include/
+├── Config/          # Centralised constants (MusicConfig, HardwareConfig, UiConfig)
+├── DI/              # Dependency injection container (ServiceContainer)
+├── Error/           # Error types, Result<T>, Logger, ErrorHandler
+├── Interfaces/      # Pure abstract interfaces (IMidiOutput, IDisplay, IInputDevice…)
+├── Hardware/
+│   └── Implementations/   # Concrete hardware drivers (OledDisplay, TeensyMidiOutput…)
+├── Managers/        # Focused manager classes (DeviceManager, DisplayManager, …)
+├── Sequencer/       # Sequencer logic
+├── StateMachine/    # State machine (BassSequence, …)
+└── Validation/      # Stateless validation utilities (MidiValidator, InputValidator, …)
 
-### Key Classes
-- `RTPMainUnit`: Central coordinator for the application
-- `BuitStateMachine`: Manages state transitions and user input
-- `RTPSequencer`: Handles sequence playback and recording
-- `BuitDevicesManager`: Manages hardware interfaces
-- `RTPEventNoteSequence`: Base class for different sequence types
+src/
+├── Helpers/         # Legacy helpers (retained for compatibility)
+├── Hardware/        # Hardware implementation sources
+├── Managers/        # Manager sources
+└── Sequencer/       # Sequencer sources
 
-## Building and Flashing
-
-### Prerequisites
-- PlatformIO
-- Arduino framework
-- Teensy core libraries
-
-### Dependencies
-- U8g2 (OLED display)
-- Adafruit NeoTrellis
-- Adafruit NeoPixel
-- ArduinoJson
-- MIDI Library
-- Audio (Teensy Audio Library)
-
-### Build Commands
-```bash
-# Build the project
-pio run
-
-# Upload to Teensy 4.1
-pio run --target upload --environment teensy41
+test/
+├── Framework/       # Lightweight assertion framework (Assert.hpp)
+├── Mocks/           # Mock hardware implementations (MockMidiOutput, MockDisplay)
+├── Tests/Unit/      # Unit test suites (TestValidation, …)
+└── test_main.cpp    # Test entry point (setup/loop for Teensy)
 ```
 
-## Usage
+---
 
-The RTPBuit interface is organized into different states:
+## Architecture
 
-- **Scene Select**: Choose between different scenes
-- **Sequence Select**: Select a sequence within a scene
-- **Sequence Edit**: Edit notes within a sequence
-- **Transport**: Control playback (play/stop/etc.)
-- **Settings**: Configure sequence parameters
+The codebase follows SOLID principles:
 
-Navigation is primarily done through the rotary encoder, buttons, and proximity sensor.
+- **SRP** — Each manager class has exactly one responsibility (`DisplayManager`, `InputManager`, `TransportManager`, `DeviceManager`).
+- **OCP** — New hardware is added by implementing an interface, not modifying existing code.
+- **LSP** — All concrete implementations are substitutable through their interfaces.
+- **ISP** — Interfaces are narrow (`IMidiOutput`, `IDisplay`, `IButtonMatrix`, `IRotaryEncoder`, `IThreeAxisSensor`).
+- **DIP** — Managers receive their dependencies via constructor injection (`std::shared_ptr<IFoo>`).
 
-### Recording Notes
-1. Enter Sequence Edit state
-2. Toggle recording mode
-3. Play notes via MIDI input to record them in real-time
+### Error Handling
 
-## Development
+All fallible public methods return `Result<T>`:
 
-### Branches
-- `main`: Stable release branch
-- `feature/*`: Feature development branches
+```cpp
+Result<void> TransportManager::initialize();
+Result<void> InputManager::initialize();
+```
 
-### Coding Conventions
-- Minimal comments, self-documenting code
-- Consistent state transitions with proper UI updates
-- Memory-efficient JSON field names (shortened to single characters)
+Use `Result<void>::Ok()` for success and `Result<void>::failure(code, severity, message)` for errors. The `ErrorHandler` provides centralised logging and recovery.
 
-## Companion Projects
-- **SequenceVisualizer**: Web application for visualizing and editing sequences
+### Validation
 
-## License
-All rights reserved. This project is proprietary software.
+Stateless utilities in `include/Validation/`:
 
-## Credits
-Developed by Real-Time Porridge (RTP)
+```cpp
+MidiValidator::isValidNote(note);       // 0–127
+MidiValidator::isValidChannel(channel); // 1–16
+InputValidator::isValidBPM(bpm);        // 40–240
+RangeChecker::clamp(value, min, max);
+```
+
+---
+
+## Running Tests
+
+The test firmware replaces `setup()`/`loop()` and streams results over Serial:
+
+```
+=== Validation | PASS: 9  FAIL: 0
+```
+
+Add new test suites in `test/Tests/Unit/`, call `runAll()` from `test_main.cpp`.
+
+---
+
+## Dependencies
+
+Managed by PlatformIO (`platformio.ini`):
+
+| Library | Purpose |
+|---|---|
+| olikraus/U8g2 | OLED display |
+| pololu/VL53L0X | Distance sensor |
+| Adafruit NeoPixel / Trellis / seesaw | Button grid |
+| bblanchon/ArduinoJson | Persistence (JSON) |
+| Nasker/RTPLib | Core sequencer library |
+| PaulStoffregen/Encoder | Rotary encoder |
