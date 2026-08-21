@@ -48,25 +48,40 @@ void MidiRouter::clearRoutes() {
 void MidiRouter::setDefaultRoutes() {
     clearRoutes();
 
-    // Internal → USB Device + DIN  (sequencer output goes to both)
-    addRoute(MidiPort::INTERNAL, MidiPort::USB_DEVICE | MidiPort::DIN, MidiTypeMask::ALL);
+    // Internal notes/CC → clock output ports (sequencer output)
+    addRoute(MidiPort::INTERNAL, _clockOutputPorts, MidiTypeMask::CHANNEL_VOICE);
 
-    // USB Device → Internal  (incoming notes, CC, realtime from DAW)
+    // Internal real-time → clock output ports (clock/transport output)
+    addRoute(MidiPort::INTERNAL, _clockOutputPorts, MidiTypeMask::REAL_TIME);
+
+    // USB Device → Internal  (incoming notes, CC from DAW)
     addRoute(MidiPort::USB_DEVICE, MidiPort::INTERNAL,
-             MidiTypeMask::NOTES | MidiTypeMask::CC | MidiTypeMask::REAL_TIME);
+             MidiTypeMask::NOTES | MidiTypeMask::CC);
+
+    // Clock input sources → Internal  (real-time from selected external ports)
+    if (_clockInputSource != MidiPort::NONE) {
+        addRoute(_clockInputSource, MidiPort::INTERNAL, MidiTypeMask::REAL_TIME);
+    }
 
     // USB Host → Internal  (incoming notes, CC from external controllers/synths)
     addRoute(MidiPort::USB_HOST, MidiPort::INTERNAL,
              MidiTypeMask::NOTES | MidiTypeMask::CC);
-
-    // DIN → Internal  (real-time clock from external gear)
-    addRoute(MidiPort::DIN, MidiPort::INTERNAL, MidiTypeMask::REAL_TIME);
 }
 
 void MidiRouter::enableRoute(uint8_t index, bool enabled) {
     if (index < _routeCount) {
         _routes[index].enabled = enabled;
     }
+}
+
+void MidiRouter::setClockOutputPorts(MidiPort destMask) {
+    _clockOutputPorts = destMask;
+    setDefaultRoutes();  // Rebuild routes with new config
+}
+
+void MidiRouter::setClockInputSource(MidiPort sourceMask) {
+    _clockInputSource = sourceMask;
+    setDefaultRoutes();  // Rebuild routes with new config
 }
 
 void MidiRouter::route(const MidiMessage& msg) {

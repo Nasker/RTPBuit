@@ -3,11 +3,13 @@
 #include "RTPPeriodicBang.h"
 #include "USBHost_t36.h"
 #include "Midi/MidiMessage.hpp"
+#include "Midi/MidiParser.hpp"
 
 #define UPDATE_PERIOD 10
 
 RTPMainUnit mUnit;
 RTPPeriodicBang periodicUpdate(UPDATE_PERIOD);
+MidiParser dinParser(MidiPort::DIN);
 USBHost myusb;
 MIDIDevice midi1(myusb);
 
@@ -90,15 +92,12 @@ void loop() {
 	midi1.read();
   mUnit.getUsbHostManager().update();
   
-  // Read hardware serial MIDI (5-pin DIN on Serial1)
+  // Parse hardware serial MIDI (5-pin DIN on Serial1)
   while (Serial1.available()) {
     uint8_t inByte = Serial1.read();
-    // Route real-time messages through the router (tagged as DIN source)
-    if (inByte >= 0xF8) {
-      MidiMessage msg { MidiMessage::RealTime, 0, inByte, 0, MidiPort::DIN };
-      mUnit.getMidiRouter().route(msg);
+    if (dinParser.parse(inByte)) {
+      mUnit.getMidiRouter().route(dinParser.getMessage());
     }
-    // Note: Full MIDI parsing (Phase 6) will handle channel messages from DIN
   }
   
   periodicUpdate.callbackPeriodBang(actOnPeriodicUpdate);

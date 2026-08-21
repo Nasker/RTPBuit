@@ -59,7 +59,15 @@ public:
     // --- Message dispatch ---
     void route(const MidiMessage& msg);
 
+    // --- Clock routing configuration ---
+    void setClockOutputPorts(MidiPort destMask);
+    MidiPort getClockOutputPorts() const { return _clockOutputPorts; }
+    void setClockInputSource(MidiPort sourceMask);
+    MidiPort getClockInputSource() const { return _clockInputSource; }
+
 private:
+    MidiPort _clockOutputPorts = MidiPort::USB_DEVICE | MidiPort::DIN;
+    MidiPort _clockInputSource = MidiPort::USB_DEVICE | MidiPort::DIN | MidiPort::USB_HOST;
     void sendToPort(MidiPort port, const MidiMessage& msg);
     void dispatchToOutput(IMidiOutput* output, const MidiMessage& msg);
 

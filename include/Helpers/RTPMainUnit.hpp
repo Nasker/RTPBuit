@@ -86,6 +86,10 @@ public:
   MidiRouter& getMidiRouter() { return midiRouter; }
   UsbHostManager& getUsbHostManager() { return usbHostManager; }
   void setUsbHostDevice(MIDIDevice* device);
+  void setClockOutputPorts(MidiPort destMask) { midiRouter.setClockOutputPorts(destMask); }
+  MidiPort getClockOutputPorts() const { return midiRouter.getClockOutputPorts(); }
+  void setClockInputSource(MidiPort sourceMask) { midiRouter.setClockInputSource(sourceMask); }
+  MidiPort getClockInputSource() const { return midiRouter.getClockInputSource(); }
 private:
   void initMidiRouter();
 };

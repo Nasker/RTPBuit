@@ -27,7 +27,7 @@ void HarmonySequence::playCurrentEventNote(){
         int rootNote = it->getEventRead();
         int chord  = it->getEventVelocity();
         _musicManager.setCurrentHarmony(1, rootNote, chord);
-        if (_midiOutput) _midiOutput->sendControlChange(rootNote, chord, 13);
+        routeLiveCC(rootNote, chord, 13);
     }
 }
 

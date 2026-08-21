@@ -3,6 +3,14 @@
 #include "RTPTypeColors.h"
 #include "ReMap.hpp"
 #include <cstdint>
+#include "Midi/MidiRouter.hpp"
+#include "Midi/MidiMessage.hpp"
+
+MidiRouter* RTPEventNoteSequence::_router = nullptr;
+
+void RTPEventNoteSequence::setRouter(MidiRouter* router) {
+    _router = router;
+}
 
 
 RTPEventNoteSequence::RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents, uint8_t type, uint8_t baseNote, NotesPlayer& notesPlayer, MusicManager& musicManager):
@@ -256,4 +264,34 @@ String RTPEventNoteSequence::dumpSequenceToJson(){
 void RTPEventNoteSequence::pointIterator(uint16_t position){
   it = EventNoteSequence.begin();
   advance(it, position);
+}
+
+void RTPEventNoteSequence::routeLiveNoteOn(uint8_t note, uint8_t velocity, uint8_t channel) {
+    if (_router) {
+        MidiMessage msg { MidiMessage::NoteOn, channel, note, velocity, MidiPort::INTERNAL };
+        msg.destOverride = getPortAsMidiPort();
+        _router->route(msg);
+    } else if (_midiOutput) {
+        _midiOutput->sendNoteOn(note, velocity, channel);
+    }
+}
+
+void RTPEventNoteSequence::routeLiveNoteOff(uint8_t note, uint8_t channel) {
+    if (_router) {
+        MidiMessage msg { MidiMessage::NoteOff, channel, note, 0, MidiPort::INTERNAL };
+        msg.destOverride = getPortAsMidiPort();
+        _router->route(msg);
+    } else if (_midiOutput) {
+        _midiOutput->sendNoteOff(note, 0, channel);
+    }
+}
+
+void RTPEventNoteSequence::routeLiveCC(uint8_t controller, uint8_t value, uint8_t channel) {
+    if (_router) {
+        MidiMessage msg { MidiMessage::ControlChange, channel, controller, value, MidiPort::INTERNAL };
+        msg.destOverride = getPortAsMidiPort();
+        _router->route(msg);
+    } else if (_midiOutput) {
+        _midiOutput->sendControlChange(controller, value, channel);
+    }
 }

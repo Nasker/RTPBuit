@@ -47,7 +47,7 @@ uint8_t BassSequence::_computeSlot() {
 void BassSequence::_silence() {
     if (!_sounding) return;
     uint8_t ch = getMidiChannel();
-    if (_midiOutput) _midiOutput->sendNoteOff(_currentNote, 0, ch);
+    routeLiveNoteOff(_currentNote, ch);
     _sounding = false;
 }
 
@@ -87,11 +87,11 @@ void BassSequence::_retriggerLiveNote() {
     bool wasSounding = _sounding;
 
     // Legato: start the new note first
-    if (_midiOutput) _midiOutput->sendNoteOn(targetNote, _liveVelocity, ch);
+    routeLiveNoteOn(targetNote, _liveVelocity, ch);
 
     // ...then release the previous one (overlap = glide, no envelope re-attack)
     if (wasSounding && oldNote != targetNote) {
-        if (_midiOutput) _midiOutput->sendNoteOff(oldNote, 0, ch);
+        routeLiveNoteOff(oldNote, ch);
     }
 
     _currentNote = targetNote;
@@ -171,8 +171,8 @@ void BassSequence::handleLiveHalfTick() {
     if (_rollActive && _sounding && _rollDivision > 0) {
         if ((_tickCount % _rollDivision) == 0) {
             uint8_t ch = getMidiChannel();
-            if (_midiOutput) _midiOutput->sendNoteOff(_currentNote, 0, ch);
-            if (_midiOutput) _midiOutput->sendNoteOn(_currentNote, _liveVelocity, ch);
+            routeLiveNoteOff(_currentNote, ch);
+            routeLiveNoteOn(_currentNote, _liveVelocity, ch);
         }
     }
 }

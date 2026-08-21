@@ -18,6 +18,8 @@
 
 using namespace std;
 
+class MidiRouter;
+
 #define SEQ_BLOCK_SIZE 16
 #define SCENE_BLOCK_SIZE 16
 
@@ -91,6 +93,7 @@ public:
 	uint8_t getPort();
 	void setPort(uint8_t port);
 	MidiPort getPortAsMidiPort();
+	static void setRouter(MidiRouter* router);
 	list<RTPEventNotePlus> getEventNoteSequence();
 	const list<RTPEventNotePlus>& getEventNoteSequence() const;  // Const version for JSON serialization
 	String dumpSequenceToJson();
@@ -98,4 +101,9 @@ public:
 	uint16_t pageOffset();
 protected:
 	void pointIterator(uint16_t position);
+	void routeLiveNoteOn(uint8_t note, uint8_t velocity, uint8_t channel);
+	void routeLiveNoteOff(uint8_t note, uint8_t channel);
+	void routeLiveCC(uint8_t controller, uint8_t value, uint8_t channel);
+private:
+	static MidiRouter* _router;
 };

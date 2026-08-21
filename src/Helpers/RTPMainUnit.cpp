@@ -127,6 +127,9 @@ void RTPMainUnit::initMidiRouter() {
   // Inject router into RTPEventNotePlus (replaces hard-coded usbMIDI/Serial1)
   RTPEventNotePlus::setRouter(&midiRouter);
   
+  // Inject router into RTPEventNoteSequence (live play routing)
+  RTPEventNoteSequence::setRouter(&midiRouter);
+  
   // Inject router into SequencerManager (replaces hard-coded clock output)
   SequencerManager.setMidiRouter(&midiRouter);
   
