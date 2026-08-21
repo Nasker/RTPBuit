@@ -60,6 +60,7 @@ void RTPMainUnit::begin(){
   SequencerManager.setClockGenerator(clockGenerator);
   devicesManager.initSetup();
   devicesManager.setClockGenerator(clockGenerator);
+  devicesManager.setUsbHostManager(&usbHostManager);
 }
 
 void RTPMainUnit::update(){
@@ -147,6 +148,6 @@ void RTPMainUnit::initMidiRouter() {
   Serial.println("MIDI Router initialized with default routes");
 }
 
-void RTPMainUnit::setUsbHostDevice(MIDIDevice* device) {
-  usbHostOutput.setDevice(device);
+void RTPMainUnit::setUsbHostDevice(MIDIDevice* device, uint8_t idx) {
+  usbHostOutput.setDevice(device, idx);
 }

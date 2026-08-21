@@ -1,12 +1,17 @@
 #include "Midi/UsbHostManager.hpp"
 #include "USBHost_t36.h"
 
-void UsbHostManager::begin(USBHost& usb, MIDIDevice* device) {
+void UsbHostManager::begin(USBHost& usb) {
     _usb = &usb;
-    _devices[0] = device;
-    _wasConnected[0] = false;
     _connectionChanged = false;
     _deviceCount = 0;
+}
+
+void UsbHostManager::addDevice(MIDIDevice* device, uint8_t idx) {
+    if (idx < MAX_DEVICES) {
+        _devices[idx] = device;
+        _wasConnected[idx] = false;
+    }
 }
 
 void UsbHostManager::update() {

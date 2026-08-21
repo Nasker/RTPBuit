@@ -23,6 +23,7 @@ void HarmonySequence::playCurrentEventNote(){
     pointIterator(_currentPosition);
     it->setMidiChannel(getMidiChannel());
     it->setDestPort(getPortAsMidiPort());
+    it->setUsbHostIndex(getUsbHostDeviceIndex());
     if(isCurrentSequenceEnabled() && it->eventState()){
         int rootNote = it->getEventRead();
         int chord  = it->getEventVelocity();

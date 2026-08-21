@@ -13,6 +13,7 @@ void DrumSequence::playCurrentEventNote(){
     pointIterator(_currentPosition);
     it->setMidiChannel(getMidiChannel());
     it->setDestPort(getPortAsMidiPort());
+    it->setUsbHostIndex(getUsbHostDeviceIndex());
     if(isCurrentSequenceEnabled() && it->eventState()){
         it->setLength(1);
         _notesPlayer.queueNote(*it);

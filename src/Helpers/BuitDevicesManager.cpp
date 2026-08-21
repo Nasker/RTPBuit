@@ -1,5 +1,6 @@
 #include "BuitDevicesManager.hpp"
 #include "Sequencer/RTPEventNoteSequence.h"
+#include "Midi/UsbHostManager.hpp"
 
 BuitDevicesManager::BuitDevicesManager(IDisplay& display, IButtonMatrix& trellis, RTPSequencer& seq):
 _display(display),
@@ -251,6 +252,33 @@ void BuitDevicesManager::presentSequenceSettings(){
         valueStr = "Col " + String(paramValue);
     } else if (paramName == "Lenght") {
         valueStr = String(paramValue) + " pages";
+    } else if (paramName == "Port") {
+        const char* portNames[] = {"Default", "USB", "USB Host", "DIN", "ALL",
+                                    "Host 1", "Host 2", "Host 3", "Host 4"};
+        valueStr = (paramValue >= 0 && paramValue <= 8) ? portNames[paramValue] : "?";
+        // For USB Host (broadcast) show device count or name
+        if (paramValue == 2 && _usbHostManager) {
+            uint8_t count = _usbHostManager->getDeviceCount();
+            if (count == 1) {
+                for (uint8_t i = 0; i < 4; i++) {
+                    if (_usbHostManager->isDeviceConnected(i)) {
+                        valueStr = _usbHostManager->getDeviceName(i);
+                        break;
+                    }
+                }
+            } else if (count > 1) {
+                valueStr = String(count) + " USB devs";
+            }
+        }
+        // For specific USB Host device (5-8) show its name if connected
+        if (paramValue >= 5 && paramValue <= 8 && _usbHostManager) {
+            uint8_t idx = paramValue - 5;
+            if (_usbHostManager->isDeviceConnected(idx)) {
+                valueStr = _usbHostManager->getDeviceName(idx);
+            } else {
+                valueStr = "Host " + String(idx + 1) + " (none)";
+            }
+        }
     } else {
         valueStr = String(paramValue);
     }

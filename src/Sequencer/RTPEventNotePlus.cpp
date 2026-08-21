@@ -29,6 +29,7 @@ void RTPEventNotePlus::playNoteOn(){
     if (_router) {
         MidiMessage msg { MidiMessage::NoteOn, channel, note, velocity, MidiPort::INTERNAL };
         msg.destOverride = _destPort;
+        msg.usbHostIndex = _usbHostIndex;
         _router->route(msg);
     }
 }
@@ -40,6 +41,7 @@ void RTPEventNotePlus::playNoteOff(){
     if (_router) {
         MidiMessage msg { MidiMessage::NoteOff, channel, note, 0, MidiPort::INTERNAL };
         msg.destOverride = _destPort;
+        msg.usbHostIndex = _usbHostIndex;
         _router->route(msg);
     }
 }

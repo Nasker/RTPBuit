@@ -13,6 +13,7 @@ class RTPEventNotePlus: public RTPEventNote{
     uint8_t _timeToLive;
     bool _literalPitch;
     MidiPort _destPort;
+    uint8_t _usbHostIndex;
   public:
     RTPEventNotePlus():RTPEventNote(false, 0, 0){
         _midiChannel = 0;
@@ -20,6 +21,7 @@ class RTPEventNotePlus: public RTPEventNote{
         _timeToLive = 1;
         _literalPitch = false;
         _destPort = MidiPort::NONE;
+        _usbHostIndex = 0xFF;
     }
     RTPEventNotePlus(uint8_t midiChannel, bool state, uint8_t note, uint8_t velocity):RTPEventNote(state, note, velocity){
         _midiChannel = midiChannel;
@@ -27,6 +29,7 @@ class RTPEventNotePlus: public RTPEventNote{
         _timeToLive = _length;
         _literalPitch = false;
         _destPort = MidiPort::NONE;
+        _usbHostIndex = 0xFF;
   }
     uint8_t getMidiChannel();
     uint8_t getMidiChannel() const;  // Const version for JSON serialization
@@ -35,6 +38,8 @@ class RTPEventNotePlus: public RTPEventNote{
     void playNoteOff();
     void setDestPort(MidiPort port) { _destPort = port; }
     MidiPort getDestPort() const { return _destPort; }
+    void setUsbHostIndex(uint8_t idx) { _usbHostIndex = idx; }
+    uint8_t getUsbHostIndex() const { return _usbHostIndex; }
     void setLength(uint8_t length);
     uint8_t getLength();
     uint8_t getLength() const;  // Const version for JSON serialization

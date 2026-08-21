@@ -16,9 +16,10 @@ class USBHost;
  */
 class UsbHostManager {
 public:
-    static constexpr uint8_t MAX_DEVICES = 1;  // Expand to 2-4 if hub support needed
+    static constexpr uint8_t MAX_DEVICES = 4;
 
-    void begin(USBHost& usb, MIDIDevice* device);
+    void begin(USBHost& usb);
+    void addDevice(MIDIDevice* device, uint8_t idx);
     void update();  // Call in loop() to detect connect/disconnect
 
     bool isDeviceConnected(uint8_t idx = 0) const;
@@ -29,9 +30,9 @@ public:
     bool hasConnectionChanged();  // Returns true once per connect/disconnect event
 
 private:
-    MIDIDevice* _devices[MAX_DEVICES] = { nullptr };
+    MIDIDevice* _devices[MAX_DEVICES] = { nullptr, nullptr, nullptr, nullptr };
     USBHost* _usb = nullptr;
     uint8_t _deviceCount = 0;
-    bool _wasConnected[MAX_DEVICES] = { false };
+    bool _wasConnected[MAX_DEVICES] = { false, false, false, false };
     bool _connectionChanged = false;
 };

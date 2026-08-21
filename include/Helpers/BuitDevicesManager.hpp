@@ -14,6 +14,8 @@
 #include "Managers/RecordingManager.hpp"
 #include "Managers/LivePlayManager.hpp"
 
+class UsbHostManager;
+
 /**
  * @brief Device facade for the state machine - interface-based
  * 
@@ -38,6 +40,7 @@ class BuitDevicesManager {
     BuitPersistenceManager _persistenceManager;
     MatrixBuitControlChanger _matrixBuitCC;
     IClockGenerator* _clockGenerator = nullptr;
+    UsbHostManager* _usbHostManager = nullptr;
 
     // Decomposed managers (composition pattern)
     RecordingManager _recordingManager;
@@ -127,6 +130,7 @@ public:
 
     // Clock generator access (set by RTPMainUnit)
     void setClockGenerator(IClockGenerator& clockGenerator) { _clockGenerator = &clockGenerator; }
+    void setUsbHostManager(UsbHostManager* mgr) { _usbHostManager = mgr; }
     
     // Transport control (delegate to clock generator if available)
     bool isInternalClock() const;

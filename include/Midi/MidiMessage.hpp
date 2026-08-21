@@ -34,6 +34,12 @@ struct MidiMessage {
      * Used by the sequencer to force per-track port assignment.
      */
     MidiPort destOverride = MidiPort::NONE;
+
+    /**
+     * @brief USB Host device index (0-3) for per-device targeting.
+     * 0xFF (default) means broadcast to all connected USB Host devices.
+     */
+    uint8_t usbHostIndex = 0xFF;
 };
 
 /**

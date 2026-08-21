@@ -7,14 +7,23 @@
 class MIDIDevice;
 
 /**
- * IMidiOutput implementation that wraps a USB Host MIDIDevice.
- * The MIDIDevice pointer is set at init and can be updated on hot-plug.
+ * IMidiOutput implementation that wraps up to 4 USB Host MIDIDevices.
+ * Broadcasts output to all connected devices on the USB_HOST port.
  */
 class UsbHostMidiOutput : public IMidiOutput {
-    MIDIDevice* _device = nullptr;
 public:
-    void setDevice(MIDIDevice* device) { _device = device; }
-    MIDIDevice* getDevice() const { return _device; }
+    static constexpr uint8_t MAX_DEVICES = 4;
+    
+    void setDevice(MIDIDevice* device, uint8_t idx = 0);
+    MIDIDevice* getDevice(uint8_t idx = 0) const;
+    
+    /** Set which device to target for subsequent sends. 0xFF = all (broadcast). */
+    void setTargetDevice(uint8_t idx) { _targetDevice = idx; }
+    uint8_t getTargetDevice() const { return _targetDevice; }
+
+private:
+    MIDIDevice* _devices[MAX_DEVICES] = { nullptr, nullptr, nullptr, nullptr };
+    uint8_t _targetDevice = 0xFF;  // 0xFF = broadcast to all
 
     void sendNoteOn(uint8_t note, uint8_t velocity, uint8_t channel) override;
     void sendNoteOff(uint8_t note, uint8_t velocity, uint8_t channel) override;

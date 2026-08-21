@@ -110,6 +110,24 @@ void RTPNeoTrellis::writeSequenceSettingsPage(SequenceSettings sequenceSettings)
   uint8_t brightness = (uint8_t)(pages * 63);  // 63, 126, 189, 252
   myTrellis.pixels.setPixelColor(convertMatrix[3], myTrellis.pixels.Color(brightness, brightness, brightness));
 
+  // Pad 4 — Port: distinct color per output destination
+  {
+    const uint32_t portColors[] = {
+      0xFF0000,  // 0: Default (red / routing table)
+      0x0000FF,  // 1: USB Device (blue)
+      0x00FF00,  // 2: USB Host ALL (green)
+      0xFFFF00,  // 3: DIN (yellow)
+      0xFFFFFF,  // 4: ALL (white)
+      0x00FF40,  // 5: USB Host 1 (green-cyan)
+      0x00CC00,  // 6: USB Host 2 (darker green)
+      0x008800,  // 7: USB Host 3 (dim green)
+      0x004400   // 8: USB Host 4 (very dim green)
+    };
+    uint8_t p = sequenceSettings.port;
+    uint32_t pCol = (p <= 8) ? portColors[p] : 0x000000;
+    myTrellis.pixels.setPixelColor(convertMatrix[4], pCol);
+  }
+
   myTrellis.pixels.show();
 }
 

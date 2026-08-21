@@ -85,7 +85,7 @@ public:
   void routeNoteOnOff(uint8_t channel, uint8_t note, uint8_t velocity);
   MidiRouter& getMidiRouter() { return midiRouter; }
   UsbHostManager& getUsbHostManager() { return usbHostManager; }
-  void setUsbHostDevice(MIDIDevice* device);
+  void setUsbHostDevice(MIDIDevice* device, uint8_t idx = 0);
   void setClockOutputPorts(MidiPort destMask) { midiRouter.setClockOutputPorts(destMask); }
   MidiPort getClockOutputPorts() const { return midiRouter.getClockOutputPorts(); }
   void setClockInputSource(MidiPort sourceMask) { midiRouter.setClockInputSource(sourceMask); }

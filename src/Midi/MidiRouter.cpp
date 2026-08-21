@@ -1,4 +1,5 @@
 #include "Midi/MidiRouter.hpp"
+#include "Midi/UsbHostMidiOutput.hpp"
 
 MidiRouter::MidiRouter() : _routeCount(0) {
     for (uint8_t i = 0; i < MIDI_PORT_COUNT; i++) {
@@ -112,8 +113,16 @@ void MidiRouter::route(const MidiMessage& msg) {
 
 void MidiRouter::sendToPort(MidiPort port, const MidiMessage& msg) {
     IMidiOutput* output = _outputs[portToIndex(port)];
-    if (output && output->isReady()) {
-        dispatchToOutput(output, msg);
+    if (!output || !output->isReady()) return;
+
+    // For USB_HOST, apply per-device targeting from the message
+    if (port == MidiPort::USB_HOST) {
+        static_cast<UsbHostMidiOutput*>(output)->setTargetDevice(msg.usbHostIndex);
+    }
+    dispatchToOutput(output, msg);
+    // Reset to broadcast after send
+    if (port == MidiPort::USB_HOST) {
+        static_cast<UsbHostMidiOutput*>(output)->setTargetDevice(0xFF);
     }
 }
 

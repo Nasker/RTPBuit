@@ -19,7 +19,7 @@ RTPEventNoteSequence::RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents
   RTPParameter parameterMidiChannel = RTPParameter(1, N_MIDI_CHANNELS, midiChannel, "Midi CH");
   RTPParameter parameterColor = RTPParameter(0, N_COLORS-1, 0, "Color");
   RTPParameter parameterLenght = RTPParameter(1, N_PAGES, 0, "Lenght");
-  RTPParameter parameterPort = RTPParameter(0, 4, 0, "Port");
+  RTPParameter parameterPort = RTPParameter(0, 8, 0, "Port");
   sequenceParameters.push_back(parameterType);
   sequenceParameters.push_back(parameterMidiChannel);
   sequenceParameters.push_back(parameterColor);
@@ -83,8 +83,8 @@ void RTPEventNoteSequence::enableSequence(bool state){
 }
 
 void RTPEventNoteSequence::selectParameter(uint8_t parameterIndex){
-  if(parameterIndex >= 3)
-    parameterIndex = 3;
+  if(parameterIndex >= sequenceParameters.size() - 1)
+    parameterIndex = sequenceParameters.size() - 1;
   _selectedParameter = parameterIndex;
   Serial.printf("Selected parameter: %d\n", _selectedParameter);
 }
@@ -162,11 +162,21 @@ MidiPort RTPEventNoteSequence::getPortAsMidiPort(){
   switch(sequenceParameters[PORT].getValue()){
     case 0: return MidiPort::NONE;        // Default: use routing table
     case 1: return MidiPort::USB_DEVICE;
-    case 2: return MidiPort::USB_HOST;
+    case 2: return MidiPort::USB_HOST;    // Broadcast to all USB Host devices
     case 3: return MidiPort::DIN;
     case 4: return MidiPort::USB_DEVICE | MidiPort::USB_HOST | MidiPort::DIN;  // ALL external
+    case 5: return MidiPort::USB_HOST;    // USB Host device 1
+    case 6: return MidiPort::USB_HOST;    // USB Host device 2
+    case 7: return MidiPort::USB_HOST;    // USB Host device 3
+    case 8: return MidiPort::USB_HOST;    // USB Host device 4
     default: return MidiPort::NONE;
   }
+}
+
+uint8_t RTPEventNoteSequence::getUsbHostDeviceIndex(){
+  uint8_t port = sequenceParameters[PORT].getValue();
+  if (port >= 5 && port <= 8) return port - 5;  // 0-3
+  return 0xFF;  // broadcast
 }
 
 size_t RTPEventNoteSequence::getSequenceSize(){
@@ -274,6 +284,7 @@ void RTPEventNoteSequence::routeLiveNoteOn(uint8_t note, uint8_t velocity, uint8
     if (_router) {
         MidiMessage msg { MidiMessage::NoteOn, channel, note, velocity, MidiPort::INTERNAL };
         msg.destOverride = getPortAsMidiPort();
+        msg.usbHostIndex = getUsbHostDeviceIndex();
         _router->route(msg);
     } else if (_midiOutput) {
         _midiOutput->sendNoteOn(note, velocity, channel);
@@ -284,6 +295,7 @@ void RTPEventNoteSequence::routeLiveNoteOff(uint8_t note, uint8_t channel) {
     if (_router) {
         MidiMessage msg { MidiMessage::NoteOff, channel, note, 0, MidiPort::INTERNAL };
         msg.destOverride = getPortAsMidiPort();
+        msg.usbHostIndex = getUsbHostDeviceIndex();
         _router->route(msg);
     } else if (_midiOutput) {
         _midiOutput->sendNoteOff(note, 0, channel);
@@ -294,6 +306,7 @@ void RTPEventNoteSequence::routeLiveCC(uint8_t controller, uint8_t value, uint8_
     if (_router) {
         MidiMessage msg { MidiMessage::ControlChange, channel, controller, value, MidiPort::INTERNAL };
         msg.destOverride = getPortAsMidiPort();
+        msg.usbHostIndex = getUsbHostDeviceIndex();
         _router->route(msg);
     } else if (_midiOutput) {
         _midiOutput->sendControlChange(controller, value, channel);

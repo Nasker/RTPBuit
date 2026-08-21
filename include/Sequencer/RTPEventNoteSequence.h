@@ -94,6 +94,7 @@ public:
 	uint8_t getPort() const;
 	void setPort(uint8_t port);
 	MidiPort getPortAsMidiPort();
+	uint8_t getUsbHostDeviceIndex();
 	static void setRouter(MidiRouter* router);
 	list<RTPEventNotePlus> getEventNoteSequence();
 	const list<RTPEventNotePlus>& getEventNoteSequence() const;  // Const version for JSON serialization

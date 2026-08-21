@@ -69,6 +69,7 @@ void PolySequence::playCurrentEventNote(){
     pointIterator(_currentPosition);
     it->setMidiChannel(getMidiChannel());
     it->setDestPort(getPortAsMidiPort());
+    it->setUsbHostIndex(getUsbHostDeviceIndex());
     if(isCurrentSequenceEnabled() && it->eventState()){
         if(it->isLiteralPitch()){
             _notesPlayer.queueNote(*it);

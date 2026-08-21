@@ -12,6 +12,9 @@ RTPPeriodicBang periodicUpdate(UPDATE_PERIOD);
 MidiParser dinParser(MidiPort::DIN);
 USBHost myusb;
 MIDIDevice midi1(myusb);
+MIDIDevice midi2(myusb);
+MIDIDevice midi3(myusb);
+MIDIDevice midi4(myusb);
 
 void actOnPeriodicUpdate(String callbackString){
   mUnit.updatePeriodically();
@@ -65,21 +68,23 @@ void setup() {
   mUnit.begin();
   myusb.begin();
   
-  // Wire USB Host device into MidiRouter output and manager
-  mUnit.setUsbHostDevice(&midi1);
-  mUnit.getUsbHostManager().begin(myusb, &midi1);
+  // Wire all 4 USB Host MIDI devices into output and manager
+  MIDIDevice* midiDevices[] = { &midi1, &midi2, &midi3, &midi4 };
+  mUnit.getUsbHostManager().begin(myusb);
+  for (uint8_t i = 0; i < 4; i++) {
+    mUnit.setUsbHostDevice(midiDevices[i], i);
+    mUnit.getUsbHostManager().addDevice(midiDevices[i], i);
+    midiDevices[i]->setHandleControlChange(usbHostControlChange);
+    midiDevices[i]->setHandleNoteOn(usbHostNoteOn);
+    midiDevices[i]->setHandleNoteOff(usbHostNoteOff);
+    midiDevices[i]->setHandleRealTimeSystem(usbHostRealTime);
+  }
   
   // USB MIDI handlers (tagged as USB_DEVICE source)
   usbMIDI.setHandleRealTimeSystem(usbDeviceRealTime);
   usbMIDI.setHandleControlChange(usbDeviceControlChange);
   usbMIDI.setHandleNoteOn(usbDeviceNoteOn);
   usbMIDI.setHandleNoteOff(usbDeviceNoteOff);
-  
-  // USB Host MIDI handlers (tagged as USB_HOST source)
-  midi1.setHandleControlChange(usbHostControlChange);
-  midi1.setHandleNoteOn(usbHostNoteOn);
-  midi1.setHandleNoteOff(usbHostNoteOff);
-  midi1.setHandleRealTimeSystem(usbHostRealTime);
   
   // Hardware Serial MIDI on Serial1 (5-pin DIN) - pins 0=RX, 1=TX
   Serial1.begin(31250);  // Standard MIDI baud rate
@@ -89,7 +94,10 @@ void loop() {
   usbMIDI.read();
   mUnit.update();
   myusb.Task();
-	midi1.read();
+  midi1.read();
+  midi2.read();
+  midi3.read();
+  midi4.read();
   mUnit.getUsbHostManager().update();
   
   // Parse hardware serial MIDI (5-pin DIN on Serial1)
