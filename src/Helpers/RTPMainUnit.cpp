@@ -2,6 +2,7 @@
 #include "ControlCommand.h"
 #include "SequenceEditState.h"
 #include "BuitControlChanger.hpp"
+#include "BuitPersistenceManager.hpp"
 
 RTPMainUnit::RTPMainUnit(){
   // Create shared pointers to adapters for DeviceManager
@@ -33,6 +34,9 @@ void RTPMainUnit::begin(){
   
   // Initialize MIDI Router (must happen before sequencer uses outputs)
   initMidiRouter();
+  
+  // Load routing config from SD (clock output/input ports)
+  { BuitPersistenceManager pm; pm.loadRoutingConfig(midiRouter); }
   
   // Initialize hardware
   // Note: rtpOled is initialized via deviceManager->initialize() (DisplayManager -> adapter)

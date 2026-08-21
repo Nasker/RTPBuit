@@ -150,6 +150,10 @@ uint8_t RTPEventNoteSequence::getPort(){
   return sequenceParameters[PORT].getValue();
 }
 
+uint8_t RTPEventNoteSequence::getPort() const {
+  return sequenceParameters[PORT].getValue();
+}
+
 void RTPEventNoteSequence::setPort(uint8_t port){
   sequenceParameters[PORT].setValue(port);
 }

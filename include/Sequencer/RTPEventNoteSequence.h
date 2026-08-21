@@ -91,6 +91,7 @@ public:
 	uint8_t getParameterValue();
 	String getParameterName();
 	uint8_t getPort();
+	uint8_t getPort() const;
 	void setPort(uint8_t port);
 	MidiPort getPortAsMidiPort();
 	static void setRouter(MidiRouter* router);

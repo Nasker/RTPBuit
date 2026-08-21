@@ -6,6 +6,8 @@
 #include <ArduinoJson.h>
 #include "RTPSDManager.hpp"
 
+class MidiRouter;
+
 class BuitPersistenceManager {
 public:
     BuitPersistenceManager();
@@ -25,6 +27,10 @@ public:
     bool loadSequencerFromFile(RTPSequencer& sequencer, const String& fileName = "sequences.json");
     bool parseAndLoadSequences(RTPSequencer& sequencer, const String& jsonData);
     bool loadSequenceFromJson(RTPEventNoteSequence* sequence, const JsonObject& seqObj);
+    
+    // Routing config persistence
+    bool saveRoutingConfig(const MidiRouter& router, const String& fileName = "routing.json");
+    bool loadRoutingConfig(MidiRouter& router, const String& fileName = "routing.json");
     
     // Query methods
     bool fileExists(const String& fileName);

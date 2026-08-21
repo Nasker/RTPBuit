@@ -1,4 +1,5 @@
 #include "BuitPersistenceManager.hpp"
+#include "Midi/MidiRouter.hpp"
 
 BuitPersistenceManager::BuitPersistenceManager() {}
 
@@ -14,6 +15,7 @@ String BuitPersistenceManager::sequenceToJson(const RTPEventNoteSequence* sequen
     
     doc["t"] = sequence->getType();
     doc["c"] = sequence->getMidiChannel();
+    doc["p"] = sequence->getPort();
     
     JsonArray seq = doc["s"].to<JsonArray>();
     for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
@@ -39,6 +41,7 @@ String BuitPersistenceManager::sceneToJson(const RTPScene* scene) {
             JsonObject seqObj = sequencesArray.add<JsonObject>();
             seqObj["t"] = sequence->getType();
             seqObj["c"] = sequence->getMidiChannel();
+            seqObj["p"] = sequence->getPort();
             JsonArray seqArray = seqObj["s"].to<JsonArray>();
             for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
                 JsonObject noteObj = seqArray.add<JsonObject>();
@@ -76,6 +79,7 @@ String BuitPersistenceManager::sequencerToJson(const RTPSequencer& sequencer) {
                     JsonObject seqObj = sequencesArray.add<JsonObject>();
                     seqObj["t"] = sequence->getType();
                     seqObj["c"] = sequence->getMidiChannel();
+                    seqObj["p"] = sequence->getPort();
                     JsonArray seqArray = seqObj["s"].to<JsonArray>();
                     for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
                         JsonObject noteObj = seqArray.add<JsonObject>();
@@ -112,8 +116,10 @@ bool BuitPersistenceManager::saveSequencerToFile(const RTPSequencer& sequencer, 
 bool BuitPersistenceManager::loadSequenceFromJson(RTPEventNoteSequence* sequence, const JsonObject& seqObj) {
     int type = seqObj["t"];
     int midiChannel = seqObj["c"];
+    int port = seqObj["p"] | 0;  // Default to 0 (routing table) if missing
     sequence->setType(type);
     sequence->setMidiChannel(midiChannel);
+    sequence->setPort(port);
     sequence->clearSequence();
 
     JsonArray notesArray = seqObj["s"];
@@ -185,5 +191,42 @@ bool BuitPersistenceManager::parseAndLoadSequences(RTPSequencer& sequencer, cons
     }
     
     Serial.println("Successfully loaded sequences");
+    return true;
+}
+
+bool BuitPersistenceManager::saveRoutingConfig(const MidiRouter& router, const String& fileName) {
+    JsonDocument doc;
+    doc["clockOut"] = static_cast<uint8_t>(router.getClockOutputPorts());
+    doc["clockIn"]  = static_cast<uint8_t>(router.getClockInputSource());
+    
+    String jsonData;
+    serializeJson(doc, jsonData);
+    Serial.println("Saving routing config: " + jsonData);
+    return writeToFile(fileName, jsonData);
+}
+
+bool BuitPersistenceManager::loadRoutingConfig(MidiRouter& router, const String& fileName) {
+    String jsonData;
+    if (!readFromFile(fileName, jsonData)) {
+        Serial.println("No routing config found, using defaults");
+        return false;
+    }
+    
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, jsonData);
+    if (error) {
+        Serial.print("Routing config parse error: ");
+        Serial.println(error.c_str());
+        return false;
+    }
+    
+    if (doc.containsKey("clockOut")) {
+        router.setClockOutputPorts(static_cast<MidiPort>(doc["clockOut"].as<uint8_t>()));
+    }
+    if (doc.containsKey("clockIn")) {
+        router.setClockInputSource(static_cast<MidiPort>(doc["clockIn"].as<uint8_t>()));
+    }
+    
+    Serial.println("Routing config loaded");
     return true;
 }

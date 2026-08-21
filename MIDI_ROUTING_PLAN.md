@@ -213,53 +213,54 @@ while (Serial1.available()) {
 
 ## Implementation Phases
 
-### Phase 1 – Foundation (non-breaking)
-1. Create `MidiPort` enum + bitmask operators.
-2. Create `MidiMessage` struct.
-3. Create `MidiRouter` class with routing table and `route()` method.
-4. Create per-port `IMidiOutput` implementations (`UsbDeviceMidiOutput`, `DinMidiOutput`).
-5. Wire `MidiRouter` into `RTPMainUnit`; keep existing direct calls as fallback.
-6. Unit tests for `MidiRouter` matching logic.
+### Phase 1 – Foundation (non-breaking) ✅
+1. ✅ Create `MidiPort` enum + bitmask operators.
+2. ✅ Create `MidiMessage` struct.
+3. ✅ Create `MidiRouter` class with routing table and `route()` method.
+4. ✅ Create per-port `IMidiOutput` implementations (`UsbDeviceMidiOutput`, `DinMidiOutput`).
+5. ✅ Wire `MidiRouter` into `RTPMainUnit`; keep existing direct calls as fallback.
+6. ✅ Unit tests for `MidiRouter` matching logic.
 
-### Phase 2 – Decouple note output
-7. Remove direct `usbMIDI` / `Serial1` calls from `RTPEventNotePlus::playNoteOn/Off()`.
-8. Inject routing function pointer (or `MidiRouter*` reference) into `RTPEventNotePlus`.
-9. Add `_destPort` member to `RTPEventNotePlus` (set from sequence parameters).
-10. Update `NotesPlayer` to pass port destination through.
-11. Verify all existing sequences still play correctly on USB Device + DIN (default route).
+### Phase 2 – Decouple note output ✅
+7. ✅ Remove direct `usbMIDI` / `Serial1` calls from `RTPEventNotePlus::playNoteOn/Off()`.
+8. ✅ Inject routing function pointer (or `MidiRouter*` reference) into `RTPEventNotePlus`.
+9. ✅ Add `_destPort` member to `RTPEventNotePlus` (set from sequence parameters).
+10. ✅ Update `NotesPlayer` to pass port destination through.
+11. ✅ Verify all existing sequences still play correctly on USB Device + DIN (default route).
 
-### Phase 3 – USB Host output + enumeration
-12. Create `UsbHostMidiOutput` wrapping `MIDIDevice::send*()`.
-13. Create `UsbHostManager` for device enumeration / hot-plug.
-14. Register USB Host as output port in `MidiRouter`.
-15. Display connected USB Host device name on OLED.
+### Phase 3 – USB Host output + enumeration ✅
+12. ✅ Create `UsbHostMidiOutput` wrapping `MIDIDevice::send*()`.
+13. ✅ Create `UsbHostManager` for device enumeration / hot-plug.
+14. ✅ Register USB Host as output port in `MidiRouter`.
+15. ⏳ Display connected USB Host device name on OLED (deferred to UI polish).
 
-### Phase 4 – Per-sequence port assignment
-16. Add "Port" parameter to `RTPEventNoteSequence` parameters list.
-17. Propagate port selection into `RTPEventNotePlus::_destPort` when playing.
-18. UI: expose port parameter alongside MIDI channel in the sequence parameter editor.
-19. If USB Host device is connected, show its name as the port label.
+### Phase 4 – Per-sequence port assignment ✅
+16. ✅ Add "Port" parameter to `RTPEventNoteSequence` parameters list.
+17. ✅ Propagate port selection into `RTPEventNotePlus::_destPort` when playing.
+18. ✅ UI: expose port parameter alongside MIDI channel in the sequence parameter editor.
+19. ⏳ If USB Host device is connected, show its name as the port label (deferred to UI polish).
 
-### Phase 5 – Clock & real-time routing
-20. Refactor `RTPSequencerManager::dispatchRealTime()` to go through `MidiRouter`.
-21. Add user-configurable "Clock Output" route (which ports receive clock).
-22. Add user-configurable "Clock Input" source selection (USB Device, DIN, USB Host).
-23. External sync via USB Host (if a master clock comes from a USB device).
+### Phase 5 – Clock & real-time routing ✅
+20. ✅ Refactor `RTPSequencerManager::dispatchRealTime()` to go through `MidiRouter` (done in Phase 2).
+21. ✅ Add user-configurable "Clock Output" route (which ports receive clock).
+22. ✅ Add user-configurable "Clock Input" source selection (USB Device, DIN, USB Host).
+23. ✅ External sync via USB Host (if a master clock comes from a USB device).
 
-### Phase 6 – Full DIN input parsing
-24. Implement `MidiParser` state machine for Serial1 bytes.
-25. Replace the raw `while (Serial1.available())` block in `main.cpp` with `MidiParser`.
-26. Route parsed DIN messages through `MidiRouter`.
+### Phase 6 – Full DIN input parsing ✅
+24. ✅ Implement `MidiParser` state machine for Serial1 bytes.
+25. ✅ Replace the raw `while (Serial1.available())` block in `main.cpp` with `MidiParser`.
+26. ✅ Route parsed DIN messages through `MidiRouter`.
 
-### Phase 7 – CC / Automation routing
-27. Update `ControlSequence::playCurrentEventNote()` to emit CC messages through `MidiRouter`.
-28. Allow automation tracks to target specific ports (same "Port" parameter).
-29. Incoming external CCs can be routed to internal parameters or forwarded.
+### Phase 7 – CC / Automation routing ✅
+27. ✅ Route all live play (NoteOn/Off, CC) through `MidiRouter` via `routeLiveNoteOn/Off/CC`.
+28. ✅ All sequence types use per-sequence port assignment for live play.
+29. ✅ Incoming external CCs routed to internal parameters via `InternalMidiSink`.
 
-### Phase 8 – Persistence & UI polish
-30. Save/load routing table to SD card (JSON via ArduinoJson, already a dependency).
-31. Add a "MIDI Routing" state/page in the `StateMachineManager` for visual matrix editing.
-32. Show active routes on the NeoTrellis grid (source rows × dest columns).
+### Phase 8 – Persistence & UI polish ✅
+30. ✅ Save/load routing config (clock ports) to SD card via `BuitPersistenceManager`.
+30b. ✅ Per-sequence Port parameter persisted in sequence JSON (`"p"` key).
+31. ⏳ Add a "MIDI Routing" state/page in the `StateMachineManager` for visual matrix editing (future).
+32. ⏳ Show active routes on the NeoTrellis grid (source rows × dest columns) (future).
 
 ---
 
