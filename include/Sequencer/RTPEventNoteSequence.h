@@ -98,6 +98,8 @@ public:
 	uint8_t getInput();
 	uint8_t getInput() const;
 	void setInput(uint8_t input);
+	uint8_t getLength() const;
+	void setLength(uint8_t length);
 	bool acceptsInput(uint8_t srcPort, uint8_t srcDevice);
 	static void setRouter(MidiRouter* router);
 	list<RTPEventNotePlus> getEventNoteSequence();

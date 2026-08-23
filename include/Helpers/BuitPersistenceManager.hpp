@@ -26,6 +26,7 @@ public:
     // Loading methods
     bool loadSequencerFromFile(RTPSequencer& sequencer, const String& fileName = "sequences.json");
     bool parseAndLoadSequences(RTPSequencer& sequencer, const String& jsonData);
+    bool parseAndLoadSequences(RTPSequencer& sequencer, File& file);
     bool loadSequenceFromJson(RTPEventNoteSequence* sequence, const JsonObject& seqObj);
     
     // Routing config persistence
@@ -34,4 +35,7 @@ public:
     
     // Query methods
     bool fileExists(const String& fileName);
+
+private:
+    bool parseAndLoadFromDoc(RTPSequencer& sequencer, JsonDocument& doc);
 };

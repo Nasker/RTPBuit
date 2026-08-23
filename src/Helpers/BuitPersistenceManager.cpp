@@ -17,6 +17,7 @@ String BuitPersistenceManager::sequenceToJson(const RTPEventNoteSequence* sequen
     doc["c"] = sequence->getMidiChannel();
     doc["p"] = sequence->getPort();
     doc["i"] = sequence->getInput();
+    doc["l"] = sequence->getLength();
     
     JsonArray seq = doc["s"].to<JsonArray>();
     for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
@@ -44,6 +45,7 @@ String BuitPersistenceManager::sceneToJson(const RTPScene* scene) {
             seqObj["c"] = sequence->getMidiChannel();
             seqObj["p"] = sequence->getPort();
             seqObj["i"] = sequence->getInput();
+            seqObj["l"] = sequence->getLength();
             JsonArray seqArray = seqObj["s"].to<JsonArray>();
             for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
                 JsonObject noteObj = seqArray.add<JsonObject>();
@@ -83,6 +85,7 @@ String BuitPersistenceManager::sequencerToJson(const RTPSequencer& sequencer) {
                     seqObj["c"] = sequence->getMidiChannel();
                     seqObj["p"] = sequence->getPort();
                     seqObj["i"] = sequence->getInput();
+                    seqObj["l"] = sequence->getLength();
                     JsonArray seqArray = seqObj["s"].to<JsonArray>();
                     for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
                         JsonObject noteObj = seqArray.add<JsonObject>();
@@ -117,21 +120,35 @@ bool BuitPersistenceManager::saveSequencerToFile(const RTPSequencer& sequencer, 
 }
 
 bool BuitPersistenceManager::loadSequenceFromJson(RTPEventNoteSequence* sequence, const JsonObject& seqObj) {
-    int type = seqObj["t"];
-    int midiChannel = seqObj["c"];
-    int port = seqObj["p"] | 0;  // Default to 0 (routing table) if missing
-    int input = seqObj["i"] | 0; // Default to 0 (Any) if missing
+    // Support both current (t/c/p/i/l/s/r/v/l) and legacy (type/ch/seq/read/vel/len) keys
+    int type = seqObj["t"].is<int>() ? seqObj["t"].as<int>() : seqObj["type"].as<int>();
+    int midiChannel = seqObj["c"].is<int>() ? seqObj["c"].as<int>() : seqObj["ch"].as<int>();
+    int port = seqObj["p"].is<int>() ? seqObj["p"].as<int>() : 0;
+    int input = seqObj["i"].is<int>() ? seqObj["i"].as<int>() : 0;
     sequence->setType(type);
     sequence->setMidiChannel(midiChannel);
     sequence->setPort(port);
     sequence->setInput(input);
+
+    JsonArray notesArray;
+    if (seqObj["s"].is<JsonArray>()) {
+        notesArray = seqObj["s"].as<JsonArray>();
+    } else {
+        notesArray = seqObj["seq"].as<JsonArray>();
+    }
+    // Backward compat: derive length from note count if not stored
+    int length = seqObj["l"] | 0;
+    if (length < 1) {
+        length = (notesArray.size() + SEQ_BLOCK_SIZE - 1) / SEQ_BLOCK_SIZE;
+        if (length < 1) length = 1;
+    }
+    sequence->setLength(length);
     sequence->clearSequence();
 
-    JsonArray notesArray = seqObj["s"];
     for (JsonObject noteObj : notesArray) {
-        int read = noteObj["r"];
-        int velocity = noteObj["v"];
-        int length = noteObj["l"];
+        int read = noteObj["r"].is<int>() ? noteObj["r"].as<int>() : noteObj["read"].as<int>();
+        int velocity = noteObj["v"].is<int>() ? noteObj["v"].as<int>() : noteObj["vel"].as<int>();
+        int length = noteObj["l"].is<int>() ? noteObj["l"].as<int>() : noteObj["len"].as<int>();
         bool isActive = velocity > 0;
         RTPEventNotePlus eventNote(midiChannel, false, read, 0);
         eventNote.setEventRead(read);
@@ -141,41 +158,34 @@ bool BuitPersistenceManager::loadSequenceFromJson(RTPEventNoteSequence* sequence
             eventNote.setEventVelocity(velocity);
         sequence->addEventNote(eventNote);
     }
+
+    // Ensure the event vector size matches the configured length
+    size_t expectedSize = (size_t)sequence->getLength() * SEQ_BLOCK_SIZE;
+    if (expectedSize > 0) {
+        sequence->resizeSequence(expectedSize);
+    }
     
     return true;
 }
 
-bool BuitPersistenceManager::loadSequencerFromFile(RTPSequencer& sequencer, const String& fileName) {
-    String jsonData;
-    Serial.println("Loading sequences from file: " + fileName);
-    
-    if (!readFromFile(fileName, jsonData)) {
-        Serial.println("Failed to read sequences file");
-        return false;
+bool BuitPersistenceManager::parseAndLoadFromDoc(RTPSequencer& sequencer, JsonDocument& doc) {
+    JsonArray scenesArray;
+    if (doc["sc"].is<JsonArray>()) {
+        scenesArray = doc["sc"].as<JsonArray>();
+    } else {
+        scenesArray = doc["scenes"].as<JsonArray>();
     }
-    
-    Serial.println("Loaded JSON data, now parsing");
-    return parseAndLoadSequences(sequencer, jsonData);
-}
-
-bool BuitPersistenceManager::parseAndLoadSequences(RTPSequencer& sequencer, const String& jsonData) {
-    sequencer.stopAndCleanSequencer();
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, jsonData);
-    
-    if (error) {
-        Serial.print("deserializeJson() failed: ");
-        Serial.println(error.c_str());
-        return false;
-    }
-    
-    JsonArray scenesArray = doc["sc"].as<JsonArray>();
     int numScenes = sequencer.getNumScenes();
     int scenesToProcess = min(numScenes, (int)scenesArray.size());
     
     for (int sceneIdx = 0; sceneIdx < scenesToProcess; sceneIdx++) {
         JsonObject sceneObj = scenesArray[sceneIdx];
-        JsonArray sequencesArray = sceneObj["q"].as<JsonArray>();
+        JsonArray sequencesArray;
+        if (sceneObj["q"].is<JsonArray>()) {
+            sequencesArray = sceneObj["q"].as<JsonArray>();
+        } else {
+            sequencesArray = sceneObj["sequences"].as<JsonArray>();
+        }
         
         // Get a handle to the current scene
         RTPScene* scene = sequencer.getScene(sceneIdx);
@@ -197,6 +207,45 @@ bool BuitPersistenceManager::parseAndLoadSequences(RTPSequencer& sequencer, cons
     
     Serial.println("Successfully loaded sequences");
     return true;
+}
+
+bool BuitPersistenceManager::loadSequencerFromFile(RTPSequencer& sequencer, const String& fileName) {
+    Serial.println("Loading sequences from file: " + fileName);
+    
+    File file = openFileForRead(fileName);
+    if (!file) {
+        Serial.println("Failed to open sequences file");
+        return false;
+    }
+    
+    Serial.println("Opened file stream, now parsing");
+    return parseAndLoadSequences(sequencer, file);
+}
+
+bool BuitPersistenceManager::parseAndLoadSequences(RTPSequencer& sequencer, const String& jsonData) {
+    sequencer.stopAndCleanSequencer();
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, jsonData);
+    
+    if (error) {
+        Serial.print("deserializeJson() failed: ");
+        Serial.println(error.c_str());
+        return false;
+    }
+    return parseAndLoadFromDoc(sequencer, doc);
+}
+
+bool BuitPersistenceManager::parseAndLoadSequences(RTPSequencer& sequencer, File& file) {
+    sequencer.stopAndCleanSequencer();
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, file);
+    
+    if (error) {
+        Serial.print("deserializeJson() failed: ");
+        Serial.println(error.c_str());
+        return false;
+    }
+    return parseAndLoadFromDoc(sequencer, doc);
 }
 
 bool BuitPersistenceManager::saveRoutingConfig(const MidiRouter& router, const String& fileName) {

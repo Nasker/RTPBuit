@@ -54,3 +54,13 @@ bool readFromFile(String fileName, String &data) {
     }
     return true;
 }
+
+File openFileForRead(const String& fileName) {
+    File file = SD.open(fileName.c_str(), FILE_READ);
+    if (file) {
+        Serial.println("Opened file stream: " + fileName);
+    } else {
+        Serial.println("Error opening file stream: " + fileName);
+    }
+    return file;
+}

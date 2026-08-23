@@ -193,6 +193,16 @@ void RTPEventNoteSequence::setInput(uint8_t input){
   sequenceParameters[INPUT_PORT].setValue(input);
 }
 
+uint8_t RTPEventNoteSequence::getLength() const {
+  return sequenceParameters[LENGTH].getValue();
+}
+
+void RTPEventNoteSequence::setLength(uint8_t length){
+  if (length < 1) length = 1;
+  if (length > N_PAGES) length = N_PAGES;
+  sequenceParameters[LENGTH].setValue(length);
+}
+
 bool RTPEventNoteSequence::acceptsInput(uint8_t srcPort, uint8_t srcDevice){
   uint8_t inp = sequenceParameters[INPUT_PORT].getValue();
   if (inp == 0) return true;  // Any — accept everything
