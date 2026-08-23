@@ -197,7 +197,7 @@ void BuitDevicesManager::showSequence(){
     int midiChannel = _sequencer.getMidiChannel();
     
     int currentPage = _sequencer.getCurrentPage() + 1;
-    int totalPages = 4; // Assuming 4 pages total
+    int totalPages = _concreteSequencer.getSelectedSequenceSettings().lenght;
     
     // Determine display state
     SequenceDisplayState state = getSequenceDisplayState();
@@ -555,7 +555,7 @@ SequenceDisplayState BuitDevicesManager::getSequenceDisplayState(){
         // Sequencer thinks it's recording but recorder is not yet active (shouldn't happen, but handle it)
         return SequenceDisplayState::Waiting;
     } else {
-        return SequenceDisplayState::Playing;
+        return _sequencer.isPlaying() ? SequenceDisplayState::Playing : SequenceDisplayState::Stopped;
     }
 }
 

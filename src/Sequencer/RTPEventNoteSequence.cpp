@@ -309,6 +309,8 @@ String RTPEventNoteSequence::dumpSequenceToJson(){
 }
 
 void RTPEventNoteSequence::pointIterator(uint16_t position){
+  if (position >= EventNoteSequence.size())
+    position = EventNoteSequence.size() - 1;
   it = EventNoteSequence.begin();
   advance(it, position);
 }
