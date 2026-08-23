@@ -191,15 +191,17 @@ RTPSequenceNoteStates RTPSequencer::getSelectedSequenceNoteStates() {
     return Sequencer[_selectedScene]->getSequenceNoteStates();
 }
 
-void RTPSequencer::nudgePageInSelectedSequence(ControlCommand command) {
+bool RTPSequencer::nudgePageInSelectedSequence(ControlCommand command) {
+    uint8_t pageBefore = getCurrentPage();
     switch (command.commandType) {
         case ROTATING_LEFT:
             Sequencer[_selectedScene]->decselectPageInSequence();
-            return;
+            break;
         case ROTATING_RIGHT:
             Sequencer[_selectedScene]->incselectPageInSequence();
-            return;
+            break;
     }
+    return getCurrentPage() != pageBefore;
 }
 
 void RTPSequencer::editNoteInCurrentPosition(ControlCommand command) {
@@ -314,7 +316,7 @@ void RTPSequencer::nextPage() {
     cmd.controlType = 0;
     cmd.commandType = ROTATING_RIGHT;
     cmd.value = 0;
-    nudgePageInSelectedSequence(cmd);
+    (void)nudgePageInSelectedSequence(cmd);
 }
 
 void RTPSequencer::previousPage() {
@@ -322,5 +324,5 @@ void RTPSequencer::previousPage() {
     cmd.controlType = 0;
     cmd.commandType = ROTATING_LEFT;
     cmd.value = 0;
-    nudgePageInSelectedSequence(cmd);
+    (void)nudgePageInSelectedSequence(cmd);
 }

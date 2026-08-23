@@ -55,7 +55,7 @@ public:
   void selectSequence(uint8_t sequenceIndex) override;
   RTPSequenceNoteStates getSelectedSequenceNoteStates();
   void toggleNoteInSceneInSelectedSequence(uint16_t position);
-  void nudgePageInSelectedSequence(ControlCommand command);
+  bool nudgePageInSelectedSequence(ControlCommand command);
   void editNoteInCurrentPosition(ControlCommand command);
   uint16_t getSelectedSequenceSize();
   uint32_t getSelectedSequenceColor();

@@ -45,7 +45,6 @@ protected:
 	bool _isRecording;
 	size_t _currentPosition;
 	uint8_t _selectedParameter;
-	uint8_t _pages;
 	uint8_t _selectedPage;
 public:
 	RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents, uint8_t type, uint8_t baseNote, NotesPlayer& notesPlayer, MusicManager& musicManager);

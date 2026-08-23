@@ -33,7 +33,6 @@ RTPEventNoteSequence::RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents
   _isEnabled = true;
   _selectedParameter = 0;
   _selectedPage = 0;
-  _pages = ceil(NEvents / SEQ_BLOCK_SIZE);
   for(uint16_t i=0; i < NEvents; i++){
     RTPEventNotePlus eventNote = RTPEventNotePlus(midiChannel, false, _baseNote , 80); // true, 60, 80
     addEventNote(eventNote);
