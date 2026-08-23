@@ -65,11 +65,15 @@ void RTPSequencer::toggleSelectedSequenceRecording() {
 }
 
 void RTPSequencer::selectScene(uint8_t scene) {
-    _selectedScene = scene;
+    if (Sequencer.empty()) {
+        _selectedScene = 0;
+        return;
+    }
+    _selectedScene = (scene < Sequencer.size()) ? scene : (uint8_t)(Sequencer.size() - 1);
 }
 
 void RTPSequencer::increaseSelectedScene() {
-    if (_selectedScene < _NScenes - 1)
+    if (_selectedScene + 1 < Sequencer.size())
         _selectedScene++;
 }
 
@@ -90,15 +94,11 @@ void RTPSequencer::addDynamicScene() {
     if (_isPlaying) return;
     RTPScene* scene = new RTPScene("Scene", SCENE_BLOCK_SIZE, _notesPlayer, _musicManager);
     Sequencer.push_back(scene);
+    _selectedScene = (uint8_t)(Sequencer.size() - 1);
 }
 
 void RTPSequencer::removeCurrentScene() {
-    if (_isPlaying) return;
-    if (Sequencer.size() <= 1) return;
-    delete Sequencer[_selectedScene];
-    Sequencer.erase(Sequencer.begin() + _selectedScene);
-    if (_selectedScene >= Sequencer.size())
-        _selectedScene = (uint8_t)(Sequencer.size() - 1);
+    removeScene(_selectedScene);
 }
 
 void RTPSequencer::removeScene(uint8_t scene) {
@@ -107,6 +107,8 @@ void RTPSequencer::removeScene(uint8_t scene) {
     if (scene >= Sequencer.size()) return;
     delete Sequencer[scene];
     Sequencer.erase(Sequencer.begin() + scene);
+    if (_selectedScene > scene)
+        _selectedScene--;
     if (_selectedScene >= Sequencer.size())
         _selectedScene = (uint8_t)(Sequencer.size() - 1);
 }
