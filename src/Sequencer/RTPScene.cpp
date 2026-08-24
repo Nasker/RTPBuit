@@ -217,6 +217,10 @@ uint32_t RTPScene::getSequenceColor() {
   return colorMapper(SequencerScene[_selectedSequence]->getColor());
 }
 
+String RTPScene::getName() const {
+  return _name;
+}
+
 void RTPScene::dumpSequencesToJson() {
   String fileString;
   for (const auto& sequence : SequencerScene)

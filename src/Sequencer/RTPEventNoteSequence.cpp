@@ -33,10 +33,7 @@ RTPEventNoteSequence::RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents
   _isEnabled = true;
   _selectedParameter = 0;
   _selectedPage = 0;
-  for(uint16_t i=0; i < NEvents; i++){
-    RTPEventNotePlus eventNote = RTPEventNotePlus(midiChannel, false, _baseNote , 80); // true, 60, 80
-    addEventNote(eventNote);
-  }
+  EventNoteSequence.resize(NEvents, RTPEventNotePlus(midiChannel, false, _baseNote, 80));
 }
 
 void RTPEventNoteSequence::clearSequence(){
@@ -272,16 +269,7 @@ void RTPEventNoteSequence::editNoteInSequence(size_t position, uint8_t note, uin
 }
 
 void RTPEventNoteSequence::resizeSequence(size_t newSize){
-  if(newSize > EventNoteSequence.size()){
-    for(size_t i=EventNoteSequence.size(); i < newSize; i++){
-      RTPEventNotePlus eventNote = RTPEventNotePlus(sequenceParameters[MIDI_CHANNEL].getValue(),false, 60, 80);
-      EventNoteSequence.push_back(eventNote);
-    }
-  }
-  else if(newSize < EventNoteSequence.size()){
-    while(EventNoteSequence.size() > newSize)
-      EventNoteSequence.pop_back();
-  }
+  EventNoteSequence.resize(newSize, RTPEventNotePlus(sequenceParameters[MIDI_CHANNEL].getValue(), false, _baseNote, 80));
 }
 
 uint16_t RTPEventNoteSequence::pageOffset(){
@@ -292,11 +280,11 @@ uint8_t RTPEventNoteSequence::page(){
   return _selectedPage;
 }
 
-list<RTPEventNotePlus> RTPEventNoteSequence::getEventNoteSequence(){
+vector<RTPEventNotePlus>& RTPEventNoteSequence::getEventNoteSequence(){
   return EventNoteSequence;
 }
 
-const list<RTPEventNotePlus>& RTPEventNoteSequence::getEventNoteSequence() const {
+const vector<RTPEventNotePlus>& RTPEventNoteSequence::getEventNoteSequence() const {
   return EventNoteSequence;
 }
 
@@ -320,8 +308,7 @@ String RTPEventNoteSequence::dumpSequenceToJson(){
 void RTPEventNoteSequence::pointIterator(uint16_t position){
   if (position >= EventNoteSequence.size())
     position = EventNoteSequence.size() - 1;
-  it = EventNoteSequence.begin();
-  advance(it, position);
+  it = EventNoteSequence.begin() + position;
 }
 
 void RTPEventNoteSequence::routeLiveNoteOn(uint8_t note, uint8_t velocity, uint8_t channel) {

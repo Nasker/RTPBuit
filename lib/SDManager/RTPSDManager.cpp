@@ -64,3 +64,13 @@ File openFileForRead(const String& fileName) {
     }
     return file;
 }
+
+File openFileForWrite(const String& fileName) {
+    File file = SD.open(fileName.c_str(), FILE_WRITE_BEGIN);
+    if (file) {
+        Serial.println("Opened file stream for write: " + fileName);
+    } else {
+        Serial.println("Error opening file stream for write: " + fileName);
+    }
+    return file;
+}

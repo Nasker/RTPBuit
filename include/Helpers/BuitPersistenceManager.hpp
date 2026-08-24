@@ -38,4 +38,8 @@ public:
 
 private:
     bool parseAndLoadFromDoc(RTPSequencer& sequencer, JsonDocument& doc);
+    bool saveSequencerToBinary(const RTPSequencer& sequencer, const String& fileName);
+    bool loadSequencerFromBinary(RTPSequencer& sequencer, File& file);
+    bool saveSequenceToBinary(RTPEventNoteSequence* sequence, File& file);
+    bool loadSequenceFromBinary(RTPEventNoteSequence* sequence, File& file);
 };

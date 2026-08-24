@@ -51,6 +51,7 @@ public:
   void editNoteInCurrentPosition(ControlCommand command);
   RTPSequenceNoteStates getSequenceNoteStates();
   uint32_t getSequenceColor();
+  String getName() const;
   void dumpSequencesToJson();
   
   void setMidiOutput(IMidiOutput* midiOutput);

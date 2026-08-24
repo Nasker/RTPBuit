@@ -114,9 +114,8 @@ bool BuitPersistenceManager::saveSceneToFile(const RTPScene* scene, const String
 }
 
 bool BuitPersistenceManager::saveSequencerToFile(const RTPSequencer& sequencer, const String& fileName) {
-    String jsonData = sequencerToJson(sequencer);
     Serial.println("Saving sequences to file: " + fileName);
-    return writeToFile(fileName, jsonData);
+    return saveSequencerToBinary(sequencer, fileName);
 }
 
 bool BuitPersistenceManager::loadSequenceFromJson(RTPEventNoteSequence* sequence, const JsonObject& seqObj) {
@@ -218,7 +217,14 @@ bool BuitPersistenceManager::loadSequencerFromFile(RTPSequencer& sequencer, cons
         return false;
     }
     
-    Serial.println("Opened file stream, now parsing");
+    char magic[4];
+    if (file.readBytes(magic, 4) == 4 && magic[0] == 'R' && magic[1] == 'T' && magic[2] == 'P' && magic[3] == '0') {
+        file.seek(0);
+        Serial.println("Opened binary file stream");
+        return loadSequencerFromBinary(sequencer, file);
+    }
+    file.seek(0);
+    Serial.println("Opened JSON file stream");
     return parseAndLoadSequences(sequencer, file);
 }
 
@@ -246,6 +252,111 @@ bool BuitPersistenceManager::parseAndLoadSequences(RTPSequencer& sequencer, File
         return false;
     }
     return parseAndLoadFromDoc(sequencer, doc);
+}
+
+bool BuitPersistenceManager::saveSequenceToBinary(RTPEventNoteSequence* sequence, File& file) {
+    uint8_t header[8];
+    header[0] = sequence->getType();
+    header[1] = sequence->getMidiChannel();
+    header[2] = (uint8_t)(sequence->getColor() & 0xFFu);
+    header[3] = sequence->getLength();
+    header[4] = sequence->getInput();
+    header[5] = sequence->getPort();
+    uint16_t nNotes = (uint16_t)sequence->getEventNoteSequence().size();
+    header[6] = (uint8_t)(nNotes & 0xFFu);
+    header[7] = (uint8_t)((nNotes >> 8) & 0xFFu);
+    file.write(header, sizeof(header));
+    for (const RTPEventNotePlus& note : sequence->getEventNoteSequence()) {
+        uint32_t low = note.getPackedLow();
+        uint32_t high = note.getPackedHigh();
+        file.write(&low, sizeof(low));
+        file.write(&high, sizeof(high));
+    }
+    return true;
+}
+
+bool BuitPersistenceManager::loadSequenceFromBinary(RTPEventNoteSequence* sequence, File& file) {
+    uint8_t header[8];
+    if (file.readBytes((char*)header, sizeof(header)) != sizeof(header)) return false;
+    sequence->setType(header[0]);
+    sequence->setMidiChannel(header[1]);
+    sequence->setColor(header[2]);
+    sequence->setLength(header[3]);
+    sequence->setInput(header[4]);
+    sequence->setPort(header[5]);
+    uint16_t nNotes = (uint16_t)header[6] | ((uint16_t)header[7] << 8);
+    sequence->clearSequence();
+    sequence->resizeSequence(nNotes);
+    auto& notes = sequence->getEventNoteSequence();
+    for (uint16_t i = 0; i < nNotes; i++) {
+        uint32_t low, high;
+        if (file.readBytes((char*)&low, sizeof(low)) != sizeof(low)) return false;
+        if (file.readBytes((char*)&high, sizeof(high)) != sizeof(high)) return false;
+        notes[i].setPacked(low, high);
+    }
+    return true;
+}
+
+bool BuitPersistenceManager::saveSequencerToBinary(const RTPSequencer& sequencer, const String& fileName) {
+    File file = openFileForWrite(fileName);
+    if (!file) {
+        Serial.println("Error opening file for binary write");
+        return false;
+    }
+    uint8_t header[8];
+    header[0] = 'R'; header[1] = 'T'; header[2] = 'P'; header[3] = '0';
+    header[4] = 1; // version
+    header[5] = (uint8_t)sequencer.getNumScenes();
+    header[6] = (uint8_t)SCENE_BLOCK_SIZE;
+    header[7] = 0;
+    file.write(header, sizeof(header));
+    int numScenes = sequencer.getNumScenes();
+    for (int i = 0; i < numScenes; i++) {
+        RTPScene* scene = sequencer.getScene(i);
+        if (!scene) continue;
+        String name = scene->getName();
+        uint8_t nameLen = (uint8_t)name.length();
+        if (nameLen > 255) nameLen = 255;
+        file.write(&nameLen, 1);
+        file.write((const uint8_t*)name.c_str(), nameLen);
+        uint8_t nSeq = scene->getSize();
+        file.write(&nSeq, 1);
+        for (uint8_t j = 0; j < nSeq; j++) {
+            RTPEventNoteSequence* sequence = scene->getSequence(j);
+            if (!sequence) continue;
+            saveSequenceToBinary(sequence, file);
+        }
+    }
+    file.close();
+    Serial.println("Saved binary sequences");
+    return true;
+}
+
+bool BuitPersistenceManager::loadSequencerFromBinary(RTPSequencer& sequencer, File& file) {
+    sequencer.stopAndCleanSequencer();
+    uint8_t header[8];
+    if (file.readBytes((char*)header, sizeof(header)) != sizeof(header)) return false;
+    if (header[0] != 'R' || header[1] != 'T' || header[2] != 'P' || header[3] != '0') return false;
+    if (header[4] != 1) return false;
+    uint8_t nScenes = header[5];
+    int numScenes = min((int)nScenes, (int)sequencer.getNumScenes());
+    for (int i = 0; i < numScenes; i++) {
+        RTPScene* scene = sequencer.getScene(i);
+        if (!scene) continue;
+        uint8_t nameLen;
+        if (file.readBytes((char*)&nameLen, 1) != 1) return false;
+        if (nameLen > 0) file.seek(file.position() + nameLen);
+        uint8_t nSeq;
+        if (file.readBytes((char*)&nSeq, 1) != 1) return false;
+        int seqCount = min((int)nSeq, (int)scene->getSize());
+        for (int j = 0; j < seqCount; j++) {
+            RTPEventNoteSequence* sequence = scene->getSequence(j);
+            if (!sequence) continue;
+            if (!loadSequenceFromBinary(sequence, file)) return false;
+        }
+    }
+    Serial.println("Successfully loaded binary sequences");
+    return true;
 }
 
 bool BuitPersistenceManager::saveRoutingConfig(const MidiRouter& router, const String& fileName) {

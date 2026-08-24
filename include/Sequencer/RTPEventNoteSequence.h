@@ -9,7 +9,6 @@
 #include "MusicManager.hpp"
 #include "Arduino.h"
 #include <vector>
-#include <list>
 #include <queue>
 #include "Structs.h"
 #include "ControlCommand.h"
@@ -35,11 +34,11 @@ enum SequenceParametersIndex{
 class RTPEventNoteSequence{
 protected:
 	IMidiOutput* _midiOutput = nullptr;
-	list<RTPEventNotePlus> EventNoteSequence;
+	vector<RTPEventNotePlus> EventNoteSequence;
 	vector<RTPParameter> sequenceParameters;
 	NotesPlayer& _notesPlayer;
 	MusicManager& _musicManager;
-	list<RTPEventNotePlus>::iterator it;
+	vector<RTPEventNotePlus>::iterator it;
 	uint8_t _baseNote;
 	bool _isEnabled;
 	bool _isRecording;
@@ -102,8 +101,8 @@ public:
 	void setLength(uint8_t length);
 	bool acceptsInput(uint8_t srcPort, uint8_t srcDevice);
 	static void setRouter(MidiRouter* router);
-	list<RTPEventNotePlus> getEventNoteSequence();
-	const list<RTPEventNotePlus>& getEventNoteSequence() const;  // Const version for JSON serialization
+	vector<RTPEventNotePlus>& getEventNoteSequence();
+	const vector<RTPEventNotePlus>& getEventNoteSequence() const;  // Const version for JSON serialization
 	String dumpSequenceToJson();
 	uint8_t page();
 	uint16_t pageOffset();
