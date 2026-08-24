@@ -11,6 +11,8 @@ RTPMainUnit mUnit;
 RTPPeriodicBang periodicUpdate(UPDATE_PERIOD);
 MidiParser dinParser(MidiPort::DIN);
 USBHost myusb;
+USBHub hub1(myusb);
+USBHub hub2(myusb);
 MIDIDevice midi1(myusb);
 MIDIDevice midi2(myusb);
 MIDIDevice midi3(myusb);
