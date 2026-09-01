@@ -8,6 +8,7 @@ public:
   void setTypeSpecificColor() override;
   void playCurrentEventNote() override;
   void editNoteInCurrentPosition(ControlCommand command) override;
+  void playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType) override;
 private:
   int _countTracker = 0;
   static const int N_COUNTS = 4;

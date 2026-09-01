@@ -1,4 +1,5 @@
 #include "HarmonySequence.hpp"
+#include "constants.h"
 
 HarmonySequence::HarmonySequence(int midiChannel, int NEvents, int type, int baseNote, NotesPlayer& notesPlayer, MusicManager& musicManager):
   RTPEventNoteSequence(midiChannel, NEvents, type, baseNote, notesPlayer, musicManager){
@@ -33,13 +34,24 @@ void HarmonySequence::playCurrentEventNote(){
 }
 
 void HarmonySequence::editNoteInCurrentPosition(ControlCommand command){
-    if(command.controlType == MIDI_CC){
-        if(command.commandType > 11)
-            return;
-        Serial.printf("<<<<<<Editting Harmony with %d %d\n\r", command.commandType,
-        command.value);
-        pointIterator(_currentPosition);
-        it->setEventRead(command.commandType);
-        it->setEventVelocity(command.value);
+  if(command.controlType == THREE_AXIS){
+    pointIterator(_currentPosition);
+    switch(command.commandType){
+      case CHANGE_LEFT:
+          it->setEventRead(command.value);
+          return;
+      case CHANGE_RIGHT:
+          it->setEventVelocity(command.value);
+          return;
+      case CHANGE_CENTER:
+          it->setLength(constrain(command.value / 8, 1, 16));
+          return;
     }
+  }
+}
+
+void HarmonySequence::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType){
+    if (rootNote < BASE_NOTE) return;
+    uint8_t root = (rootNote - BASE_NOTE) % N_NOTES;
+    _musicManager.setCurrentHarmony(1, root, chordType & 0x0F);
 }

@@ -53,12 +53,10 @@ void MonoSequence::_silence() {
 
 // Recompute the live note from the latched chord (root + type) and the current
 // Left-axis position, then play it with LEGATO (new note-on before old note-off)
-// so sweeping glides instead of re-attacking. Gated by axis presence.
+// so sweeping glides instead of re-attacking. Pad presses sound immediately;
+// axis presence only modulates (sweep/roll).
 void MonoSequence::_retriggerLiveNote() {
     if (!_chordLatched) return;
-
-    // Presence gate: sound only while Left OR Center is present
-    if (!_leftPresent && !_centerPresent) { _silence(); return; }
 
     uint8_t ch = getMidiChannel();
     uint8_t idx = _currentChordType & 0x0F;

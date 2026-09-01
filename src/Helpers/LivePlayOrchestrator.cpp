@@ -104,12 +104,15 @@ void LivePlayOrchestrator::handleLiveTrellisReleased(uint8_t pad) {
             ChordAction action = _livePlayManager.endChord(rootNote, pad);
             for (uint8_t i = 0; i < action.stopCount; i++)
                 _sequencer.playLiveNoteOff(action.notesToStop[i], action.chordType);
-            syncLiveTrellis();
         }
 
         if (isSelectedSequenceRecording()) {
             recorderNoteOff(rootNote);
         }
+
+        // Repaint held/released pads for all tonal types. MONO/BASS latch the
+        // note (no note-off here), but the pad must still return from white.
+        syncLiveTrellis();
     }
 
     if (pad >= 12 && pad <= 15) {
