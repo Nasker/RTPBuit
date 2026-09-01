@@ -23,7 +23,7 @@ void UsbHostManager::update() {
             _wasConnected[i] = nowConnected;
             if (nowConnected) {
                 _deviceCount++;
-                Serial.print("USB Host MIDI device connected: ");
+                Serial.printf("USB Host MIDI device connected at index %u: ", i);
                 Serial.println(getDeviceName(i));
             } else {
                 if (_deviceCount > 0) _deviceCount--;

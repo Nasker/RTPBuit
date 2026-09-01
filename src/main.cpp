@@ -117,6 +117,7 @@ void loop() {
   usbMIDI.read();
   mUnit.update();
   myusb.Task();
+  mUnit.flushUsbHostOutput();
   midi1.read();
   midi2.read();
   midi3.read();
