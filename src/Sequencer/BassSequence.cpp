@@ -53,12 +53,10 @@ void BassSequence::_silence() {
 
 // Recompute the live note from the latched chord (root + type) and the current
 // Left-axis position, then play it with LEGATO (new note-on before old note-off)
-// so sweeping glides instead of re-attacking. Gated by axis presence.
-void BassSequence::_retriggerLiveNote() {
+// so sweeping glides instead of re-attacking. Pad presses sound immediately;
+// axis presence only modulates (sweep/roll).
+void BassSequence::_retriggerLiveNote(bool forceRetrigger) {
     if (!_chordLatched) return;
-
-    // Presence gate: sound only while Left OR Center is present
-    if (!_leftPresent && !_centerPresent) { _silence(); return; }
 
     uint8_t ch = getMidiChannel();
     uint8_t idx = _currentChordType & 0x0F;
@@ -80,17 +78,23 @@ void BassSequence::_retriggerLiveNote() {
     note = constrain(note, 0, 127);
     uint8_t targetNote = (uint8_t)note;
 
-    // No change: keep current note ringing (avoid spam while sweeping)
-    if (_sounding && targetNote == _currentNote) return;
+    // No change: keep current note ringing (avoid spam while sweeping).
+    // Explicit pad presses bypass this and re-attack the same note.
+    if (_sounding && targetNote == _currentNote && !forceRetrigger) return;
 
     uint8_t oldNote = _currentNote;
     bool wasSounding = _sounding;
+
+    // Forced retrigger of the very same pitch: hard off first so it re-attacks
+    if (forceRetrigger && wasSounding && oldNote == targetNote) {
+        routeLiveNoteOff(oldNote, ch);
+    }
 
     // Legato: start the new note first
     routeLiveNoteOn(targetNote, _liveVelocity, ch);
 
     // ...then release the previous one (overlap = glide, no envelope re-attack)
-    if (wasSounding && oldNote != targetNote) {
+    if (!forceRetrigger && wasSounding && oldNote != targetNote) {
         routeLiveNoteOff(oldNote, ch);
     }
 
@@ -106,7 +110,7 @@ void BassSequence::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t ch
     _chordLatched = true;
     _currentSlot = -1;     // Re-evaluate slot for the new chord
     _tickCount = 0;        // Reset roll phase on new chord
-    _retriggerLiveNote();
+    _retriggerLiveNote(true);  // Explicit press: re-attack even if same pitch
 }
 
 void BassSequence::playLiveNoteOff(uint8_t rootNote, uint8_t chordType) {

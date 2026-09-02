@@ -17,7 +17,7 @@ public:
   uint8_t getLiveVelocity() const override;
   void editNoteInCurrentPosition(ControlCommand command) override;
 private:
-  void _retriggerLiveNote();        // Recompute + (legato) play note from current axis/chord
+  void _retriggerLiveNote(bool forceRetrigger = false);  // Recompute + (legato) play note from current axis/chord
   void _silence();                  // Stop the sounding note (keeps chord latched)
   uint8_t _computeSlot();           // Hysteretic Left-axis -> slot mapping
 
