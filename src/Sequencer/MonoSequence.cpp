@@ -160,6 +160,10 @@ void MonoSequence::handleLiveThreeAxis(ControlCommand command) {
             break;
         case CHANGE_RIGHT:
             _liveVelocity = command.value;
+            // TODO(future): also emit channel aftertouch or a CC (e.g. CC11
+            // expression / CC7 volume) while a note is sounding, so the Right
+            // axis modulates held notes in real time - MIDI velocity is fixed
+            // at note-on and only affects the NEXT note.
             break;
         default:
             break;
