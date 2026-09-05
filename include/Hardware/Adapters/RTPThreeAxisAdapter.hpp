@@ -25,8 +25,9 @@ public:
         : _sensor(sensor), _ready(false) {}
 
     bool initialize() override {
-        _sensor.initSetup();
-        _sensor.startContinuous();
+        // RTPThreeAxisVL is initialized via initSetup()/startContinuous() in
+        // RTPMainUnit::begin(). Re-running its XSHUT/addressing sequence here
+        // would race with continuous ranging and brick the sensors (65535s).
         _ready = true;
         return true;
     }
