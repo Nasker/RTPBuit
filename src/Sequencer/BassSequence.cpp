@@ -93,8 +93,11 @@ void BassSequence::_retriggerLiveNote(bool forceRetrigger) {
     // Legato: start the new note first
     routeLiveNoteOn(targetNote, _liveVelocity, ch);
 
-    // ...then release the previous one (overlap = glide, no envelope re-attack)
-    if (!forceRetrigger && wasSounding && oldNote != targetNote) {
+    // ...then release the previous one (overlap = glide, no envelope re-attack).
+    // This must run for forced retriggers too: pressing a new pad while the old
+    // note rings would otherwise orphan it (the manager already dropped chord
+    // tracking), leaving a permanent drone.
+    if (wasSounding && oldNote != targetNote) {
         routeLiveNoteOff(oldNote, ch);
     }
 
