@@ -57,10 +57,13 @@ void LivePlayOrchestrator::handleLiveTrellisPressed(uint8_t pad) {
 
         if (seqType == POLY_SYNTH) {
             ChordAction action = _livePlayManager.beginChord(rootNote, pad);
-            for (uint8_t i = 0; i < action.stopCount; i++)
-                _sequencer.playLiveNoteOff(action.notesToStop[i], action.chordType);
-            for (uint8_t i = 0; i < action.playCount; i++)
-                _sequencer.playLiveNoteOn(action.notesToPlay[i], liveVel, action.chordType);
+            // PolySequence builds the whole voicing from root + chord type and
+            // tracks its own ringing notes, so it takes ONE call per chord.
+            // Sending one note-on per chord tone retriggered the entire chord
+            // once per tone, which is the rapid stutter on chord attacks.
+            if (action.stopCount > 0)
+                _sequencer.playLiveNoteOff(rootNote, action.chordType);
+            _sequencer.playLiveNoteOn(rootNote, liveVel, action.chordType);
             chordType = action.chordType;
         } else {
             _livePlayManager.releaseAllChords();
@@ -102,16 +105,23 @@ void LivePlayOrchestrator::handleLiveTrellisReleased(uint8_t pad) {
 
         if (seqType == POLY_SYNTH) {
             ChordAction action = _livePlayManager.endChord(rootNote, pad);
-            for (uint8_t i = 0; i < action.stopCount; i++)
-                _sequencer.playLiveNoteOff(action.notesToStop[i], action.chordType);
+            // One note-off per chord: PolySequence stops every note it tracks.
+            if (action.stopCount > 0)
+                _sequencer.playLiveNoteOff(rootNote, action.chordType);
+        } else if (seqType != HARMONY_TRACK) {
+            // MONO/BASS behave like keys: releasing the pad stops the note and
+            // unlatches, so nothing drones on. Axis sweeps still bend/roll the
+            // note for as long as the pad is held. HARMONY is excluded since it
+            // makes no sound itself and intentionally latches the global root.
+            ChordAction action = _livePlayManager.endChord(rootNote, pad);
+            _sequencer.playLiveNoteOff(rootNote, action.chordType);
         }
 
         if (isSelectedSequenceRecording()) {
             recorderNoteOff(rootNote);
         }
 
-        // Repaint held/released pads for all tonal types. MONO/BASS latch the
-        // note (no note-off here), but the pad must still return from white.
+        // Repaint held/released pads for all tonal types.
         syncLiveTrellis();
     }
 
@@ -164,8 +174,15 @@ void LivePlayOrchestrator::syncLiveTrellis() {
 }
 
 void LivePlayOrchestrator::paintLiveTrellis() {
-    _livePlayManager.releaseAllChords();
     uint8_t seqType = getSelectedSequenceType();
+
+    // Silence anything still ringing before dropping chord tracking, otherwise
+    // abandoned live notes drone forever. POLY/MONO/BASS ignore the note
+    // argument and stop everything they track; DRUM's note-off is per-note.
+    if (seqType != DRUM_PART)
+        _sequencer.playLiveNoteOff(BASE_NOTE, 0);
+
+    _livePlayManager.releaseAllChords();
     uint32_t seqColor = getSelectedSequenceColor();
 
     static const bool isBlackKey[12] = {false,true,false,true,false,false,true,false,true,false,true,false};
