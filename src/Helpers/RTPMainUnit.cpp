@@ -30,7 +30,11 @@ RTPMainUnit::RTPMainUnit(){
 void RTPMainUnit::begin(){  
   Serial.begin(9600);
   Wire.begin();
+  // NOTE: keep Wire at the default 100 kHz. The NeoTrellis seesaw is marginal at
+  // 400 kHz (corrupts pixel data / hangs). The OLED still runs at 400 kHz because
+  // u8g2 sets its own bus clock per transfer via setBusClock().
   Wire1.begin();
+  Wire1.setClock(400000);  // fast-mode for the VL53L0X ToF sensors (separate bus)
   
   // Initialize MIDI Router (must happen before sequencer uses outputs)
   initMidiRouter();
@@ -68,6 +72,7 @@ void RTPMainUnit::update(){
   rtpRotary.callbackFromClicks(this);
   rtpTrellis.read();
   SequencerManager.update();
+  rtpOled.flush();   // render any queued screen change once, after the sequencer tick
 }
 
 void RTPMainUnit::updatePeriodically(){

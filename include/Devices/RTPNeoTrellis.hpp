@@ -10,6 +10,16 @@ class RTPMainUnit;
 class RTPNeoTrellis{
     static Adafruit_NeoTrellis myTrellis;
     static RTPMainUnit* mainUnit;
+
+    // Shadow buffer: tracks the colour last pushed to each physical pixel so we
+    // only issue I2C writes for pixels that actually changed. seesaw
+    // setPixelColor() performs a blocking I2C transaction per pixel, so skipping
+    // redundant writes (and the redundant show()) is what keeps fast input from
+    // starving the sequencer tick.
+    uint32_t _pixelShadow[NEO_TRELLIS_NUM_KEYS];
+    bool _pixelsDirty = false;
+    void _pushPixel(uint8_t physIndex, uint32_t color); // write only if changed
+    void _commit();                                     // show() only if dirty
  public:
     RTPNeoTrellis();
     void begin(RTPMainUnit* _mainUnit);
