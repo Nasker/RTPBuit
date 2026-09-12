@@ -78,13 +78,13 @@ void LivePlayOrchestrator::handleLiveTrellisPressed(uint8_t pad) {
 
         setTrellisButtonColor(pad, 0xFFFFFF);
         String chordStr = String(NOTE_NAMES[pad % 12]) + " " + String(CHORD_TYPE_NAMES[chordType & 0x0F]);
-        printToScreen("Piano Roll", _sequencer.getSequenceTypeName(), chordStr);
+        printToScreen("Piano Roll", _concreteSequencer.getSelectedSequenceDisplayName(), chordStr);
     } else {
         uint8_t modIdx = pad - 12;
         _livePlayManager.enableChordionKey(modIdx);
         setTrellisButtonColor(pad, 0xFFFFFF);
         String preview = String(CHORD_TYPE_NAMES[_livePlayManager.getChordType() & 0x0F]);
-        printToScreen("Piano Roll", _sequencer.getSequenceTypeName(), "[ " + preview + " ]");
+        printToScreen("Piano Roll", _concreteSequencer.getSelectedSequenceDisplayName(), "[ " + preview + " ]");
     }
 }
 
@@ -129,7 +129,7 @@ void LivePlayOrchestrator::handleLiveTrellisReleased(uint8_t pad) {
         _livePlayManager.disableChordionKey(pad - 12);
         setTrellisButtonColor(pad, 0x101010);
         String preview = String(CHORD_TYPE_NAMES[_livePlayManager.getChordType() & 0x0F]);
-        printToScreen("Piano Roll", _sequencer.getSequenceTypeName(), "[ " + preview + " ]");
+        printToScreen("Piano Roll", _concreteSequencer.getSelectedSequenceDisplayName(), "[ " + preview + " ]");
     }
 }
 

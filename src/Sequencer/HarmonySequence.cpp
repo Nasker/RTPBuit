@@ -4,16 +4,7 @@
 HarmonySequence::HarmonySequence(int midiChannel, int NEvents, int type, int baseNote, NotesPlayer& notesPlayer, MusicManager& musicManager):
   RTPEventNoteSequence(midiChannel, NEvents, type, baseNote, notesPlayer, musicManager){
   setTypeSpecificColor();
-}
-
-void HarmonySequence::fordwardSequence(){
-    _countTracker++;
-    if (_countTracker >= N_COUNTS) {
-        _currentPosition++;
-        if (_currentPosition >= getSequenceSize())
-            _currentPosition = 0;
-        _countTracker = 0;
-    }
+  setClockDivider(2);  // Quarter-note grid (24 pulses)
 }
 
 void HarmonySequence::setTypeSpecificColor(){

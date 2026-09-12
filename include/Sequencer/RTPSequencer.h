@@ -27,6 +27,7 @@ public:
   void stopAndCleanSequencer();
   void pauseSequencer();
   bool isPlaying() const override;
+  void decreaseTimeToLive();
   uint16_t getSelectedSequencePosition();
   uint16_t getSelectedSequencePageOffset();
   uint8_t getSelectedSequencePage();
@@ -36,10 +37,13 @@ public:
   void selectScene(uint8_t scene) override;
   void increaseSelectedScene();
   void decreaseSelectedScene();
-  uint8_t getSelectScene();
+  uint8_t getSelectScene() const;
   uint8_t getSelectedSequence();
   uint8_t getSelectedSequenceMidiChannel();
   String getSelectedSequenceTypeName();
+  // Sequence name if set, otherwise the type name — for OLED display.
+  String getSelectedSequenceDisplayName();
+  String getCurrentSceneName();
   void addScene(RTPScene* scene);
   void addDynamicScene() override;
   void removeCurrentScene() override;

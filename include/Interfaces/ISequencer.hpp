@@ -25,6 +25,7 @@ public:
     virtual void stop() = 0;
     virtual void pause() = 0;
     virtual bool isPlaying() const = 0;
+    virtual void decreaseTimeToLive() = 0;
 
     // Scene Management
     virtual void selectScene(uint8_t scene) = 0;

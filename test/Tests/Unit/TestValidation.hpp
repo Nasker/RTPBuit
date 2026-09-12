@@ -66,7 +66,8 @@ namespace TestValidation {
     void testSceneIndex() {
         ASSERT_TRUE(InputValidator::isValidSceneIndex(0));
         ASSERT_TRUE(InputValidator::isValidSceneIndex(2));
-        ASSERT_FALSE(InputValidator::isValidSceneIndex(3));
+        ASSERT_TRUE(InputValidator::isValidSceneIndex(3));
+        ASSERT_FALSE(InputValidator::isValidSceneIndex(4));
     }
 
     void runAll() {

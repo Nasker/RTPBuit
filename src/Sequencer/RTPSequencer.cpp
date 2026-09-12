@@ -24,8 +24,11 @@ void RTPSequencer::playAndMoveSequencer() {
         Sequencer[i]->playScene();
         _notesPlayer.playNotes();
         Sequencer[i]->fordwardScene();
-        _notesPlayer.decreaseTimeToLive();
     }
+}
+
+void RTPSequencer::decreaseTimeToLive() {
+    _notesPlayer.decreaseTimeToLive();
 }
 
 void RTPSequencer::stopAndCleanSequencer() {
@@ -82,7 +85,7 @@ void RTPSequencer::decreaseSelectedScene() {
         _selectedScene--;
 }
 
-uint8_t RTPSequencer::getSelectScene() {
+uint8_t RTPSequencer::getSelectScene() const {
     return _selectedScene;
 }
 
@@ -163,6 +166,20 @@ String RTPSequencer::getSelectedSequenceTypeName() {
         default:
             return "Type " + String(typeValue);
     }
+}
+
+String RTPSequencer::getSelectedSequenceDisplayName() {
+    if (Sequencer.empty()) return "";
+    RTPScene* scene = Sequencer[_selectedScene];
+    if (!scene) return getSelectedSequenceTypeName();
+    RTPEventNoteSequence* seq = scene->getSequence(scene->getSelectedSequence());
+    if (seq && seq->getName().length() > 0) return seq->getName();
+    return getSelectedSequenceTypeName();
+}
+
+String RTPSequencer::getCurrentSceneName() {
+    if (Sequencer.empty() || !Sequencer[_selectedScene]) return "";
+    return Sequencer[_selectedScene]->getName();
 }
 
 void RTPSequencer::selectParameterInSequence(uint8_t parameterIndex) {

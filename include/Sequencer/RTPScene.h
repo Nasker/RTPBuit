@@ -52,11 +52,16 @@ public:
   RTPSequenceNoteStates getSequenceNoteStates();
   uint32_t getSequenceColor();
   String getName() const;
+  void setName(const String& name) { _name = name; }
+  uint8_t getSelectedSequenceIndex() const { return _selectedSequence; }
   void dumpSequencesToJson();
   
   void setMidiOutput(IMidiOutput* midiOutput);
 
   // For persistence manager
-  RTPEventNoteSequence* getSequence(uint8_t index);
+  RTPEventNoteSequence* getSequence(int index);
   const RTPEventNoteSequence* getSequence(int index) const;
+  // Replace the sequence at index with a new instance of the given type
+  // (used when a loaded file's type differs from the current subclass).
+  RTPEventNoteSequence* recreateSequence(uint8_t index, uint8_t type);
 };

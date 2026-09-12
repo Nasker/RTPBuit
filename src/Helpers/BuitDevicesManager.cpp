@@ -168,21 +168,52 @@ uint8_t BuitDevicesManager::getLiveVelocity(){
     return _sequencer.getLiveVelocity();
 }
 
-void BuitDevicesManager::saveSequencer(const String& fileName){
-    if(_persistenceManager.saveSequencerToFile(_concreteSequencer, fileName))
+void BuitDevicesManager::saveSequencer(const String& fileName) {
+    Serial.println("Saving sequencer with filename: " + fileName);
+    if (_persistenceManager.saveSequencerToFile(_concreteSequencer, fileName)) {
         printToScreen("Saved", fileName, "");
-    else
+    } else {
         printToScreen("Failed to save", fileName, "");
+    }
 }
 
-void BuitDevicesManager::loadSequencer(const String& fileName){
-    if(_persistenceManager.loadSequencerFromFile(_concreteSequencer, fileName))
-        printToScreen("Loaded", fileName, "");
-    else
+void BuitDevicesManager::loadSequencer(const String& fileName) {
+    Serial.println("Loading sequencer with filename: " + fileName);
+    if (_sequencer.isPlaying()) {
+        _pendingLoadFile = fileName;
+        _pendingLoad = true;
+        printToScreen("Queued load", fileName, "at loop start");
+        return;
+    }
+    if (_persistenceManager.loadSequencerFromFile(_concreteSequencer, fileName)) {
+        printToScreen("Loaded", fileName ,"");
+    } else {
         printToScreen("Failed to load", fileName, "");
+    }
 }
 
-bool BuitDevicesManager::patternFileExists(const String& fileName){
+void BuitDevicesManager::processPendingPatternLoad() {
+    if (!_pendingLoad) return;
+    if (!_sequencer.isPlaying()) {
+        _pendingLoad = false;
+        if (_persistenceManager.loadSequencerFromFile(_concreteSequencer, _pendingLoadFile))
+            printToScreen("Loaded", _pendingLoadFile, "");
+        else
+            printToScreen("Failed to load", _pendingLoadFile, "");
+        return;
+    }
+    // Apply right before the playhead rolls over so the new patterns
+    // start at step 1 in sync with the current loop.
+    if (_sequencer.getCurrentPosition() == 0) {
+        _pendingLoad = false;
+        if (_persistenceManager.loadSequencerFromFile(_concreteSequencer, _pendingLoadFile))
+            printToScreen("Loaded", _pendingLoadFile, "");
+        else
+            printToScreen("Failed to load", _pendingLoadFile, "");
+    }
+}
+
+bool BuitDevicesManager::patternFileExists(const String& fileName) {
     return _persistenceManager.fileExists(fileName);
 }
 

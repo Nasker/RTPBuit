@@ -8,6 +8,10 @@
 
 MidiRouter* RTPEventNoteSequence::_router = nullptr;
 
+const uint8_t RTPEventNoteSequence::CLOCK_DIVIDER_PULSES[11] = {
+    96, 48, 24, 16, 12, 8, 6, 4, 3, 2, 1
+};
+
 void RTPEventNoteSequence::setRouter(MidiRouter* router) {
     _router = router;
 }
@@ -21,18 +25,21 @@ RTPEventNoteSequence::RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents
   RTPParameter parameterLenght = RTPParameter(1, N_PAGES, 1, "Lenght");
   RTPParameter parameterInput = RTPParameter(0, 8, 0, "Input");
   RTPParameter parameterPort = RTPParameter(0, 8, 0, "Output");
+  RTPParameter parameterClockDivider = RTPParameter(0, 10, 6, "Div");
   sequenceParameters.push_back(parameterType);
   sequenceParameters.push_back(parameterMidiChannel);
   sequenceParameters.push_back(parameterColor);
   sequenceParameters.push_back(parameterLenght);
   sequenceParameters.push_back(parameterInput);
   sequenceParameters.push_back(parameterPort);
+  sequenceParameters.push_back(parameterClockDivider);
   _baseNote = baseNote;
   _currentPosition = 0;
   _isRecording = false;
   _isEnabled = true;
   _selectedParameter = 0;
   _selectedPage = 0;
+  _pulseCounter = 0;
   EventNoteSequence.resize(NEvents, RTPEventNotePlus(midiChannel, false, _baseNote, 80));
 }
 
@@ -45,9 +52,13 @@ void RTPEventNoteSequence::addEventNote(RTPEventNotePlus eventNote){
 }
 
 void RTPEventNoteSequence::fordwardSequence(){
-  _currentPosition++;
-  if(_currentPosition >= getSequenceSize())
-    _currentPosition = 0;
+  _pulseCounter++;
+  if (_pulseCounter >= getClockDividerPulses()) {
+    _pulseCounter = 0;
+    _currentPosition++;
+    if(_currentPosition >= getSequenceSize())
+      _currentPosition = 0;
+  }
 }
 
 void RTPEventNoteSequence::backwardSequence(){
@@ -58,13 +69,14 @@ void RTPEventNoteSequence::backwardSequence(){
 
 void RTPEventNoteSequence::resetSequence(){
   _currentPosition = 0;
+  _pulseCounter = 0;
 }
 
 uint16_t RTPEventNoteSequence::getCurrentSequencePosition(){
   return _currentPosition;
 }
 
-bool RTPEventNoteSequence::isCurrentSequenceEnabled(){
+bool RTPEventNoteSequence::isCurrentSequenceEnabled() const {
   return _isEnabled;
 }
 
@@ -198,6 +210,29 @@ void RTPEventNoteSequence::setLength(uint8_t length){
   if (length < 1) length = 1;
   if (length > N_PAGES) length = N_PAGES;
   sequenceParameters[LENGTH].setValue(length);
+}
+
+uint8_t RTPEventNoteSequence::getClockDivider() const {
+  return sequenceParameters[CLOCK_DIVIDER].getValue();
+}
+
+uint8_t RTPEventNoteSequence::getClockDivider() {
+  return sequenceParameters[CLOCK_DIVIDER].getValue();
+}
+
+void RTPEventNoteSequence::setClockDivider(uint8_t index){
+  if (index > 10) index = 10;
+  sequenceParameters[CLOCK_DIVIDER].setValue(index);
+  _pulseCounter = 0;
+}
+
+uint8_t RTPEventNoteSequence::getClockDividerPulses() const {
+  uint8_t index = getClockDivider();
+  return CLOCK_DIVIDER_PULSES[index];
+}
+
+bool RTPEventNoteSequence::isStepPulse() const {
+  return _pulseCounter == 0;
 }
 
 bool RTPEventNoteSequence::acceptsInput(uint8_t srcPort, uint8_t srcDevice){

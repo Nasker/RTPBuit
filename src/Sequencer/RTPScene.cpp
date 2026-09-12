@@ -10,48 +10,53 @@
 #include <cstdint>
 
 uint8_t types[N_SCENES][SCENE_BLOCK_SIZE] = {
-  {HARMONY_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK, CONTROL_TRACK},
   {DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART},
-  {BASS_SYNTH, BASS_SYNTH, BASS_SYNTH, BASS_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH, POLY_SYNTH},
+  {DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART},
+  {DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, DRUM_PART, HARMONY_TRACK, HARMONY_TRACK, HARMONY_TRACK, HARMONY_TRACK},
+  {BASS_SYNTH, BASS_SYNTH, POLY_SYNTH, POLY_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, MONO_SYNTH, BASS_SYNTH, BASS_SYNTH, MONO_SYNTH, MONO_SYNTH, POLY_SYNTH},
 };
 
 uint8_t midiChannels[N_SCENES][SCENE_BLOCK_SIZE] = {
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
-  {1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16},
+  {11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11},
+  {10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 0, 0, 0, 0},
+  {1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 1, 1, 1, 1, 1},
 };
+
+static uint8_t baseNoteForType(uint8_t type, uint8_t index) {
+  if (type == DRUM_PART)  return 36 + index;
+  if (type == BASS_SYNTH) return BASS_BASE_NOTE;
+  if (type == MONO_SYNTH) return BASE_NOTE;
+  return 60;  // POLY and others
+}
+
+static std::unique_ptr<RTPEventNoteSequence> makeSequenceByType(
+    uint8_t type, uint8_t midiChannel, uint8_t baseNote,
+    NotesPlayer& notesPlayer, MusicManager& musicManager) {
+  switch (type) {
+    case DRUM_PART:
+      return std::make_unique<DrumSequence>(midiChannel, SEQ_BLOCK_SIZE * N_PAGES, type, baseNote, notesPlayer, musicManager);
+    case BASS_SYNTH:
+      return std::make_unique<BassSequence>(midiChannel, SEQ_BLOCK_SIZE * N_PAGES, type, baseNote, notesPlayer, musicManager);
+    case MONO_SYNTH:
+      return std::make_unique<MonoSequence>(midiChannel, SEQ_BLOCK_SIZE * N_PAGES, type, baseNote, notesPlayer, musicManager);
+    case POLY_SYNTH:
+      return std::make_unique<PolySequence>(midiChannel, SEQ_BLOCK_SIZE * N_PAGES, type, baseNote, notesPlayer, musicManager);
+    case CONTROL_TRACK:
+      return std::make_unique<ControlSequence>(midiChannel, SEQ_BLOCK_SIZE * N_PAGES, type, baseNote, notesPlayer, musicManager);
+    case HARMONY_TRACK:
+      return std::make_unique<HarmonySequence>(midiChannel, SEQ_BLOCK_SIZE * N_PAGES, type, baseNote, notesPlayer, musicManager);
+    default:
+      return nullptr;
+  }
+}
 
 RTPScene::RTPScene(String name, uint8_t NSequences, uint8_t scene, NotesPlayer& notesPlayer, MusicManager& musicManager) 
   : _name(name), _NSequences(NSequences), _selectedSequence(0), _notesPlayer(notesPlayer), _musicManager(musicManager) {
   for (uint8_t i = 0; i < _NSequences; i++) {
-    uint8_t baseNote;
-    if (types[scene][i] == DRUM_PART) baseNote = 36 + i;
-    else if (types[scene][i] == BASS_SYNTH) baseNote = BASS_BASE_NOTE;
-    else if (types[scene][i] == MONO_SYNTH) baseNote = BASE_NOTE;
-    else baseNote = 60;  // POLY and others
-    std::unique_ptr<RTPEventNoteSequence> sequence;
-        switch (types[scene][i]) {
-            case DRUM_PART:
-                sequence = std::make_unique<DrumSequence>(midiChannels[scene][i], SEQ_BLOCK_SIZE * N_PAGES, types[scene][i], baseNote, _notesPlayer, _musicManager);
-                break;
-            case BASS_SYNTH:
-                sequence = std::make_unique<BassSequence>(midiChannels[scene][i], SEQ_BLOCK_SIZE * N_PAGES, types[scene][i], baseNote, _notesPlayer, _musicManager);
-                break;
-            case MONO_SYNTH:
-                sequence = std::make_unique<MonoSequence>(midiChannels[scene][i], SEQ_BLOCK_SIZE * N_PAGES, types[scene][i], baseNote, _notesPlayer, _musicManager);
-                break;
-            case POLY_SYNTH:
-                sequence = std::make_unique<PolySequence>(midiChannels[scene][i], SEQ_BLOCK_SIZE * N_PAGES, types[scene][i], baseNote, _notesPlayer, _musicManager);
-                break;
-            case CONTROL_TRACK:
-                sequence = std::make_unique<ControlSequence>(midiChannels[scene][i], SEQ_BLOCK_SIZE * N_PAGES, types[scene][i], baseNote, _notesPlayer, _musicManager);
-                break;
-            case HARMONY_TRACK:
-                sequence = std::make_unique<HarmonySequence>(midiChannels[scene][i], SEQ_BLOCK_SIZE * N_PAGES, types[scene][i], baseNote, _notesPlayer, _musicManager);
-                break;
-            default:
-                continue; // Skip if type is unknown
-        }
+    uint8_t baseNote = baseNoteForType(types[scene][i], i);
+    auto sequence = makeSequenceByType(types[scene][i], midiChannels[scene][i], baseNote, _notesPlayer, _musicManager);
+    if (!sequence) continue; // Skip if type is unknown
     SequencerScene.push_back(move(sequence));
   }
 }
@@ -64,6 +69,16 @@ RTPScene::RTPScene(String name, uint8_t NSequences, NotesPlayer& notesPlayer, Mu
   }
 }
 
+RTPEventNoteSequence* RTPScene::recreateSequence(uint8_t index, uint8_t type) {
+  if (index >= SequencerScene.size()) return nullptr;
+  uint8_t channel = SequencerScene[index]->getMidiChannel();
+  auto sequence = makeSequenceByType(type, channel, baseNoteForType(type, index), _notesPlayer, _musicManager);
+  if (!sequence) return nullptr;
+  RTPEventNoteSequence* ptr = sequence.get();
+  SequencerScene[index] = move(sequence);
+  return ptr;
+}
+
 void RTPScene::toggleAllSequences() {
   for (size_t i = 0; i < SequencerScene.size(); i++)
     SequencerScene[i]->enableSequence(!SequencerScene[i]->isCurrentSequenceEnabled());
@@ -71,7 +86,8 @@ void RTPScene::toggleAllSequences() {
 
 void RTPScene::playScene() {
   for (auto& sequence : SequencerScene)
-    sequence->playCurrentEventNote();
+    if (sequence->isStepPulse())
+      sequence->playCurrentEventNote();
 }
 
 void RTPScene::fordwardScene() {
@@ -235,7 +251,7 @@ void RTPScene::setMidiOutput(IMidiOutput* midiOutput) {
 }
 
 // For persistence manager - Non-const version
-RTPEventNoteSequence* RTPScene::getSequence(uint8_t index) {
+RTPEventNoteSequence* RTPScene::getSequence(int index) {
   if (index >= 0 && index < SequencerScene.size()) {
     return SequencerScene[index].get();
   }

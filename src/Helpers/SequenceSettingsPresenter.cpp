@@ -65,7 +65,7 @@ String SequenceSettingsPresenter::resolvePortDisplayName(int paramValue, const c
 }
 
 void SequenceSettingsPresenter::showSequence(){
-    String sequenceType = _sequencer.getSequenceTypeName();
+    String sequenceType = _concreteSequencer.getSelectedSequenceDisplayName();
     int midiChannel = _sequencer.getMidiChannel();
     int currentPage = _sequencer.getCurrentPage() + 1;
     int totalPages = _concreteSequencer.getSelectedSequenceSettings().lenght;
@@ -90,9 +90,10 @@ void SequenceSettingsPresenter::showSequence(){
 void SequenceSettingsPresenter::presentScene(){
     SequenceDisplayState state = _sequencer.isPlaying() ? SequenceDisplayState::Playing : SequenceDisplayState::Stopped;
 
+    String sceneName = _concreteSequencer.getCurrentSceneName();
     _display.printFourLinesWithState(
         "Scene",
-        "Scene " + String(_sequencer.getCurrentScene() + 1),
+        sceneName.length() > 0 ? sceneName : "Scene " + String(_sequencer.getCurrentScene() + 1),
         "",
         "",
         state,
@@ -126,9 +127,11 @@ void SequenceSettingsPresenter::presentSceneSettings(int8_t focusedPad){
 
     _trellis.show();
 
+    String sceneName = _concreteSequencer.getCurrentSceneName();
     _display.printThreeLines(
         "Scene Settings",
-        "Scene " + String(curScene) + "/" + String(nScenes),
+        sceneName.length() > 0 ? sceneName
+                               : "Scene " + String(curScene) + "/" + String(nScenes),
         playing ? "Playing" : "Stopped"
     );
 }

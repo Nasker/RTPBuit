@@ -18,6 +18,9 @@ String BuitPersistenceManager::sequenceToJson(const RTPEventNoteSequence* sequen
     doc["p"] = sequence->getPort();
     doc["i"] = sequence->getInput();
     doc["l"] = sequence->getLength();
+    doc["d"] = sequence->getClockDivider();
+    doc["e"] = sequence->isCurrentSequenceEnabled() ? 1 : 0;
+    doc["n"] = sequence->getName();
     
     JsonArray seq = doc["s"].to<JsonArray>();
     for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
@@ -33,7 +36,9 @@ String BuitPersistenceManager::sequenceToJson(const RTPEventNoteSequence* sequen
 String BuitPersistenceManager::sceneToJson(const RTPScene* scene) {
     String sceneString;
     JsonDocument doc;
-    
+
+    doc["n"] = scene->getName();
+    doc["sel"] = scene->getSelectedSequenceIndex();
     JsonArray sequencesArray = doc["q"].to<JsonArray>();
 
     int numSequences = scene->getSize();
@@ -46,6 +51,9 @@ String BuitPersistenceManager::sceneToJson(const RTPScene* scene) {
             seqObj["p"] = sequence->getPort();
             seqObj["i"] = sequence->getInput();
             seqObj["l"] = sequence->getLength();
+            seqObj["d"] = sequence->getClockDivider();
+            seqObj["e"] = sequence->isCurrentSequenceEnabled() ? 1 : 0;
+            seqObj["n"] = sequence->getName();
             JsonArray seqArray = seqObj["s"].to<JsonArray>();
             for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
                 JsonObject noteObj = seqArray.add<JsonObject>();
@@ -63,6 +71,7 @@ String BuitPersistenceManager::sequencerToJson(const RTPSequencer& sequencer) {
     String sequencerString;
     JsonDocument doc;
     
+    doc["sel"] = sequencer.getSelectScene();
     JsonArray scenesArray = doc["sc"].to<JsonArray>();
     
     int numScenes = sequencer.getNumScenes();
@@ -73,6 +82,8 @@ String BuitPersistenceManager::sequencerToJson(const RTPSequencer& sequencer) {
         const RTPScene* scene = sequencer.getScene(i);
         if (scene) {
             JsonObject sceneObj = scenesArray.add<JsonObject>();
+            sceneObj["n"] = scene->getName();
+            sceneObj["sel"] = scene->getSelectedSequenceIndex();
             JsonArray sequencesArray = sceneObj["q"].to<JsonArray>();
             int numSequences = scene->getSize();
             Serial.print("Number of sequences in scene: ");
@@ -86,6 +97,9 @@ String BuitPersistenceManager::sequencerToJson(const RTPSequencer& sequencer) {
                     seqObj["p"] = sequence->getPort();
                     seqObj["i"] = sequence->getInput();
                     seqObj["l"] = sequence->getLength();
+                    seqObj["d"] = sequence->getClockDivider();
+                    seqObj["e"] = sequence->isCurrentSequenceEnabled() ? 1 : 0;
+                    seqObj["n"] = sequence->getName();
                     JsonArray seqArray = seqObj["s"].to<JsonArray>();
                     for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
                         JsonObject noteObj = seqArray.add<JsonObject>();
@@ -124,10 +138,17 @@ bool BuitPersistenceManager::loadSequenceFromJson(RTPEventNoteSequence* sequence
     int midiChannel = seqObj["c"].is<int>() ? seqObj["c"].as<int>() : seqObj["ch"].as<int>();
     int port = seqObj["p"].is<int>() ? seqObj["p"].as<int>() : 0;
     int input = seqObj["i"].is<int>() ? seqObj["i"].as<int>() : 0;
+    int clockDivider = seqObj["d"].is<int>() ? seqObj["d"].as<int>() : 6;
+    if (clockDivider < 0) clockDivider = 6;
+    if (clockDivider > 10) clockDivider = 10;
+    bool enabled = !seqObj["e"].is<int>() || (seqObj["e"].as<int>() != 0);
     sequence->setType(type);
+    sequence->setName(seqObj["n"].is<const char*>() ? seqObj["n"].as<const char*>() : "");
     sequence->setMidiChannel(midiChannel);
     sequence->setPort(port);
     sequence->setInput(input);
+    sequence->setClockDivider((uint8_t)clockDivider);
+    sequence->enableSequence(enabled);
 
     JsonArray notesArray;
     if (seqObj["s"].is<JsonArray>()) {
@@ -174,6 +195,10 @@ bool BuitPersistenceManager::parseAndLoadFromDoc(RTPSequencer& sequencer, JsonDo
     } else {
         scenesArray = doc["scenes"].as<JsonArray>();
     }
+    // Grow the sequencer if the file has more scenes than currently exist
+    while (sequencer.getNumScenes() < (int)scenesArray.size()) {
+        sequencer.addDynamicScene();
+    }
     int numScenes = sequencer.getNumScenes();
     int scenesToProcess = min(numScenes, (int)scenesArray.size());
     
@@ -189,7 +214,15 @@ bool BuitPersistenceManager::parseAndLoadFromDoc(RTPSequencer& sequencer, JsonDo
         // Get a handle to the current scene
         RTPScene* scene = sequencer.getScene(sceneIdx);
         if (!scene) continue;
-        
+
+        // Restore scene-level settings (name + selected sequence)
+        String name = sceneObj["n"].is<const char*>() ? sceneObj["n"].as<const char*>()
+                    : (sceneObj["name"].is<const char*>() ? sceneObj["name"].as<const char*>() : "");
+        if (name.length() > 0) scene->setName(name);
+        int selSeq = sceneObj["sel"] | -1;
+        if (selSeq >= 0 && selSeq < (int)scene->getSize())
+            scene->setSelectedSequence((uint8_t)selSeq);
+
         // Load sequences for this scene
         int seqCount = min(scene->getSize(), (int)sequencesArray.size());
         for (int seqIdx = 0; seqIdx < seqCount; seqIdx++) {
@@ -199,11 +232,49 @@ bool BuitPersistenceManager::parseAndLoadFromDoc(RTPSequencer& sequencer, JsonDo
             RTPEventNoteSequence* sequence = scene->getSequence(static_cast<uint8_t>(seqIdx));
             if (!sequence) continue;
             
+            // Re-instantiate the correct subclass when the stored type differs
+            int fileType = seqObj["t"].is<int>() ? seqObj["t"].as<int>()
+                         : (seqObj["type"].is<int>() ? seqObj["type"].as<int>() : -1);
+            if (fileType >= 0 && sequence->getType() != fileType) {
+                sequence = scene->recreateSequence((uint8_t)seqIdx, (uint8_t)fileType);
+                if (!sequence) continue;
+            }
+            
             // Load the sequence data
             loadSequenceFromJson(sequence, seqObj);
         }
+
+        // Clear slots the file doesn't define so stale notes don't keep playing
+        for (int seqIdx = seqCount; seqIdx < (int)scene->getSize(); seqIdx++) {
+            RTPEventNoteSequence* seq = scene->getSequence(seqIdx);
+            if (seq) {
+                seq->clearSequence();
+                seq->enableSequence(false);
+                seq->setName("");
+            }
+        }
+    }
+
+    // Clear scenes beyond the file's scene count
+    for (int sceneIdx = scenesToProcess; sceneIdx < numScenes; sceneIdx++) {
+        RTPScene* scene = sequencer.getScene(sceneIdx);
+        if (!scene) continue;
+        scene->setName("");
+        for (int seqIdx = 0; seqIdx < (int)scene->getSize(); seqIdx++) {
+            RTPEventNoteSequence* seq = scene->getSequence(seqIdx);
+            if (seq) {
+                seq->clearSequence();
+                seq->enableSequence(false);
+                seq->setName("");
+            }
+        }
     }
     
+    // Restore the selected scene (upper-layer navigation state)
+    int selScene = doc["sel"] | -1;
+    if (selScene >= 0 && selScene < numScenes)
+        sequencer.selectScene((uint8_t)selScene);
+
     Serial.println("Successfully loaded sequences");
     return true;
 }
@@ -255,7 +326,7 @@ bool BuitPersistenceManager::parseAndLoadSequences(RTPSequencer& sequencer, File
 }
 
 bool BuitPersistenceManager::saveSequenceToBinary(RTPEventNoteSequence* sequence, File& file) {
-    uint8_t header[8];
+    uint8_t header[10];
     header[0] = sequence->getType();
     header[1] = sequence->getMidiChannel();
     header[2] = (uint8_t)(sequence->getColor() & 0xFFu);
@@ -265,7 +336,14 @@ bool BuitPersistenceManager::saveSequenceToBinary(RTPEventNoteSequence* sequence
     uint16_t nNotes = (uint16_t)sequence->getEventNoteSequence().size();
     header[6] = (uint8_t)(nNotes & 0xFFu);
     header[7] = (uint8_t)((nNotes >> 8) & 0xFFu);
+    header[8] = sequence->isCurrentSequenceEnabled() ? 1 : 0;
+    header[9] = sequence->getClockDivider();
     file.write(header, sizeof(header));
+    // v4: sequence name
+    String name = sequence->getName();
+    uint8_t nameLen = (uint8_t)name.length();
+    file.write(&nameLen, 1);
+    if (nameLen > 0) file.write((const uint8_t*)name.c_str(), nameLen);
     for (const RTPEventNotePlus& note : sequence->getEventNoteSequence()) {
         uint32_t low = note.getPackedLow();
         uint32_t high = note.getPackedHigh();
@@ -275,9 +353,22 @@ bool BuitPersistenceManager::saveSequenceToBinary(RTPEventNoteSequence* sequence
     return true;
 }
 
-bool BuitPersistenceManager::loadSequenceFromBinary(RTPEventNoteSequence* sequence, File& file) {
-    uint8_t header[8];
-    if (file.readBytes((char*)header, sizeof(header)) != sizeof(header)) return false;
+bool BuitPersistenceManager::loadSequenceFromBinary(RTPScene* scene, uint8_t seqIndex, File& file, uint8_t version) {
+    uint8_t header[10];
+    size_t headerSize;
+    if (version >= 3) headerSize = 10;
+    else if (version == 2) headerSize = 9;
+    else headerSize = 8;
+    if (file.readBytes((char*)header, headerSize) != headerSize) return false;
+
+    RTPEventNoteSequence* sequence = scene->getSequence(seqIndex);
+    if (!sequence) return false;
+    // Re-instantiate the correct subclass when the stored type differs —
+    // setType() alone would leave e.g. a DrumSequence playing as a drum.
+    if (sequence->getType() != header[0]) {
+        sequence = scene->recreateSequence(seqIndex, header[0]);
+        if (!sequence) return false;
+    }
     sequence->setType(header[0]);
     sequence->setMidiChannel(header[1]);
     sequence->setColor(header[2]);
@@ -285,6 +376,22 @@ bool BuitPersistenceManager::loadSequenceFromBinary(RTPEventNoteSequence* sequen
     sequence->setInput(header[4]);
     sequence->setPort(header[5]);
     uint16_t nNotes = (uint16_t)header[6] | ((uint16_t)header[7] << 8);
+    bool enabled = (version >= 2) ? (header[8] != 0) : true;
+    uint8_t clockDivider = (version >= 3) ? header[9] : 6;
+    if (clockDivider > 10) clockDivider = 6;
+    sequence->setClockDivider(clockDivider);
+    sequence->enableSequence(enabled);
+    // v4: sequence name (stored between header and notes)
+    if (version >= 4) {
+        uint8_t nameLen;
+        if (file.readBytes((char*)&nameLen, 1) != 1) return false;
+        char nameBuf[256] = {0};
+        if (nameLen > 0 && file.readBytes(nameBuf, nameLen) != nameLen) return false;
+        nameBuf[nameLen] = '\0';
+        sequence->setName(String(nameBuf));
+    } else {
+        sequence->setName("");
+    }
     sequence->clearSequence();
     sequence->resizeSequence(nNotes);
     auto& notes = sequence->getEventNoteSequence();
@@ -297,6 +404,24 @@ bool BuitPersistenceManager::loadSequenceFromBinary(RTPEventNoteSequence* sequen
     return true;
 }
 
+// Skip over a sequence block without loading it (file has more sequences
+// than the scene has slots — keeps the stream aligned for the next scene).
+bool BuitPersistenceManager::skipSequenceInBinary(File& file, uint8_t version) {
+    uint8_t header[10];
+    size_t headerSize;
+    if (version >= 3) headerSize = 10;
+    else if (version == 2) headerSize = 9;
+    else headerSize = 8;
+    if (file.readBytes((char*)header, headerSize) != headerSize) return false;
+    uint16_t nNotes = (uint16_t)header[6] | ((uint16_t)header[7] << 8);
+    if (version >= 4) {
+        uint8_t nameLen;
+        if (file.readBytes((char*)&nameLen, 1) != 1) return false;
+        if (!file.seek(file.position() + nameLen)) return false;
+    }
+    return file.seek(file.position() + (uint32_t)nNotes * 8);
+}
+
 bool BuitPersistenceManager::saveSequencerToBinary(const RTPSequencer& sequencer, const String& fileName) {
     File file = openFileForWrite(fileName);
     if (!file) {
@@ -305,10 +430,10 @@ bool BuitPersistenceManager::saveSequencerToBinary(const RTPSequencer& sequencer
     }
     uint8_t header[8];
     header[0] = 'R'; header[1] = 'T'; header[2] = 'P'; header[3] = '0';
-    header[4] = 1; // version
+    header[4] = 4; // version
     header[5] = (uint8_t)sequencer.getNumScenes();
     header[6] = (uint8_t)SCENE_BLOCK_SIZE;
-    header[7] = 0;
+    header[7] = (uint8_t)sequencer.getSelectScene();
     file.write(header, sizeof(header));
     int numScenes = sequencer.getNumScenes();
     for (int i = 0; i < numScenes; i++) {
@@ -319,6 +444,8 @@ bool BuitPersistenceManager::saveSequencerToBinary(const RTPSequencer& sequencer
         if (nameLen > 255) nameLen = 255;
         file.write(&nameLen, 1);
         file.write((const uint8_t*)name.c_str(), nameLen);
+        uint8_t selSeq = scene->getSelectedSequenceIndex();
+        file.write(&selSeq, 1);
         uint8_t nSeq = scene->getSize();
         file.write(&nSeq, 1);
         for (uint8_t j = 0; j < nSeq; j++) {
@@ -337,23 +464,70 @@ bool BuitPersistenceManager::loadSequencerFromBinary(RTPSequencer& sequencer, Fi
     uint8_t header[8];
     if (file.readBytes((char*)header, sizeof(header)) != sizeof(header)) return false;
     if (header[0] != 'R' || header[1] != 'T' || header[2] != 'P' || header[3] != '0') return false;
-    if (header[4] != 1) return false;
+    uint8_t version = header[4];
+    if (version < 1 || version > 4) return false;
     uint8_t nScenes = header[5];
+    // Grow the sequencer if the file has more scenes than currently exist
+    while (sequencer.getNumScenes() < (int)nScenes) {
+        sequencer.addDynamicScene();
+    }
     int numScenes = min((int)nScenes, (int)sequencer.getNumScenes());
     for (int i = 0; i < numScenes; i++) {
         RTPScene* scene = sequencer.getScene(i);
         if (!scene) continue;
         uint8_t nameLen;
         if (file.readBytes((char*)&nameLen, 1) != 1) return false;
-        if (nameLen > 0) file.seek(file.position() + nameLen);
+        if (nameLen > 0) {
+            char nameBuf[256] = {0};
+            if (file.readBytes(nameBuf, nameLen) != nameLen) return false;
+            nameBuf[nameLen] = '\0';
+            scene->setName(String(nameBuf));
+        }
+        uint8_t selSeq = 0;
+        if (version >= 2) {
+            if (file.readBytes((char*)&selSeq, 1) != 1) return false;
+            if (selSeq < scene->getSize())
+                scene->setSelectedSequence(selSeq);
+        }
+        (void)selSeq;
         uint8_t nSeq;
         if (file.readBytes((char*)&nSeq, 1) != 1) return false;
         int seqCount = min((int)nSeq, (int)scene->getSize());
         for (int j = 0; j < seqCount; j++) {
-            RTPEventNoteSequence* sequence = scene->getSequence(j);
-            if (!sequence) continue;
-            if (!loadSequenceFromBinary(sequence, file)) return false;
+            if (!loadSequenceFromBinary(scene, j, file, version)) return false;
         }
+        // Skip sequences beyond capacity so the stream stays aligned
+        for (int j = seqCount; j < (int)nSeq; j++) {
+            if (!skipSequenceInBinary(file, version)) return false;
+        }
+        // Clear slots the file doesn't define so stale notes don't keep playing
+        for (int j = seqCount; j < (int)scene->getSize(); j++) {
+            RTPEventNoteSequence* seq = scene->getSequence(j);
+            if (seq) {
+                seq->clearSequence();
+                seq->enableSequence(false);
+                seq->setName("");
+            }
+        }
+    }
+    // Clear scenes beyond the file's scene count
+    for (int i = numScenes; i < sequencer.getNumScenes(); i++) {
+        RTPScene* scene = sequencer.getScene(i);
+        if (!scene) continue;
+        scene->setName("");
+        for (int j = 0; j < (int)scene->getSize(); j++) {
+            RTPEventNoteSequence* seq = scene->getSequence(j);
+            if (seq) {
+                seq->clearSequence();
+                seq->enableSequence(false);
+                seq->setName("");
+            }
+        }
+    }
+    if (version >= 2) {
+        uint8_t selScene = header[7];
+        if (selScene < (uint8_t)sequencer.getNumScenes())
+            sequencer.selectScene(selScene);
     }
     Serial.println("Successfully loaded binary sequences");
     return true;

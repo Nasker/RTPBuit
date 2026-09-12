@@ -28,7 +28,8 @@ enum SequenceParametersIndex{
 	COLOR,
 	LENGTH,
 	INPUT_PORT,
-	PORT
+	PORT,
+	CLOCK_DIVIDER
 };
 
 class RTPEventNoteSequence{
@@ -45,6 +46,9 @@ protected:
 	size_t _currentPosition;
 	uint8_t _selectedParameter;
 	uint8_t _selectedPage;
+	uint8_t _pulseCounter;
+	String _name;
+	static const uint8_t CLOCK_DIVIDER_PULSES[11];
 public:
 	RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents, uint8_t type, uint8_t baseNote, NotesPlayer& notesPlayer, MusicManager& musicManager);
 	void clearSequence();
@@ -53,7 +57,7 @@ public:
 	void backwardSequence();
 	void resetSequence();
 	uint16_t getCurrentSequencePosition();
-	bool isCurrentSequenceEnabled();
+	bool isCurrentSequenceEnabled() const;
 	bool isRecording();
 	void toggleRecording();
 	void enableSequence(bool state);
@@ -99,6 +103,13 @@ public:
 	void setInput(uint8_t input);
 	uint8_t getLength() const;
 	void setLength(uint8_t length);
+	uint8_t getClockDivider() const;
+	uint8_t getClockDivider();
+	void setClockDivider(uint8_t index);
+	uint8_t getClockDividerPulses() const;
+	bool isStepPulse() const;
+	String getName() const { return _name; }
+	void setName(const String& name) { _name = name; }
 	bool acceptsInput(uint8_t srcPort, uint8_t srcDevice);
 	static void setRouter(MidiRouter* router);
 	vector<RTPEventNotePlus>& getEventNoteSequence();

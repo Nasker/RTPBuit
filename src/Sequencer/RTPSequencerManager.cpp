@@ -73,8 +73,12 @@ void RTPSequencerManager::sendTransportCallback(uint8_t transportCommand){
 }
 
 void RTPSequencerManager::gridClockUp(uint8_t realtimebyte){
+    // Advance every raw 24-PPQN pulse; per-lane dividers gate actual steps
+    _sequencer.play();
+
+    // 16th-note grid: UI sync and note TTL still run at the original rate
     if (counter % MusicConfig::Timing::CLOCK_GRID == 0){
-        _sequencer.play();
+        _sequencer.decreaseTimeToLive();
         ControlCommand callbackCommand;
         callbackCommand.controlType = SEQUENCER;
         callbackCommand.commandType = GRID_TICK;

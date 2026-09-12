@@ -112,6 +112,7 @@ public:
 
     void saveSequencer(const String& fileName);
     void loadSequencer(const String& fileName);
+    void processPendingPatternLoad();
     bool patternFileExists(const String& fileName);
 
     // Scene management
@@ -163,6 +164,8 @@ private:
     int _swingAmount = 0;               // 0-100%
     int _quantizeStrength = 50;         // 0-100%
     int _masterVolume = 100;            // 0-100%
+    String _pendingLoadFile;            // pattern file queued for load while playing
+    bool _pendingLoad = false;          // apply at next loop rollover (position 0 of step 1)
     void writeSequenceToNeoTrellis(RTPSequenceNoteStates sequenceStates, int color);
     void writeSceneToNeoTrellis(RTPSequencesState sequencesState);
 };
