@@ -94,7 +94,7 @@ void RTPNeoTrellis::writeSceneStates(RTPSequencesState sequencesState){
       const RTPSequenceState& s = sequencesState.sequenceState[i];
       // Idle pads sit very dim (hue identity kept); a sounding pad flashes pure
       // white — all LED channels max — for a hard luminance pop per hit.
-      uint32_t c = s.sounding ? 0xFFFFFF
+      uint32_t c = s.sounding ? 0xAAAAAA
                  : s.state    ? colorDim((uint32_t)s.color, 45)
                  : 0;
       _pushPixel(convertMatrix[i], c);
