@@ -22,10 +22,15 @@ void NotesPlayer::playNotes(){
         _notesQueue.pop();
         auto ans = _ringingNotes[note.getMidiChannel() - 1].insert( 
             std::pair<int, RTPEventNotePlus>(note.getEventNote(), note) );
-        if(ans.second) // play note only if it was not already playing
+        if(ans.second){ // not ringing yet: plain note-on
             note.playNoteOn();
-        else // if it was already playing, update its length
-            ans.first->second.setLength(note.getLength());
+        } else {
+            // Already ringing (TTL is in 16ths, so any divider faster than 1/16
+            // re-fires before note-off): retrigger instead of swallowing the hit.
+            ans.first->second.playNoteOff();
+            note.playNoteOn();
+            ans.first->second = note; // fresh TTL/length
+        }
     }
 }
 
