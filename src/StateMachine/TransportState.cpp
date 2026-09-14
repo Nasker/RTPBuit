@@ -7,13 +7,13 @@ TransportState::TransportState (BuitStateMachine& buitMachine, BuitDevicesManage
 }
 
 void TransportState::onEnter() {
-  _devices.presentTransport();
+  _devices.presentTransport(_lastPressedButton);
 }
 
 void TransportState::singleClick() {
   // Single click: could be used for quick action on last selected parameter
   // For now, refresh the transport display
-  _devices.presentTransport();
+  _devices.presentTransport(_lastPressedButton);
 }
 
 void TransportState::doubleClick() {
@@ -29,12 +29,12 @@ void TransportState::longClick() {
   // For Tap tempo (BPM): reset to 120 BPM
   if (_lastPressedButton == 3) {
     _devices.transportSetBPM(120.0f);
-    _devices.presentTransport();
+    _devices.presentTransport(_lastPressedButton);
   }
   // For Rec (quantization): reset to 50%
   else if (_lastPressedButton == 2) {
     _devices.setQuantizeStrength(50);
-    _devices.presentTransport();
+    _devices.presentTransport(_lastPressedButton);
   }
   else {
     _buitMachine.setState(_buitMachine.getGlobalSettingsState());
@@ -51,7 +51,7 @@ void TransportState::rotaryTurned(ControlCommand command) {
       } else if (command.commandType == ROTATING_LEFT) {
         _devices.incrementSwing(-5);
       }
-      _devices.presentTransport();
+      _devices.presentTransport(_lastPressedButton);
       break;
       
     case 2:  // Rec button - adjust quantization strength (0-100%)
@@ -60,7 +60,7 @@ void TransportState::rotaryTurned(ControlCommand command) {
       } else if (command.commandType == ROTATING_LEFT) {
         _devices.incrementQuantizeStrength(-5);
       }
-      _devices.presentTransport();
+      _devices.presentTransport(_lastPressedButton);
       break;
       
     case 3:  // Tap button - adjust BPM (most useful!)
@@ -69,7 +69,7 @@ void TransportState::rotaryTurned(ControlCommand command) {
       } else if (command.commandType == ROTATING_LEFT) {
         _devices.transportIncrementBPM(-1.0f);
       }
-      _devices.presentTransport();
+      _devices.presentTransport(_lastPressedButton);
       break;
       
     case 4:  // Mode button - adjust master volume/transpose
@@ -78,7 +78,7 @@ void TransportState::rotaryTurned(ControlCommand command) {
       } else if (command.commandType == ROTATING_LEFT) {
         _devices.incrementMasterVolume(-5);
       }
-      _devices.presentTransport();
+      _devices.presentTransport(_lastPressedButton);
       break;
       
     default:
@@ -104,31 +104,31 @@ void TransportState::trellisPressed(ControlCommand command) {
       if (_devices.isInternalClock()) {
         _devices.transportPlay();
       }
-      _devices.presentTransport();
+      _devices.presentTransport(_lastPressedButton);
       break;
       
     case 1:  // Stop
       if (_devices.isInternalClock()) {
         _devices.transportStop();
       }
-      _devices.presentTransport();
+      _devices.presentTransport(_lastPressedButton);
       break;
       
     case 2:  // Record (toggle recording on selected sequence)
       _devices.toggleSelectedSequenceRecording();
-      _devices.presentTransport();
+      _devices.presentTransport(_lastPressedButton);
       break;
       
     case 3:  // Tap Tempo (only works in internal mode)
       if (_devices.isInternalClock()) {
         _devices.transportTapTempo();
       }
-      _devices.presentTransport();
+      _devices.presentTransport(_lastPressedButton);
       break;
       
     case 4:  // Toggle Sync Mode (INT/EXT)
       _devices.transportToggleMode();
-      _devices.presentTransport();
+      _devices.presentTransport(_lastPressedButton);
       break;
       
     default:
@@ -150,7 +150,7 @@ void TransportState::sequencerCallback(ControlCommand command) {
       command.commandType == GRID_TICK) {
     // Only refresh periodically on GRID_TICK to avoid flicker
     if (command.commandType != GRID_TICK || command.value % 6 == 0) {
-      _devices.presentTransport();
+      _devices.presentTransport(_lastPressedButton);
     }
   }
 }

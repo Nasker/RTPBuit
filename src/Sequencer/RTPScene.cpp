@@ -164,6 +164,7 @@ SequenceSettings RTPScene::getSelectedSequenceSettings() {
   settings.midiChannel = SequencerScene[_selectedSequence]->getMidiChannel();
   settings.input = SequencerScene[_selectedSequence]->getInput();
   settings.port = SequencerScene[_selectedSequence]->getPort();
+  settings.clockDivider = SequencerScene[_selectedSequence]->getClockDivider();
   return settings;
 }
 
@@ -181,6 +182,10 @@ int RTPScene::getSelectedParameterInSequenceValue() {
 
 String RTPScene::getSelectedParameterInSequenceName() {
   return SequencerScene[_selectedSequence]->getParameterName();
+}
+
+int RTPScene::getSelectedParameterInSequenceIndex() {
+  return SequencerScene[_selectedSequence]->getSelectedParameterIndex();
 }
 
 void RTPScene::incselectParameterInSequence() {

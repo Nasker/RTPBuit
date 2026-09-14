@@ -76,6 +76,7 @@ public:
     virtual void decreaseParameter() = 0;
     virtual int getParameterValue() const = 0;
     virtual String getParameterName() const = 0;
+    virtual int getParameterIndex() const = 0;   // selected param index (for pad highlight)
 
     // Navigation
     virtual void nextPage() = 0;

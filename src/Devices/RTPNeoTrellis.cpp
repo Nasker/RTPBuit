@@ -167,6 +167,14 @@ void RTPNeoTrellis::writeSequenceSettingsPage(SequenceSettings sequenceSettings)
     _pushPixel(convertMatrix[5], pCol);
   }
 
+  // Pad 6 — Grid (clock divider): violet, brighter = faster step rate
+  {
+    uint8_t d = sequenceSettings.clockDivider;
+    if (d > 10) d = 10;
+    uint8_t brightness = (uint8_t)(60 + d * 19);   // 60..250, slow->fast
+    _pushPixel(convertMatrix[6], myTrellis.pixels.Color(brightness, 0, brightness));
+  }
+
   _commit();
 }
 

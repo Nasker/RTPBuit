@@ -194,6 +194,10 @@ String RTPSequencer::getSelectedParameterInSequenceName() {
     return Sequencer[_selectedScene]->getSelectedParameterInSequenceName();
 }
 
+int RTPSequencer::getSelectedParameterInSequenceIndex() {
+    return Sequencer[_selectedScene]->getSelectedParameterInSequenceIndex();
+}
+
 void RTPSequencer::incSelectParameterInSequence() {
     Sequencer[_selectedScene]->incselectParameterInSequence();
 }

@@ -40,6 +40,7 @@ public:
   void decselectParameterInSequence();
   int getSelectedParameterInSequenceValue();
   String getSelectedParameterInSequenceName();
+  int getSelectedParameterInSequenceIndex();
   void incselectPageInSequence();
   void decselectPageInSequence();
   uint16_t getSelectedSequenceCurrentPosition();

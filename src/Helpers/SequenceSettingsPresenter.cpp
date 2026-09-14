@@ -29,11 +29,21 @@ void SequenceSettingsPresenter::presentSequenceSettings(){
         const char* inputNames[] = {"Any", "USB", "USB Host", "DIN", "ALL",
                                      "Host 1", "Host 2", "Host 3", "Host 4"};
         valueStr = resolvePortDisplayName(paramValue, inputNames);
+    } else if (paramName == "Div") {
+        // Grid step rate: index -> musical note division (24 PPQN)
+        const char* divNames[] = {"1/1", "1/2", "1/4", "1/4T", "1/8", "1/8T",
+                                   "1/16", "1/16T", "1/32", "1/32T", "1/64"};
+        valueStr = (paramValue >= 0 && paramValue <= 10)
+            ? String(divNames[paramValue]) : String(paramValue);
     } else {
         valueStr = String(paramValue);
     }
 
-    _display.printThreeLines("Seq Settings", paramName, valueStr);
+    _display.printThreeLines("Seq Settings", valueStr, "");
+    static const PadHint hints[] = {
+        {0,"TYP"},{1,"CH"},{2,"COL"},{3,"LEN"},{4,"IN"},{5,"OUT"},{6,"DIV"}
+    };
+    _display.setPadLegend(hints, 7, (int8_t)_sequencer.getParameterIndex());
     _trellis.writeSequenceSettingsPage(s);
 }
 
@@ -65,40 +75,44 @@ String SequenceSettingsPresenter::resolvePortDisplayName(int paramValue, const c
 }
 
 void SequenceSettingsPresenter::showSequence(){
-    String sequenceType = _concreteSequencer.getSelectedSequenceDisplayName();
-    int midiChannel = _sequencer.getMidiChannel();
-    int currentPage = _sequencer.getCurrentPage() + 1;
+    String sequenceName = _concreteSequencer.getSelectedSequenceDisplayName();
     int totalPages = _concreteSequencer.getSelectedSequenceSettings().lenght;
 
-    SequenceDisplayState state = getSequenceDisplayState();
+    // Line 1 = where we are, line 2 = the sequence name. The cell row below
+    // shows the sequence's pages (filled = has notes, ringed = current page),
+    // so no "Pg x/y" text is needed.
+    _display.printThreeLines("Sequence Edit", sequenceName, "");
 
-    static uint8_t blinkCounter = 0;
-    blinkCounter++;
-    bool blinkState = (blinkCounter / 8) % 2 == 0;
+    uint16_t mask = 0;
+    RTPEventNoteSequence* seq = _concreteSequencer.getActiveSequence();
+    if (seq) {
+        auto& notes = seq->getEventNoteSequence();
+        for (size_t i = 0; i < notes.size(); i++)
+            if (notes[i].eventState()) mask |= (uint16_t)(1 << (i / SEQ_BLOCK_SIZE));
+    }
+    _display.setGrid(mask, (uint8_t)totalPages, (int8_t)_sequencer.getCurrentPage());
 
-    _display.printFourLinesWithState(
-        sequenceType,
-        "Sequence " + String(_sequencer.getCurrentSequence() + 1),
-        "Page " + String(currentPage) + " of " + String(totalPages),
-        "Ch " + String(midiChannel),
-        state,
-        blinkState
-    );
     _trellis.writeSequenceStates(_sequencer.getNoteStates(), _sequencer.getSequenceColor());
 }
 
 void SequenceSettingsPresenter::presentScene(){
-    SequenceDisplayState state = _sequencer.isPlaying() ? SequenceDisplayState::Playing : SequenceDisplayState::Stopped;
-
     String sceneName = _concreteSequencer.getCurrentSceneName();
-    _display.printFourLinesWithState(
-        "Scene",
-        sceneName.length() > 0 ? sceneName : "Scene " + String(_sequencer.getCurrentScene() + 1),
-        "",
-        "",
-        state,
-        false
-    );
+    if (sceneName.length() == 0) sceneName = "Scene " + String(_sequencer.getCurrentScene() + 1);
+
+    // Line 1 = where we are, line 2 = the scene name. The cell row below shows
+    // the sibling scenes (filled = has enabled sequences, ringed = current).
+    _display.printThreeLines("Scene Edit", sceneName, "");
+
+    int nScenes = _sequencer.getNumScenes();
+    uint16_t mask = 0;
+    for (int i = 0; i < nScenes && i < 16; i++) {
+        RTPScene* s = _concreteSequencer.getScene(i);
+        if (!s) continue;
+        RTPSequencesState ss = s->getSequencesState();
+        for (uint8_t j = 0; j < 16; j++)
+            if (ss.sequenceState[j].state) { mask |= (1 << i); break; }
+    }
+    _display.setGrid(mask, (uint8_t)nScenes, (int8_t)_sequencer.getCurrentScene());
     _trellis.writeSceneStates(_sequencer.getSequencesState());
 }
 
@@ -134,6 +148,10 @@ void SequenceSettingsPresenter::presentSceneSettings(int8_t focusedPad){
                                : "Scene " + String(curScene) + "/" + String(nScenes),
         playing ? "Playing" : "Stopped"
     );
+    static const PadHint hints[] = {
+        {0,"LOAD"},{1,"SAVE"},{2,"ADD"},{3,"DEL"},{4,"MUTE"}
+    };
+    _display.setPadLegend(hints, 5, focusedPad);
 }
 
 SequenceDisplayState SequenceSettingsPresenter::getSequenceDisplayState(){
@@ -148,12 +166,16 @@ SequenceDisplayState SequenceSettingsPresenter::getSequenceDisplayState(){
     }
 }
 
-void SequenceSettingsPresenter::presentTransport(float bpm, SyncMode syncMode){
-    String modeStr = (syncMode == SyncMode::Internal) ? "INT" : "EXT";
-    String playState = _sequencer.isPlaying() ? "Playing" : "Stopped";
-    String bpmStr = (syncMode == SyncMode::Internal) ? String(bpm, 0) + " BPM" : "";
+void SequenceSettingsPresenter::presentTransport(int8_t focusedPad){
+    // What the rotary adjusts for the focused pad (mirrors TransportState).
+    static const char* rotaryTarget[] = {"Swing", "", "Quant", "BPM", "Volume"};
+    String value = (focusedPad >= 0 && focusedPad <= 4) ? rotaryTarget[focusedPad] : "";
 
-    _display.printThreeLines(playState, bpmStr, modeStr);
+    _display.printThreeLines("Transport", value, "");
+    static const PadHint hints[] = {
+        {0,"PLAY"},{1,"STOP"},{2,"REC"},{3,"TAP"},{4,"MODE"}
+    };
+    _display.setPadLegend(hints, 5, focusedPad);
     writeTransportPage();
 }
 

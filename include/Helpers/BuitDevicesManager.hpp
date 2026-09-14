@@ -60,11 +60,12 @@ public:
     void selectSequence(ControlCommand command);
 
     void presentScene()              { _settingsPresenter.presentScene(); }
+    void refreshHud();               // push transversal status strip (call once per loop)
     void presentSequenceSelect();
     void presentSequence()           { _settingsPresenter.showSequence(); }
     void paintLiveTrellis()          { _livePlayOrchestrator.paintLiveTrellis(); }
     void showSequence()              { _settingsPresenter.showSequence(); }
-    void presentTransport();
+    void presentTransport(int8_t focusedPad = -1);
     void presentBuitCC();
     void presentSequenceSettings()   { _settingsPresenter.presentSequenceSettings(); }
 

@@ -33,6 +33,24 @@ void BuitDevicesManager::printToScreen(String firstLine, String secondLine, Stri
     _display.printThreeLines(firstLine, secondLine, thirdLine);
 }
 
+// Push the transversal status strip. Cheap and dedup'd in the display, so it's
+// safe to call every loop; a redraw only happens when something actually changed.
+void BuitDevicesManager::refreshHud(){
+    HudModel hud;
+    hud.transport    = _settingsPresenter.getSequenceDisplayState();
+    hud.syncInternal = (getSyncMode() == SyncMode::Internal);
+    hud.bpm          = getCurrentBPM();
+    hud.beat         = _clockGenerator ? ((_clockGenerator->getCounter() / 24) & 3) : 0;
+    hud.scene        = _sequencer.getCurrentScene();
+    // Count enabled/playing sequences in the current scene (unused slots read false).
+    RTPSequencesState ss = _sequencer.getSequencesState();
+    uint8_t active = 0;
+    for (uint8_t i = 0; i < 16; i++) if (ss.sequenceState[i].state) active++;
+    hud.activeSeq    = active;
+    hud.blink        = ((millis() / 400) & 1) == 0;
+    _display.setHud(hud);
+}
+
 void BuitDevicesManager::writeSequenceToNeoTrellis(RTPSequenceNoteStates sequenceStates, int color){
     _trellis.writeSequenceStates(sequenceStates, color);
 }
@@ -104,8 +122,8 @@ void BuitDevicesManager::presentSequenceSelect(){
     writeSceneToNeoTrellis(_sequencer.getSequencesState());
 }
 
-void BuitDevicesManager::presentTransport(){
-    _settingsPresenter.presentTransport(getCurrentBPM(), getSyncMode());
+void BuitDevicesManager::presentTransport(int8_t focusedPad){
+    _settingsPresenter.presentTransport(focusedPad);
 }
 
 void BuitDevicesManager::presentBuitCC(){

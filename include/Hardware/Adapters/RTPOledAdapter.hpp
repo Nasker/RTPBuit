@@ -81,4 +81,16 @@ public:
     void show() override {
         // RTPOled handles display updates internally
     }
+
+    void setHud(const HudModel& hud) override {
+        _oled.setHud(hud);
+    }
+
+    void setPadLegend(const PadHint* hints, uint8_t count, int8_t focusedPad = -1) override {
+        _oled.setPadLegend(hints, count, focusedPad);
+    }
+
+    void setGrid(uint16_t fillMask, uint8_t count, int8_t highlight) override {
+        _oled.setGrid(fillMask, count, highlight);
+    }
 };

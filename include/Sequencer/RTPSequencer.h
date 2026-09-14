@@ -53,6 +53,7 @@ public:
   void decSelectParameterInSequence();
   int getSelectedParameterInSequenceValue();
   String getSelectedParameterInSequenceName();
+  int getSelectedParameterInSequenceIndex();
   void toggleSequence(uint8_t sequenceIndex) override;
   void toggleAllSequencesInScene();
   RTPSequencesState getSequencesState();
@@ -117,6 +118,7 @@ public:
   void decreaseParameter() override { decSelectParameterInSequence(); }
   int  getParameterValue() const override { return const_cast<RTPSequencer*>(this)->getSelectedParameterInSequenceValue(); }
   String getParameterName() const override { return const_cast<RTPSequencer*>(this)->getSelectedParameterInSequenceName(); }
+  int  getParameterIndex() const override { return const_cast<RTPSequencer*>(this)->getSelectedParameterInSequenceIndex(); }
 
   void nextPage() override;
   void previousPage() override;

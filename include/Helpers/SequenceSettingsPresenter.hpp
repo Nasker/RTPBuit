@@ -31,7 +31,7 @@ public:
     void presentScene();
     void presentSceneSettings(int8_t focusedPad = -1);
     SequenceDisplayState getSequenceDisplayState();
-    void presentTransport(float bpm, SyncMode syncMode);
+    void presentTransport(int8_t focusedPad = -1);
 
 private:
     String resolvePortDisplayName(int paramValue, const char* names[]);

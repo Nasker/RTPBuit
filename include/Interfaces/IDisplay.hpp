@@ -109,4 +109,38 @@ public:
      * @brief Show/display the current content
      */
     virtual void show() = 0;
+
+    /**
+     * @brief Update the transversal status-strip model (transport, BPM, scene, seq, ch)
+     * @param hud Snapshot of cross-cutting status
+     *
+     * Default no-op so displays without a status strip needn't implement it.
+     */
+    virtual void setHud(const HudModel& hud) { (void)hud; }
+
+    /**
+     * @brief Set the on-screen legend of trellis-pad functions for this screen
+     * @param hints   array of PadHint (label per pad)
+     * @param count   number of hints (<= MAX_PAD_HINTS)
+     * @param focusedPad  pad to highlight (the one being edited), or -1/255 for none
+     *
+     * Default no-op so displays without a legend needn't implement it.
+     * Call after a print* method — a new content frame clears the legend.
+     */
+    virtual void setPadLegend(const PadHint* hints, uint8_t count, int8_t focusedPad = -1) {
+        (void)hints; (void)count; (void)focusedPad;
+    }
+
+    /**
+     * @brief Set the on-screen 4x4 cell grid (siblings/context view)
+     * @param fillMask  bit i = cell i filled (enabled / has content)
+     * @param count     how many cells exist (<=16); the rest are not drawn
+     * @param highlight index of the current cell to ring, or -1 for none
+     *
+     * Default no-op so displays without a grid needn't implement it.
+     * Call after a print* method — a new content frame clears the grid.
+     */
+    virtual void setGrid(uint16_t fillMask, uint8_t count, int8_t highlight) {
+        (void)fillMask; (void)count; (void)highlight;
+    }
 };

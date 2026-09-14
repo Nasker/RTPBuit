@@ -72,6 +72,7 @@ void RTPMainUnit::update(){
   rtpRotary.callbackFromClicks(this);
   rtpTrellis.read();
   SequencerManager.update();
+  devicesManager.refreshHud();  // update the status strip (dedup'd; no-op when unchanged)
   rtpOled.flush();   // render any queued screen change once, after the sequencer tick
 }
 

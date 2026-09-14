@@ -93,6 +93,7 @@ public:
 	virtual void decreasePage();
 	uint8_t getParameterValue();
 	String getParameterName();
+	uint8_t getSelectedParameterIndex() { return _selectedParameter; }
 	uint8_t getPort();
 	uint8_t getPort() const;
 	void setPort(uint8_t port);
