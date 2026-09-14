@@ -281,8 +281,8 @@ void NeoTrellisMatrix::writeSceneStates(RTPSequencesState sceneStates) {
     if (!_ready) return;
     for (uint8_t i = 0; i < getButtonCount(); i++) {
         const RTPSequenceState& s = sceneStates.sequenceState[i];
-        setButtonColor(i, s.sounding ? (uint32_t)s.color
-                        : s.state    ? colorDim((uint32_t)s.color, 90)
+        setButtonColor(i, s.sounding ? 0xFFFFFF
+                        : s.state    ? colorDim((uint32_t)s.color, 45)
                         : 0);
     }
     show();

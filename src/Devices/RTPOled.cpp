@@ -141,7 +141,7 @@ void RTPOled::_drawFrame(){
     display.setCursor(calcOffsetToCenterText(_act.line[0]), 28);
     display.println(_act.line[0]);
 
-    display.setFont(u8g2_font_ncenB08_tr);
+    display.setFont(u8g2_font_9x6LED_tr);
     if (_act.numHints > 0) {
       // Legend screen: title + one value line, then the pad legend grid.
       display.setCursor(calcOffsetToCenterText(_act.line[1]), 41);
