@@ -152,6 +152,7 @@ RTPSequencesState RTPScene::getSequencesState() {
   for (size_t i = 0; i < SequencerScene.size(); i++) {
     seqsState.sequenceState[i].state = SequencerScene[i]->isCurrentSequenceEnabled();
     seqsState.sequenceState[i].color = colorMapper(SequencerScene[i]->getColor());
+    seqsState.sequenceState[i].sounding = SequencerScene[i]->isPlayheadOnActiveStep();
   }
   return seqsState;
 }

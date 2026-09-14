@@ -70,6 +70,7 @@ public:
     void presentSequenceSettings()   { _settingsPresenter.presentSequenceSettings(); }
 
     void editScene(ControlCommand command);
+    void refreshSceneGrid();   // repaint scene pads incl. sounding flash (per tick)
     void editSequence(ControlCommand command);
     void useTransport(ControlCommand command);
     void editCurrentNote(ControlCommand command);

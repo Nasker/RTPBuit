@@ -47,6 +47,10 @@ void SceneEditState::sequencerCallback(ControlCommand command) {
   if (command.commandType == TRANSPORT_START || command.commandType == TRANSPORT_STOP) {
     _devices.presentScene();
   }
+  // Flash the pad of any sequence whose playhead is on a sounding step.
+  else if (command.commandType == GRID_TICK) {
+    _devices.refreshSceneGrid();
+  }
 }
 
 void SceneEditState::midiNote(ControlCommand command) {

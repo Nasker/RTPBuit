@@ -8,8 +8,9 @@ struct RTPSequenceNoteStates{
 };
 
 struct RTPSequenceState{
-  bool state = false;   // enabled/playing
+  bool state = false;    // enabled/playing
   int color  = 0;
+  bool sounding = false; // playhead currently on a step that holds a note
 };
 
 struct RTPSequencesState{

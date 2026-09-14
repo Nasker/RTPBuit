@@ -90,8 +90,15 @@ void RTPNeoTrellis::writeSequenceStates(RTPSequenceNoteStates seqStates, int col
 }
 
 void RTPNeoTrellis::writeSceneStates(RTPSequencesState sequencesState){
-  for(int i=0; i<SCENE_BLOCK_SIZE; i++)
-      _pushPixel(convertMatrix[i], sequencesState.sequenceState[i].state ? sequencesState.sequenceState[i].color : 0);
+  for(int i=0; i<SCENE_BLOCK_SIZE; i++){
+      const RTPSequenceState& s = sequencesState.sequenceState[i];
+      // Enabled pads sit dim so a sounding pad has headroom to flash at full
+      // brightness in its own color (reads as a pulse, keeps hue identity).
+      uint32_t c = s.sounding ? (uint32_t)s.color
+                 : s.state    ? colorDim((uint32_t)s.color, 90)
+                 : 0;
+      _pushPixel(convertMatrix[i], c);
+  }
   _commit();
 }
 

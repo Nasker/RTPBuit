@@ -80,6 +80,12 @@ bool RTPEventNoteSequence::isCurrentSequenceEnabled() const {
   return _isEnabled;
 }
 
+bool RTPEventNoteSequence::isPlayheadOnActiveStep() {
+  if (!_isEnabled) return false;
+  return _currentPosition < EventNoteSequence.size()
+      && EventNoteSequence[_currentPosition].eventState();
+}
+
 bool RTPEventNoteSequence::isRecording(){
   return _isRecording;
 }

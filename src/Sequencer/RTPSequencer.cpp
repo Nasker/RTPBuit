@@ -129,7 +129,12 @@ void RTPSequencer::toggleAllSequencesInScene() {
 }
 
 RTPSequencesState RTPSequencer::getSequencesState() {
-    return Sequencer[_selectedScene]->getSequencesState();
+    RTPSequencesState state = Sequencer[_selectedScene]->getSequencesState();
+    // When stopped the playhead rests on step 0 — don't report it as sounding.
+    if (!_isPlaying)
+        for (uint8_t i = 0; i < SCENE_BLOCK_SIZE; i++)
+            state.sequenceState[i].sounding = false;
+    return state;
 }
 
 void RTPSequencer::selectSequence(uint8_t sequenceIndex) {

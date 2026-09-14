@@ -58,6 +58,10 @@ public:
 	void resetSequence();
 	uint16_t getCurrentSequencePosition();
 	bool isCurrentSequenceEnabled() const;
+	// True while the playhead sits on a step that holds a note. Used by the
+	// scene grid to flash the pad of a sequence that is sounding right now.
+	// Stateless: the playhead rests on the fired step for its whole duration.
+	bool isPlayheadOnActiveStep();
 	bool isRecording();
 	void toggleRecording();
 	void enableSequence(bool state);

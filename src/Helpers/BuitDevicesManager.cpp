@@ -64,6 +64,10 @@ void BuitDevicesManager::editScene(ControlCommand command){
     writeSceneToNeoTrellis(_sequencer.getSequencesState());
 }
 
+void BuitDevicesManager::refreshSceneGrid(){
+    writeSceneToNeoTrellis(_sequencer.getSequencesState());
+}
+
 void BuitDevicesManager::editSequence(ControlCommand command){
     _sequencer.toggleNote(command.value);
 }
