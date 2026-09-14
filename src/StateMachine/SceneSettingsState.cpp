@@ -23,11 +23,12 @@ void SceneSettingsState::doubleClick() {
 }
 
 void SceneSettingsState::tripleClick() {
-  _buitMachine.setState(_buitMachine.getPatternBankLoadState());
+  // Load lives on trellis pad 0 — no redundant shortcut here.
 }
 
 void SceneSettingsState::longClick() {
-  _buitMachine.setState(_buitMachine.getPatternBankSaveState());
+  // Hold toggles back out of settings (mirrors SceneEdit's long-press to enter).
+  _buitMachine.setState(_buitMachine.getSceneEditState());
 }
 
 void SceneSettingsState::rotaryTurned(ControlCommand command) {

@@ -1,6 +1,5 @@
 #include "BuitStateMachine.h"
 #include "InitState.h"
-#include "GlobalSettingsState.h"
 #include "TransportState.h"
 #include "SceneEditState.h"
 #include "SceneSettingsState.h"
@@ -15,7 +14,6 @@
 BuitStateMachine::BuitStateMachine(BuitDevicesManager& outDevices){ //, LiquidScreen& lScreen
 	_initState             = std::make_unique<InitState>(*this, outDevices);
 	_transportState        = std::make_unique<TransportState>(*this, outDevices);
-	_globalSettingsState   = std::make_unique<GlobalSettingsState>(*this, outDevices);
 	_sceneEditState        = std::make_unique<SceneEditState>(*this, outDevices);
 	_sceneSettingsState    = std::make_unique<SceneSettingsState>(*this, outDevices);
 	_sequenceEditState     = std::make_unique<SequenceEditState>(*this, outDevices);
@@ -86,10 +84,6 @@ BuitState* BuitStateMachine::getInitState(){
 
 BuitState* BuitStateMachine::getTransportState(){
   return _transportState.get();
-}
-
-BuitState* BuitStateMachine::getGlobalSettingsState(){
-  return _globalSettingsState.get();
 }
 
 BuitState* BuitStateMachine::getSceneEditState(){

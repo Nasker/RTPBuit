@@ -25,20 +25,18 @@ void TransportState::tripleClick() {
 }
 
 void TransportState::longClick() {
-  // Long press: could reset the last adjusted parameter to default
-  // For Tap tempo (BPM): reset to 120 BPM
+  // Long press resets the focused transport parameter to its default.
+  // Tap tempo (BPM): reset to 120 BPM
   if (_lastPressedButton == 3) {
     _devices.transportSetBPM(120.0f);
     _devices.presentTransport(_lastPressedButton);
   }
-  // For Rec (quantization): reset to 50%
+  // Rec (quantization): reset to 50%
   else if (_lastPressedButton == 2) {
     _devices.setQuantizeStrength(50);
     _devices.presentTransport(_lastPressedButton);
   }
-  else {
-    _buitMachine.setState(_buitMachine.getGlobalSettingsState());
-  }
+  // No GlobalSettings jump — that screen is a stub dead-end.
 }
 
 void TransportState::rotaryTurned(ControlCommand command) {

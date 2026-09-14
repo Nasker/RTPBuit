@@ -39,8 +39,6 @@ public:
 
 	BuitState* getTransportState();
 
-	BuitState* getGlobalSettingsState();
-
 	BuitState* getSceneEditState();
 
 	BuitState* getSceneSettingsState();

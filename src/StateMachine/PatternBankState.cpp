@@ -104,6 +104,10 @@ void PatternBankState::singleClick() {
         _inSlotSelect    = false;
         _awaitingConfirm = false;
         renderPageGrid();
+    } else {
+        // Top of the bank — single click backs out to Scene Settings (the opener).
+        resetState();
+        _buitMachine.setState(_buitMachine.getSceneSettingsState());
     }
 }
 

@@ -23,7 +23,8 @@ void SequenceSettingsState::tripleClick() {
 }
 
 void SequenceSettingsState::longClick() {
-  //Serial.println("Does nothing here!");
+  // Hold toggles back out of settings (mirrors SequenceEdit's long-press to enter).
+  _buitMachine.setState(_buitMachine.getSequenceEditState());
 }
 
 void SequenceSettingsState::rotaryTurned(ControlCommand command) {
