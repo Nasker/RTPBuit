@@ -24,8 +24,11 @@ void RTPSequencer::playAndMoveSequencer() {
         Sequencer[i]->playScene();
         _notesPlayer.playNotes();
         Sequencer[i]->fordwardScene();
-        _notesPlayer.decreaseTimeToLive();
     }
+}
+
+void RTPSequencer::decreaseTimeToLive() {
+    _notesPlayer.decreaseTimeToLive();
 }
 
 void RTPSequencer::stopAndCleanSequencer() {
@@ -65,11 +68,15 @@ void RTPSequencer::toggleSelectedSequenceRecording() {
 }
 
 void RTPSequencer::selectScene(uint8_t scene) {
-    _selectedScene = scene;
+    if (Sequencer.empty()) {
+        _selectedScene = 0;
+        return;
+    }
+    _selectedScene = (scene < Sequencer.size()) ? scene : (uint8_t)(Sequencer.size() - 1);
 }
 
 void RTPSequencer::increaseSelectedScene() {
-    if (_selectedScene < _NScenes - 1)
+    if (_selectedScene + 1 < Sequencer.size())
         _selectedScene++;
 }
 
@@ -78,7 +85,7 @@ void RTPSequencer::decreaseSelectedScene() {
         _selectedScene--;
 }
 
-uint8_t RTPSequencer::getSelectScene() {
+uint8_t RTPSequencer::getSelectScene() const {
     return _selectedScene;
 }
 
@@ -90,15 +97,11 @@ void RTPSequencer::addDynamicScene() {
     if (_isPlaying) return;
     RTPScene* scene = new RTPScene("Scene", SCENE_BLOCK_SIZE, _notesPlayer, _musicManager);
     Sequencer.push_back(scene);
+    _selectedScene = (uint8_t)(Sequencer.size() - 1);
 }
 
 void RTPSequencer::removeCurrentScene() {
-    if (_isPlaying) return;
-    if (Sequencer.size() <= 1) return;
-    delete Sequencer[_selectedScene];
-    Sequencer.erase(Sequencer.begin() + _selectedScene);
-    if (_selectedScene >= Sequencer.size())
-        _selectedScene = (uint8_t)(Sequencer.size() - 1);
+    removeScene(_selectedScene);
 }
 
 void RTPSequencer::removeScene(uint8_t scene) {
@@ -107,6 +110,8 @@ void RTPSequencer::removeScene(uint8_t scene) {
     if (scene >= Sequencer.size()) return;
     delete Sequencer[scene];
     Sequencer.erase(Sequencer.begin() + scene);
+    if (_selectedScene > scene)
+        _selectedScene--;
     if (_selectedScene >= Sequencer.size())
         _selectedScene = (uint8_t)(Sequencer.size() - 1);
 }
@@ -163,6 +168,20 @@ String RTPSequencer::getSelectedSequenceTypeName() {
     }
 }
 
+String RTPSequencer::getSelectedSequenceDisplayName() {
+    if (Sequencer.empty()) return "";
+    RTPScene* scene = Sequencer[_selectedScene];
+    if (!scene) return getSelectedSequenceTypeName();
+    RTPEventNoteSequence* seq = scene->getSequence(scene->getSelectedSequence());
+    if (seq && seq->getName().length() > 0) return seq->getName();
+    return getSelectedSequenceTypeName();
+}
+
+String RTPSequencer::getCurrentSceneName() {
+    if (Sequencer.empty() || !Sequencer[_selectedScene]) return "";
+    return Sequencer[_selectedScene]->getName();
+}
+
 void RTPSequencer::selectParameterInSequence(uint8_t parameterIndex) {
     Sequencer[_selectedScene]->selectParameterInSequence(parameterIndex);
 }
@@ -191,15 +210,17 @@ RTPSequenceNoteStates RTPSequencer::getSelectedSequenceNoteStates() {
     return Sequencer[_selectedScene]->getSequenceNoteStates();
 }
 
-void RTPSequencer::nudgePageInSelectedSequence(ControlCommand command) {
+bool RTPSequencer::nudgePageInSelectedSequence(ControlCommand command) {
+    uint8_t pageBefore = getCurrentPage();
     switch (command.commandType) {
         case ROTATING_LEFT:
             Sequencer[_selectedScene]->decselectPageInSequence();
-            return;
+            break;
         case ROTATING_RIGHT:
             Sequencer[_selectedScene]->incselectPageInSequence();
-            return;
+            break;
     }
+    return getCurrentPage() != pageBefore;
 }
 
 void RTPSequencer::editNoteInCurrentPosition(ControlCommand command) {
@@ -222,6 +243,11 @@ void RTPSequencer::dumpSequencesToJson() {
     persistenceManager.saveSequencerToFile(*this);
     
     Serial.println("Saved sequences using BuitPersistenceManager");
+}
+
+RTPEventNoteSequence* RTPSequencer::getActiveSequence() {
+    uint8_t idx = Sequencer[_selectedScene]->getSelectedSequence();
+    return Sequencer[_selectedScene]->getSequence(idx);
 }
 
 void RTPSequencer::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType) {
@@ -309,7 +335,7 @@ void RTPSequencer::nextPage() {
     cmd.controlType = 0;
     cmd.commandType = ROTATING_RIGHT;
     cmd.value = 0;
-    nudgePageInSelectedSequence(cmd);
+    (void)nudgePageInSelectedSequence(cmd);
 }
 
 void RTPSequencer::previousPage() {
@@ -317,5 +343,5 @@ void RTPSequencer::previousPage() {
     cmd.controlType = 0;
     cmd.commandType = ROTATING_LEFT;
     cmd.value = 0;
-    nudgePageInSelectedSequence(cmd);
+    (void)nudgePageInSelectedSequence(cmd);
 }

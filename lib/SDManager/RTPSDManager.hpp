@@ -8,5 +8,7 @@ const int chipSelect = BUILTIN_SDCARD;
 void initBuitSD();
 bool writeToFile(String fileName, String data);
 bool readFromFile(String fileName, String &data);
+File openFileForRead(const String& fileName);
+File openFileForWrite(const String& fileName);
 bool fileExistsOnSD(const String& fileName);
 

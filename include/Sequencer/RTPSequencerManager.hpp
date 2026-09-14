@@ -14,15 +14,18 @@
 // Note: TICKS_PER_BAR, CLOCK_GRID, FINE_GRID now in MusicConfig::Timing
 
 class RTPMainUnit;
+class MidiRouter;
 class RTPSequencerManager{
     static RTPMainUnit* mainUnit;
     ISequencer& _sequencer;
     IClockGenerator* _clockGenerator = nullptr;
+    MidiRouter* _midiRouter = nullptr;
     uint8_t counter;
 public:
     RTPSequencerManager(RTPSequencer& sequencer);
     void begin(RTPMainUnit* _mainUnit);
     void setClockGenerator(IClockGenerator& clockGenerator) { _clockGenerator = &clockGenerator; }
+    void setMidiRouter(MidiRouter* router) { _midiRouter = router; }
     void update();  // Poll internal clock and dispatch events
     void handleRealTimeSystem(uint8_t realtimebyte);
     uint8_t getCurrentCounter() { return counter; }

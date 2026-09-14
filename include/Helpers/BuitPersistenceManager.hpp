@@ -6,6 +6,8 @@
 #include <ArduinoJson.h>
 #include "RTPSDManager.hpp"
 
+class MidiRouter;
+
 class BuitPersistenceManager {
 public:
     BuitPersistenceManager();
@@ -17,15 +19,28 @@ public:
     String sequencerToJson(const RTPSequencer& sequencer);
     
     // Persistence methods
-    bool saveSequencerToFile(const RTPSequencer& sequencer, const String& fileName = "sequences.json");
+    bool saveSequencerToFile(const RTPSequencer& sequencer, const String& fileName = "sequences.rtpseq");
     bool saveSceneToFile(const RTPScene* scene, const String& fileName);
     bool saveSequenceToFile(const RTPEventNoteSequence* sequence, const String& fileName);
     
     // Loading methods
-    bool loadSequencerFromFile(RTPSequencer& sequencer, const String& fileName = "sequences.json");
+    bool loadSequencerFromFile(RTPSequencer& sequencer, const String& fileName = "sequences.rtpseq");
     bool parseAndLoadSequences(RTPSequencer& sequencer, const String& jsonData);
+    bool parseAndLoadSequences(RTPSequencer& sequencer, File& file);
     bool loadSequenceFromJson(RTPEventNoteSequence* sequence, const JsonObject& seqObj);
+    
+    // Routing config persistence
+    bool saveRoutingConfig(const MidiRouter& router, const String& fileName = "routing.json");
+    bool loadRoutingConfig(MidiRouter& router, const String& fileName = "routing.json");
     
     // Query methods
     bool fileExists(const String& fileName);
+
+private:
+    bool parseAndLoadFromDoc(RTPSequencer& sequencer, JsonDocument& doc);
+    bool saveSequenceToBinary(RTPEventNoteSequence* sequence, File& file);
+    bool loadSequenceFromBinary(RTPScene* scene, uint8_t seqIndex, File& file, uint8_t version);
+    bool skipSequenceInBinary(File& file, uint8_t version);
+    bool saveSequencerToBinary(const RTPSequencer& sequencer, const String& fileName);
+    bool loadSequencerFromBinary(RTPSequencer& sequencer, File& file);
 };

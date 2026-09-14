@@ -2,13 +2,13 @@
 
 #include <cstdint>
 #include "Interfaces/IMidiOutput.hpp"
+#include "Midi/MidiPort.hpp"
 #include "RTPEventNotePlus.h"
 #include "RTPParameter.hpp"
 #include "NotesPlayer.hpp"
 #include "MusicManager.hpp"
 #include "Arduino.h"
 #include <vector>
-#include <list>
 #include <queue>
 #include "Structs.h"
 #include "ControlCommand.h"
@@ -17,6 +17,8 @@
 
 using namespace std;
 
+class MidiRouter;
+
 #define SEQ_BLOCK_SIZE 16
 #define SCENE_BLOCK_SIZE 16
 
@@ -24,24 +26,29 @@ enum SequenceParametersIndex{
 	TYPE,
 	MIDI_CHANNEL,
 	COLOR,
-	LENGTH
+	LENGTH,
+	INPUT_PORT,
+	PORT,
+	CLOCK_DIVIDER
 };
 
 class RTPEventNoteSequence{
 protected:
 	IMidiOutput* _midiOutput = nullptr;
-	list<RTPEventNotePlus> EventNoteSequence;
+	vector<RTPEventNotePlus> EventNoteSequence;
 	vector<RTPParameter> sequenceParameters;
 	NotesPlayer& _notesPlayer;
 	MusicManager& _musicManager;
-	list<RTPEventNotePlus>::iterator it;
+	vector<RTPEventNotePlus>::iterator it;
 	uint8_t _baseNote;
 	bool _isEnabled;
 	bool _isRecording;
 	size_t _currentPosition;
 	uint8_t _selectedParameter;
-	uint8_t _pages;
 	uint8_t _selectedPage;
+	uint8_t _pulseCounter;
+	String _name;
+	static const uint8_t CLOCK_DIVIDER_PULSES[11];
 public:
 	RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents, uint8_t type, uint8_t baseNote, NotesPlayer& notesPlayer, MusicManager& musicManager);
 	void clearSequence();
@@ -50,7 +57,7 @@ public:
 	void backwardSequence();
 	void resetSequence();
 	uint16_t getCurrentSequencePosition();
-	bool isCurrentSequenceEnabled();
+	bool isCurrentSequenceEnabled() const;
 	bool isRecording();
 	void toggleRecording();
 	void enableSequence(bool state);
@@ -86,11 +93,35 @@ public:
 	virtual void decreasePage();
 	uint8_t getParameterValue();
 	String getParameterName();
-	list<RTPEventNotePlus> getEventNoteSequence();
-	const list<RTPEventNotePlus>& getEventNoteSequence() const;  // Const version for JSON serialization
+	uint8_t getPort();
+	uint8_t getPort() const;
+	void setPort(uint8_t port);
+	MidiPort getPortAsMidiPort();
+	uint8_t getUsbHostDeviceIndex();
+	uint8_t getInput();
+	uint8_t getInput() const;
+	void setInput(uint8_t input);
+	uint8_t getLength() const;
+	void setLength(uint8_t length);
+	uint8_t getClockDivider() const;
+	uint8_t getClockDivider();
+	void setClockDivider(uint8_t index);
+	uint8_t getClockDividerPulses() const;
+	bool isStepPulse() const;
+	String getName() const { return _name; }
+	void setName(const String& name) { _name = name; }
+	bool acceptsInput(uint8_t srcPort, uint8_t srcDevice);
+	static void setRouter(MidiRouter* router);
+	vector<RTPEventNotePlus>& getEventNoteSequence();
+	const vector<RTPEventNotePlus>& getEventNoteSequence() const;  // Const version for JSON serialization
 	String dumpSequenceToJson();
 	uint8_t page();
 	uint16_t pageOffset();
 protected:
 	void pointIterator(uint16_t position);
+	void routeLiveNoteOn(uint8_t note, uint8_t velocity, uint8_t channel);
+	void routeLiveNoteOff(uint8_t note, uint8_t channel);
+	void routeLiveCC(uint8_t controller, uint8_t value, uint8_t channel);
+private:
+	static MidiRouter* _router;
 };

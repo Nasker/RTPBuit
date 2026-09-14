@@ -11,6 +11,27 @@ const int convertMatrix[16] = {0,4,8,12,1,5,9,13,2,6,10,14,3,7,11,15};
 
 RTPNeoTrellis::RTPNeoTrellis(){
   pinMode(TRELLIS_INT_PIN, INPUT);
+  // Sentinel forces the first real write to every pixel (colours are <=0xFFFFFF).
+  for (int i = 0; i < NEO_TRELLIS_NUM_KEYS; i++) _pixelShadow[i] = 0xFFFFFFFF;
+}
+
+// Push a pixel only when its colour actually changed. setPixelColor() is a
+// blocking I2C transaction, so this is where the savings come from.
+void RTPNeoTrellis::_pushPixel(uint8_t physIndex, uint32_t color){
+  if (physIndex >= NEO_TRELLIS_NUM_KEYS) return;
+  if (_pixelShadow[physIndex] != color) {
+    myTrellis.pixels.setPixelColor(physIndex, color);
+    _pixelShadow[physIndex] = color;
+    _pixelsDirty = true;
+  }
+}
+
+// Latch the buffered pixel data to the LEDs only when something changed.
+void RTPNeoTrellis::_commit(){
+  if (_pixelsDirty) {
+    myTrellis.pixels.show();
+    _pixelsDirty = false;
+  }
 }
 
 TrellisCallback RTPNeoTrellis::blink(keyEvent evt){  
@@ -49,40 +70,40 @@ void RTPNeoTrellis::begin(RTPMainUnit* _mainUnit){
 
 void RTPNeoTrellis::introAnimation(){
   for(int i=0; i<NEO_TRELLIS_NUM_KEYS; i++)
-    myTrellis.pixels.setPixelColor(i, random(0,255), random(0,255), random(0,255));
-  myTrellis.pixels.show();
+    _pushPixel(i, myTrellis.pixels.Color(random(0,255), random(0,255), random(0,255)));
+  _commit();
 }
 
 void RTPNeoTrellis::read(){
   if(!digitalRead(TRELLIS_INT_PIN))
     myTrellis.read(false);
-  myTrellis.pixels.show();
+  _commit();   // flush pending pixel changes once per loop, no-op when clean
 }
 
 void RTPNeoTrellis::writeSequenceStates(RTPSequenceNoteStates seqStates, int color, bool show){
   for(int i=0; i<SEQ_BLOCK_SIZE; i++){
       int pixelColor = seqStates.val[i] ? colorScaler(color, seqStates.velocity[i], 127)  :  0;
-      myTrellis.pixels.setPixelColor(convertMatrix[i], pixelColor);
+      _pushPixel(convertMatrix[i], pixelColor);
     }
   if(show)
-    myTrellis.pixels.show();
+    _commit();
 }
 
 void RTPNeoTrellis::writeSceneStates(RTPSequencesState sequencesState){
   for(int i=0; i<SCENE_BLOCK_SIZE; i++)
-      myTrellis.pixels.setPixelColor(convertMatrix[i], sequencesState.sequenceState[i].state ? sequencesState.sequenceState[i].color : 0);
-  myTrellis.pixels.show();
+      _pushPixel(convertMatrix[i], sequencesState.sequenceState[i].state ? sequencesState.sequenceState[i].color : 0);
+  _commit();
 }
 
 void RTPNeoTrellis::writeBuitCCStates(RTPSequencesState ccStates, int color){
   for(int i=0; i<N_BUITS_CC; i++)
-      myTrellis.pixels.setPixelColor(convertMatrix[i], ccStates.sequenceState[i].state ? color : 0);
-  myTrellis.pixels.show();
+      _pushPixel(convertMatrix[i], ccStates.sequenceState[i].state ? color : 0);
+  _commit();
 }
 
 void RTPNeoTrellis::writeSequenceSettingsPage(SequenceSettings sequenceSettings){
   for(int i=0; i<SCENE_BLOCK_SIZE; i++)
-    myTrellis.pixels.setPixelColor(i, 0);
+    _pushPixel(i, 0);
 
   // Pad 0 — Type: show the canonical type colour
   const uint32_t typeColors[] = {
@@ -91,61 +112,97 @@ void RTPNeoTrellis::writeSequenceSettingsPage(SequenceSettings sequenceSettings)
   };
   uint8_t t = sequenceSettings.type;
   uint32_t typeCol = (t < 6) ? typeColors[t] : 0xFFFFFF;
-  myTrellis.pixels.setPixelColor(convertMatrix[0], typeCol);
+  _pushPixel(convertMatrix[0], typeCol);
 
   // Pad 1 — MIDI Channel: spread hue across 16 channels (index 0-30, step 2)
   uint8_t ch = sequenceSettings.midiChannel;
   if (ch < 1) ch = 1;
   if (ch > 16) ch = 16;
   uint32_t chCol = colorMapper((ch - 1) * 2);
-  myTrellis.pixels.setPixelColor(convertMatrix[1], chCol);
+  _pushPixel(convertMatrix[1], chCol);
 
   // Pad 2 — Color: show the chosen colour from the wheel
-  myTrellis.pixels.setPixelColor(convertMatrix[2], colorMapper(sequenceSettings.color));
+  _pushPixel(convertMatrix[2], colorMapper(sequenceSettings.color));
 
-  // Pad 3 — Length: white scaled by number of pages (1-4 -> dim to bright)
+  // Pad 3 — Length: white scaled by number of pages (1-16 -> dim to bright)
   uint8_t pages = sequenceSettings.lenght;
   if (pages < 1) pages = 1;
-  if (pages > 4) pages = 4;
-  uint8_t brightness = (uint8_t)(pages * 63);  // 63, 126, 189, 252
-  myTrellis.pixels.setPixelColor(convertMatrix[3], myTrellis.pixels.Color(brightness, brightness, brightness));
+  if (pages > 16) pages = 16;
+  uint8_t brightness = (uint8_t)(pages * 15 + 15);  // 30..255
+  _pushPixel(convertMatrix[3], myTrellis.pixels.Color(brightness, brightness, brightness));
 
-  myTrellis.pixels.show();
+  // Pad 4 — Input: distinct color per input source
+  {
+    const uint32_t inputColors[] = {
+      0x00FFFF,  // 0: Any (cyan)
+      0x0000FF,  // 1: USB Device (blue)
+      0x00FF00,  // 2: USB Host ALL (green)
+      0xFFFF00,  // 3: DIN (yellow)
+      0xFFFFFF,  // 4: ALL (white)
+      0x00FF40,  // 5: USB Host 1
+      0x00CC00,  // 6: USB Host 2
+      0x008800,  // 7: USB Host 3
+      0x004400   // 8: USB Host 4
+    };
+    uint8_t inp = sequenceSettings.input;
+    uint32_t iCol = (inp <= 8) ? inputColors[inp] : 0x000000;
+    _pushPixel(convertMatrix[4], iCol);
+  }
+
+  // Pad 5 — Output: distinct color per output destination
+  {
+    const uint32_t portColors[] = {
+      0xFF0000,  // 0: Default (red / routing table)
+      0x0000FF,  // 1: USB Device (blue)
+      0x00FF00,  // 2: USB Host ALL (green)
+      0xFFFF00,  // 3: DIN (yellow)
+      0xFFFFFF,  // 4: ALL (white)
+      0x00FF40,  // 5: USB Host 1 (green-cyan)
+      0x00CC00,  // 6: USB Host 2 (darker green)
+      0x008800,  // 7: USB Host 3 (dim green)
+      0x004400   // 8: USB Host 4 (very dim green)
+    };
+    uint8_t p = sequenceSettings.port;
+    uint32_t pCol = (p <= 8) ? portColors[p] : 0x000000;
+    _pushPixel(convertMatrix[5], pCol);
+  }
+
+  _commit();
 }
 
 void RTPNeoTrellis::writeTransportPage(int color){
   for(int i=0; i<SCENE_BLOCK_SIZE; i++){
-    myTrellis.pixels.setPixelColor(i, color);
+    _pushPixel(i, color);
   }
-  myTrellis.pixels.show();
+  _commit();
 }
 
 void RTPNeoTrellis::moveCursor(int cursorPos){
-  myTrellis.pixels.setPixelColor(convertMatrix[cursorPos], CURSOR_COLOR);
-  myTrellis.pixels.show();
+  _pushPixel(convertMatrix[cursorPos], CURSOR_COLOR);
+  _commit();
 }
 
 // Individual button control for transport state
 void RTPNeoTrellis::setButtonColor(int buttonIndex, uint32_t color){
   if(buttonIndex >= 0 && buttonIndex < NEO_TRELLIS_NUM_KEYS){
-    myTrellis.pixels.setPixelColor(convertMatrix[buttonIndex], color);
+    _pushPixel(convertMatrix[buttonIndex], color);
   }
 }
 
 void RTPNeoTrellis::clearButton(int buttonIndex){
   if(buttonIndex >= 0 && buttonIndex < NEO_TRELLIS_NUM_KEYS){
-    myTrellis.pixels.setPixelColor(convertMatrix[buttonIndex], 0);
+    _pushPixel(convertMatrix[buttonIndex], 0);
   }
 }
 
 void RTPNeoTrellis::clearAllButtons(){
   for(int i=0; i<NEO_TRELLIS_NUM_KEYS; i++){
-    myTrellis.pixels.setPixelColor(i, 0);
+    _pushPixel(i, 0);
   }
 }
 
 void RTPNeoTrellis::show(){
-  myTrellis.pixels.show();
+  _commit();
 }
 
 // Color helpers - using NeoPixel color format (GRB)

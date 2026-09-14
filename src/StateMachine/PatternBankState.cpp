@@ -9,9 +9,9 @@ PatternBankState::PatternBankState(BuitStateMachine& machine, BuitDevicesManager
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 String PatternBankState::buildFileName(uint8_t page, uint8_t slot) const {
-    // Format: p00s00.json — zero-padded page and slot
+    // Format: p00s00.rtpseq — zero-padded page and slot
     char buf[16];
-    snprintf(buf, sizeof(buf), "p%02ds%02d.json", page, slot);
+    snprintf(buf, sizeof(buf), "p%02ds%02d.rtpseq", page, slot);
     return String(buf);
 }
 

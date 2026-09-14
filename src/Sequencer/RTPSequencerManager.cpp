@@ -1,6 +1,8 @@
 #include "RTPSequencerManager.hpp"
 #include "RTPMainUnit.hpp"
 #include "Config/MusicConfig.hpp"
+#include "Midi/MidiRouter.hpp"
+#include "Midi/MidiMessage.hpp"
 
 RTPMainUnit* RTPSequencerManager::mainUnit;
 
@@ -36,9 +38,9 @@ void RTPSequencerManager::update(){
 
 void RTPSequencerManager::dispatchRealTime(uint8_t realtimebyte){
     handleRealTimeSystem(realtimebyte);
-    if (_clockGenerator && _clockGenerator->isSendingMidiRealtime()) {
-        usbMIDI.sendRealTime(realtimebyte);
-        Serial1.write(realtimebyte);
+    if (_clockGenerator && _clockGenerator->isSendingMidiRealtime() && _midiRouter) {
+        MidiMessage msg { MidiMessage::RealTime, 0, realtimebyte, 0, MidiPort::INTERNAL };
+        _midiRouter->route(msg);
     }
 }
 
@@ -71,8 +73,12 @@ void RTPSequencerManager::sendTransportCallback(uint8_t transportCommand){
 }
 
 void RTPSequencerManager::gridClockUp(uint8_t realtimebyte){
+    // Advance every raw 24-PPQN pulse; per-lane dividers gate actual steps
+    _sequencer.play();
+
+    // 16th-note grid: UI sync and note TTL still run at the original rate
     if (counter % MusicConfig::Timing::CLOCK_GRID == 0){
-        _sequencer.play();
+        _sequencer.decreaseTimeToLive();
         ControlCommand callbackCommand;
         callbackCommand.controlType = SEQUENCER;
         callbackCommand.commandType = GRID_TICK;

@@ -27,6 +27,7 @@ public:
   void stopAndCleanSequencer();
   void pauseSequencer();
   bool isPlaying() const override;
+  void decreaseTimeToLive();
   uint16_t getSelectedSequencePosition();
   uint16_t getSelectedSequencePageOffset();
   uint8_t getSelectedSequencePage();
@@ -36,10 +37,13 @@ public:
   void selectScene(uint8_t scene) override;
   void increaseSelectedScene();
   void decreaseSelectedScene();
-  uint8_t getSelectScene();
+  uint8_t getSelectScene() const;
   uint8_t getSelectedSequence();
   uint8_t getSelectedSequenceMidiChannel();
   String getSelectedSequenceTypeName();
+  // Sequence name if set, otherwise the type name — for OLED display.
+  String getSelectedSequenceDisplayName();
+  String getCurrentSceneName();
   void addScene(RTPScene* scene);
   void addDynamicScene() override;
   void removeCurrentScene() override;
@@ -55,7 +59,7 @@ public:
   void selectSequence(uint8_t sequenceIndex) override;
   RTPSequenceNoteStates getSelectedSequenceNoteStates();
   void toggleNoteInSceneInSelectedSequence(uint16_t position);
-  void nudgePageInSelectedSequence(ControlCommand command);
+  bool nudgePageInSelectedSequence(ControlCommand command);
   void editNoteInCurrentPosition(ControlCommand command);
   uint16_t getSelectedSequenceSize();
   uint32_t getSelectedSequenceColor();
@@ -68,6 +72,7 @@ public:
   uint8_t getLiveVelocity() override;
 
   void setMidiOutput(IMidiOutput* midiOutput);
+  RTPEventNoteSequence* getActiveSequence();
 
   // For persistence manager
   int getNumScenes() const override { return (int)Sequencer.size(); }

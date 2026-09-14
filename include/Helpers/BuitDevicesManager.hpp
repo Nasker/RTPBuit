@@ -13,6 +13,10 @@
 #include "BuitPersistenceManager.hpp"
 #include "Managers/RecordingManager.hpp"
 #include "Managers/LivePlayManager.hpp"
+#include "SequenceSettingsPresenter.hpp"
+#include "LivePlayOrchestrator.hpp"
+
+class UsbHostManager;
 
 /**
  * @brief Device facade for the state machine - interface-based
@@ -38,10 +42,13 @@ class BuitDevicesManager {
     BuitPersistenceManager _persistenceManager;
     MatrixBuitControlChanger _matrixBuitCC;
     IClockGenerator* _clockGenerator = nullptr;
+    UsbHostManager* _usbHostManager = nullptr;
 
     // Decomposed managers (composition pattern)
     RecordingManager _recordingManager;
     LivePlayManager _livePlayManager;
+    SequenceSettingsPresenter _settingsPresenter;
+    LivePlayOrchestrator _livePlayOrchestrator;
 
 public:
     BuitDevicesManager(IDisplay& display, IButtonMatrix& trellis, RTPSequencer& sequencer);
@@ -52,14 +59,14 @@ public:
     void selectScene(ControlCommand command);
     void selectSequence(ControlCommand command);
 
-    void presentScene();
+    void presentScene()              { _settingsPresenter.presentScene(); }
     void presentSequenceSelect();
-    void presentSequence();
-    void paintLiveTrellis();
-    void showSequence();
+    void presentSequence()           { _settingsPresenter.showSequence(); }
+    void paintLiveTrellis()          { _livePlayOrchestrator.paintLiveTrellis(); }
+    void showSequence()              { _settingsPresenter.showSequence(); }
     void presentTransport();
     void presentBuitCC();
-    void presentSequenceSettings();
+    void presentSequenceSettings()   { _settingsPresenter.presentSequenceSettings(); }
 
     void editScene(ControlCommand command);
     void editSequence(ControlCommand command);
@@ -81,29 +88,31 @@ public:
     uint8_t getSelectedSequenceType();
     uint32_t getSelectedSequenceColor();
     bool isSelectedSequenceRecording();
+    bool acceptsInputFrom(uint8_t srcPort, uint8_t srcDevice);
     void playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType);
     void playLiveNoteOff(uint8_t rootNote, uint8_t chordType);
     void handleLiveThreeAxis(ControlCommand command);
     uint8_t getLiveVelocity();
 
-    // Live-play orchestration (moved from SequencePianoRollState)
-    void handleLiveTrellisPressed(uint8_t pad);
-    void handleLiveTrellisReleased(uint8_t pad);
-    void handleLiveSequencerTick();
-    void handleLiveFineTick();
-    void handleLiveDrumRollThreeAxis(ControlCommand command);
-    void syncLiveTrellis();
-    bool isSelectedSequenceWaiting();
-    SequenceDisplayState getSequenceDisplayState();
-    void toggleSelectedSequenceRecording();
+    // Live-play orchestration
+    void handleLiveTrellisPressed(uint8_t pad)  { _livePlayOrchestrator.handleLiveTrellisPressed(pad); }
+    void handleLiveTrellisReleased(uint8_t pad) { _livePlayOrchestrator.handleLiveTrellisReleased(pad); }
+    void handleLiveSequencerTick()              { _livePlayOrchestrator.handleLiveSequencerTick(); }
+    void handleLiveFineTick()                   { _livePlayOrchestrator.handleLiveFineTick(); }
+    void handleLiveDrumRollThreeAxis(ControlCommand command) { _livePlayOrchestrator.handleLiveDrumRollThreeAxis(command); }
+    void syncLiveTrellis()                      { _livePlayOrchestrator.syncLiveTrellis(); }
+    bool isSelectedSequenceWaiting()            { return _livePlayOrchestrator.isSelectedSequenceWaiting(); }
+    SequenceDisplayState getSequenceDisplayState() { return _livePlayOrchestrator.getSequenceDisplayState(); }
+    void toggleSelectedSequenceRecording()       { _livePlayOrchestrator.toggleSelectedSequenceRecording(); }
 
-    void recorderNoteOn(uint8_t note, uint8_t velocity);
-    void recorderNoteOff(uint8_t note);
-    void recorderAdvanceTick();
-    void recorderDumpToSequence();
+    void recorderNoteOn(uint8_t note, uint8_t velocity) { _livePlayOrchestrator.recorderNoteOn(note, velocity); }
+    void recorderNoteOff(uint8_t note)                  { _livePlayOrchestrator.recorderNoteOff(note); }
+    void recorderAdvanceTick()                           { _livePlayOrchestrator.recorderAdvanceTick(); }
+    void recorderDumpToSequence()                        { _livePlayOrchestrator.recorderDumpToSequence(); }
 
     void saveSequencer(const String& fileName);
     void loadSequencer(const String& fileName);
+    void processPendingPatternLoad();
     bool patternFileExists(const String& fileName);
 
     // Scene management
@@ -111,7 +120,7 @@ public:
     void sceneRemove();
     void sceneToggleAll();
     int  getSceneCount() const;
-    void presentSceneSettings(int8_t focusedPad = -1);
+    void presentSceneSettings(int8_t focusedPad = -1) { _settingsPresenter.presentSceneSettings(focusedPad); }
 
     // Direct trellis access for pattern bank UI
     void clearTrellis();
@@ -127,6 +136,7 @@ public:
 
     // Clock generator access (set by RTPMainUnit)
     void setClockGenerator(IClockGenerator& clockGenerator) { _clockGenerator = &clockGenerator; }
+    void setUsbHostManager(UsbHostManager* mgr) { _usbHostManager = mgr; _settingsPresenter.setUsbHostManager(mgr); }
     
     // Transport control (delegate to clock generator if available)
     bool isInternalClock() const;
@@ -151,11 +161,11 @@ public:
     int getMasterVolume() const { return _masterVolume; }
     
 private:
-    uint8_t _displayBlinkCounter = 0; // For blinking waiting indicator
     int _swingAmount = 0;               // 0-100%
     int _quantizeStrength = 50;         // 0-100%
     int _masterVolume = 100;            // 0-100%
+    String _pendingLoadFile;            // pattern file queued for load while playing
+    bool _pendingLoad = false;          // apply at next loop rollover (position 0 of step 1)
     void writeSequenceToNeoTrellis(RTPSequenceNoteStates sequenceStates, int color);
     void writeSceneToNeoTrellis(RTPSequencesState sequencesState);
-    void writeTransportPage();
 };

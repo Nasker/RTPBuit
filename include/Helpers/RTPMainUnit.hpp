@@ -21,6 +21,12 @@
 #include "MusicManager.hpp"
 #include "Helpers/RTPClockGenerator.hpp"
 #include "constants.h"
+#include "Midi/MidiRouter.hpp"
+#include "Midi/UsbDeviceMidiOutput.hpp"
+#include "Midi/DinMidiOutput.hpp"
+#include "Midi/InternalMidiSink.hpp"
+#include "Midi/UsbHostMidiOutput.hpp"
+#include "Midi/UsbHostManager.hpp"
   
 class RTPMainUnit{
   // Legacy hardware (kept for backward compatibility)
@@ -34,6 +40,14 @@ class RTPMainUnit{
   RTPSequencer Sequencer{MusicConfig::Sequences::N_SCENES, musicManager};
   RTPClockGenerator clockGenerator;
   TeensyMidiOutput midiOutput;
+  
+  // MIDI Router and per-port outputs
+  MidiRouter midiRouter;
+  UsbDeviceMidiOutput usbDeviceOutput;
+  UsbHostMidiOutput usbHostOutput;
+  DinMidiOutput dinOutput;
+  InternalMidiSink internalSink;
+  UsbHostManager usbHostManager;
   
   // Hardware adapters (bridge legacy to interfaces)
   RTPOledAdapter oledAdapter{rtpOled};
@@ -67,6 +81,18 @@ public:
   void actOnThreeAxisCallback(String callbackString, int rangeValue);
   void actOnControlsCallback(ControlCommand answer);
   void actOnSequencerCallback(ControlCommand answer);
-  void routeControlChange(uint8_t channel, uint8_t control, uint8_t value);
-  void routeNoteOnOff(uint8_t channel, uint8_t note, uint8_t velocity);
+  void routeControlChange(uint8_t channel, uint8_t control, uint8_t value,
+                           uint8_t srcPort = 0, uint8_t srcDevice = 0xFF);
+  void routeNoteOnOff(uint8_t channel, uint8_t note, uint8_t velocity,
+                      uint8_t srcPort = 0, uint8_t srcDevice = 0xFF);
+  MidiRouter& getMidiRouter() { return midiRouter; }
+  UsbHostManager& getUsbHostManager() { return usbHostManager; }
+  void setUsbHostDevice(MIDIDevice* device, uint8_t idx = 0);
+  void flushUsbHostOutput() { usbHostOutput.flush(); }
+  void setClockOutputPorts(MidiPort destMask) { midiRouter.setClockOutputPorts(destMask); }
+  MidiPort getClockOutputPorts() const { return midiRouter.getClockOutputPorts(); }
+  void setClockInputSource(MidiPort sourceMask) { midiRouter.setClockInputSource(sourceMask); }
+  MidiPort getClockInputSource() const { return midiRouter.getClockInputSource(); }
+private:
+  void initMidiRouter();
 };

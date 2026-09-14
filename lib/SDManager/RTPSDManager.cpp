@@ -54,3 +54,23 @@ bool readFromFile(String fileName, String &data) {
     }
     return true;
 }
+
+File openFileForRead(const String& fileName) {
+    File file = SD.open(fileName.c_str(), FILE_READ);
+    if (file) {
+        Serial.println("Opened file stream: " + fileName);
+    } else {
+        Serial.println("Error opening file stream: " + fileName);
+    }
+    return file;
+}
+
+File openFileForWrite(const String& fileName) {
+    File file = SD.open(fileName.c_str(), FILE_WRITE_BEGIN);
+    if (file) {
+        Serial.println("Opened file stream for write: " + fileName);
+    } else {
+        Serial.println("Error opening file stream for write: " + fileName);
+    }
+    return file;
+}

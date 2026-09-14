@@ -47,18 +47,16 @@ uint8_t MonoSequence::_computeSlot() {
 void MonoSequence::_silence() {
     if (!_sounding) return;
     uint8_t ch = getMidiChannel();
-    if (_midiOutput) _midiOutput->sendNoteOff(_currentNote, 0, ch);
+    routeLiveNoteOff(_currentNote, ch);
     _sounding = false;
 }
 
 // Recompute the live note from the latched chord (root + type) and the current
 // Left-axis position, then play it with LEGATO (new note-on before old note-off)
-// so sweeping glides instead of re-attacking. Gated by axis presence.
-void MonoSequence::_retriggerLiveNote() {
+// so sweeping glides instead of re-attacking. Pad presses sound immediately;
+// axis presence only modulates (sweep/roll).
+void MonoSequence::_retriggerLiveNote(bool forceRetrigger) {
     if (!_chordLatched) return;
-
-    // Presence gate: sound only while Left OR Center is present
-    if (!_leftPresent && !_centerPresent) { _silence(); return; }
 
     uint8_t ch = getMidiChannel();
     uint8_t idx = _currentChordType & 0x0F;
@@ -80,18 +78,27 @@ void MonoSequence::_retriggerLiveNote() {
     note = constrain(note, 0, 127);
     uint8_t targetNote = (uint8_t)note;
 
-    // No change: keep current note ringing (avoid spam while sweeping)
-    if (_sounding && targetNote == _currentNote) return;
+    // No change: keep current note ringing (avoid spam while sweeping).
+    // Explicit pad presses bypass this and re-attack the same note.
+    if (_sounding && targetNote == _currentNote && !forceRetrigger) return;
 
     uint8_t oldNote = _currentNote;
     bool wasSounding = _sounding;
 
-    // Legato: start the new note first
-    if (_midiOutput) _midiOutput->sendNoteOn(targetNote, _liveVelocity, ch);
+    // Forced retrigger of the very same pitch: hard off first so it re-attacks
+    if (forceRetrigger && wasSounding && oldNote == targetNote) {
+        routeLiveNoteOff(oldNote, ch);
+    }
 
-    // ...then release the previous one (overlap = glide, no envelope re-attack)
+    // Legato: start the new note first
+    routeLiveNoteOn(targetNote, _liveVelocity, ch);
+
+    // ...then release the previous one (overlap = glide, no envelope re-attack).
+    // This must run for forced retriggers too: pressing a new pad while the old
+    // note rings would otherwise orphan it (the manager already dropped chord
+    // tracking), leaving a permanent drone.
     if (wasSounding && oldNote != targetNote) {
-        if (_midiOutput) _midiOutput->sendNoteOff(oldNote, 0, ch);
+        routeLiveNoteOff(oldNote, ch);
     }
 
     _currentNote = targetNote;
@@ -106,7 +113,7 @@ void MonoSequence::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t ch
     _chordLatched = true;
     _currentSlot = -1;     // Re-evaluate slot for the new chord
     _tickCount = 0;        // Reset roll phase on new chord
-    _retriggerLiveNote();
+    _retriggerLiveNote(true);  // Explicit press: re-attack even if same pitch
 }
 
 void MonoSequence::playLiveNoteOff(uint8_t rootNote, uint8_t chordType) {
@@ -153,6 +160,10 @@ void MonoSequence::handleLiveThreeAxis(ControlCommand command) {
             break;
         case CHANGE_RIGHT:
             _liveVelocity = command.value;
+            // TODO(future): also emit channel aftertouch or a CC (e.g. CC11
+            // expression / CC7 volume) while a note is sounding, so the Right
+            // axis modulates held notes in real time - MIDI velocity is fixed
+            // at note-on and only affects the NEXT note.
             break;
         default:
             break;
@@ -171,8 +182,8 @@ void MonoSequence::handleLiveHalfTick() {
     if (_rollActive && _sounding && _rollDivision > 0) {
         if ((_tickCount % _rollDivision) == 0) {
             uint8_t ch = getMidiChannel();
-            if (_midiOutput) _midiOutput->sendNoteOff(_currentNote, 0, ch);
-            if (_midiOutput) _midiOutput->sendNoteOn(_currentNote, _liveVelocity, ch);
+            routeLiveNoteOff(_currentNote, ch);
+            routeLiveNoteOn(_currentNote, _liveVelocity, ch);
         }
     }
 }
@@ -187,6 +198,8 @@ void MonoSequence::playCurrentEventNote(){
     
     pointIterator(_currentPosition);
     it->setMidiChannel(getMidiChannel());
+    it->setDestPort(getPortAsMidiPort());
+    it->setUsbHostIndex(getUsbHostDeviceIndex());
     if(isCurrentSequenceEnabled() && it->eventState()){
         if(it->isLiteralPitch()){
             _notesPlayer.queueNote(*it);

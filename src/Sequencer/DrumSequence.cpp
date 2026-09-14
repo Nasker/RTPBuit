@@ -12,6 +12,8 @@ void DrumSequence::setTypeSpecificColor(){
 void DrumSequence::playCurrentEventNote(){
     pointIterator(_currentPosition);
     it->setMidiChannel(getMidiChannel());
+    it->setDestPort(getPortAsMidiPort());
+    it->setUsbHostIndex(getUsbHostDeviceIndex());
     if(isCurrentSequenceEnabled() && it->eventState()){
         it->setLength(1);
         _notesPlayer.queueNote(*it);
@@ -22,13 +24,13 @@ void DrumSequence::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t ch
     (void)velocity;
     (void)chordType;
     uint8_t ch = getMidiChannel();
-    if (_midiOutput) _midiOutput->sendNoteOn(rootNote, _liveVelocity, ch);
+    routeLiveNoteOn(rootNote, _liveVelocity, ch);
 }
 
 void DrumSequence::playLiveNoteOff(uint8_t rootNote, uint8_t chordType) {
     (void)chordType;
     uint8_t ch = getMidiChannel();
-    if (_midiOutput) _midiOutput->sendNoteOff(rootNote, 0, ch);
+    routeLiveNoteOff(rootNote, ch);
 }
 
 void DrumSequence::handleLiveThreeAxis(ControlCommand command) {

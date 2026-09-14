@@ -10,6 +10,7 @@
 #include "Framework/Assert.hpp"
 #include "Tests/Unit/TestValidation.hpp"
 #include "Tests/Unit/TestMidiOutput.hpp"
+#include "Tests/Unit/TestMidiRouter.hpp"
 
 void setup() {
     Serial.begin(115200);
@@ -19,6 +20,7 @@ void setup() {
 
     TestValidation::runAll();
     TestMidiOutput::runAll();
+    TestMidiRouter::runAll();
 
     Serial.println("\n========== Tests Complete ==========");
 }
