@@ -82,6 +82,11 @@ bool RTPEventNoteSequence::isCurrentSequenceEnabled() const {
 
 bool RTPEventNoteSequence::isPlayheadOnActiveStep() {
   if (!_isEnabled) return false;
+  // Transient only: a note fires while _pulseCounter == 0 (isStepPulse), then
+  // fordwardSequence() bumps it. Sounding stays true for the first 3 pulses of
+  // the step (the 32nd-note FINE_GRID period); since the grid repaints every 3
+  // pulses, each hit is sampled exactly once -> one blip per step, any phase.
+  if (_pulseCounter > 3) return false;
   return _currentPosition < EventNoteSequence.size()
       && EventNoteSequence[_currentPosition].eventState();
 }

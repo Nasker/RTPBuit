@@ -48,7 +48,8 @@ void SceneEditState::sequencerCallback(ControlCommand command) {
     _devices.presentScene();
   }
   // Flash the pad of any sequence whose playhead is on a sounding step.
-  else if (command.commandType == GRID_TICK) {
+  // FINE_TICK (every 3 pulses) matches the sounding window so no hit is missed.
+  else if (command.commandType == GRID_FINE_TICK) {
     _devices.refreshSceneGrid();
   }
 }
