@@ -3,10 +3,13 @@
 #include "RTPTypeColors.h"
 #include "ReMap.hpp"
 #include <cstdint>
+#include <cstring>
 #include "Midi/MidiRouter.hpp"
 #include "Midi/MidiMessage.hpp"
+#include "Midi/UsbHostManager.hpp"
 
 MidiRouter* RTPEventNoteSequence::_router = nullptr;
+UsbHostManager* RTPEventNoteSequence::_usbHostManager = nullptr;
 
 const uint8_t RTPEventNoteSequence::CLOCK_DIVIDER_PULSES[11] = {
     96, 48, 24, 16, 12, 8, 6, 4, 3, 2, 1
@@ -40,6 +43,7 @@ RTPEventNoteSequence::RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents
   _selectedParameter = 0;
   _selectedPage = 0;
   _pulseCounter = 0;
+  _usbHostLabel[0] = '\0';
   EventNoteSequence.resize(NEvents, RTPEventNotePlus(midiChannel, false, _baseNote, 80));
 }
 
@@ -112,10 +116,12 @@ void RTPEventNoteSequence::selectParameter(uint8_t parameterIndex){
 
 void RTPEventNoteSequence::increaseParameterValue(){
   sequenceParameters[_selectedParameter].incValue();
+  if (_selectedParameter == PORT) _syncUsbHostLabelToPort();
 }
 
 void RTPEventNoteSequence::decreaseParameterValue(){
   sequenceParameters[_selectedParameter].decValue();
+  if (_selectedParameter == PORT) _syncUsbHostLabelToPort();
 }
 
 void RTPEventNoteSequence::increasePage(){
@@ -178,6 +184,25 @@ uint8_t RTPEventNoteSequence::getPort() const {
 
 void RTPEventNoteSequence::setPort(uint8_t port){
   sequenceParameters[PORT].setValue(port);
+  _syncUsbHostLabelToPort();
+}
+
+void RTPEventNoteSequence::setUsbHostLabel(const char* label){
+  if (!label) label = "";
+  strncpy(_usbHostLabel, label, sizeof(_usbHostLabel) - 1);
+  _usbHostLabel[sizeof(_usbHostLabel) - 1] = '\0';
+}
+
+void RTPEventNoteSequence::_syncUsbHostLabelToPort(){
+  uint8_t port = sequenceParameters[PORT].getValue();
+  if (port >= 5 && port <= 8 && _usbHostManager) {
+    String label = _usbHostManager->getDeviceLabel(port - 5);
+    if (label.length() > 0) {
+      setUsbHostLabel(label.c_str());
+      return;
+    }
+  }
+  _usbHostLabel[0] = '\0';
 }
 
 MidiPort RTPEventNoteSequence::getPortAsMidiPort(){
@@ -197,7 +222,14 @@ MidiPort RTPEventNoteSequence::getPortAsMidiPort(){
 
 uint8_t RTPEventNoteSequence::getUsbHostDeviceIndex(){
   uint8_t port = sequenceParameters[PORT].getValue();
-  if (port >= 5 && port <= 8) return port - 5;  // 0-3
+  if (port >= 5 && port <= 8) {
+    // Label first: the device may have re-enumerated to a different slot.
+    if (_usbHostManager && _usbHostLabel[0]) {
+      int8_t idx = _usbHostManager->findDeviceByLabel(_usbHostLabel);
+      if (idx >= 0) return (uint8_t)idx;
+    }
+    return port - 5;  // fallback: stored slot index
+  }
   return 0xFF;  // broadcast
 }
 
@@ -257,9 +289,15 @@ bool RTPEventNoteSequence::acceptsInput(uint8_t srcPort, uint8_t srcDevice){
     case 2: return srcPort == static_cast<uint8_t>(MidiPort::USB_HOST);
     case 3: return srcPort == static_cast<uint8_t>(MidiPort::DIN);
     case 4: return true;  // ALL — accept any source
-    case 5: case 6: case 7: case 8:
-      return srcPort == static_cast<uint8_t>(MidiPort::USB_HOST)
-             && srcDevice == (inp - 5);
+    case 5: case 6: case 7: case 8: {
+      if (srcPort != static_cast<uint8_t>(MidiPort::USB_HOST)) return false;
+      uint8_t expected = inp - 5;
+      if (_usbHostManager && _usbHostLabel[0]) {
+        int8_t idx = _usbHostManager->findDeviceByLabel(_usbHostLabel);
+        if (idx >= 0) expected = (uint8_t)idx;
+      }
+      return srcDevice == expected;
+    }
     default: return true;
   }
 }

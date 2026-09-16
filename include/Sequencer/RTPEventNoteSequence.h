@@ -48,6 +48,8 @@ protected:
 	uint8_t _selectedPage;
 	uint8_t _pulseCounter;
 	String _name;
+	char _usbHostLabel[48];
+	static class UsbHostManager* _usbHostManager;
 	static const uint8_t CLOCK_DIVIDER_PULSES[11];
 public:
 	RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents, uint8_t type, uint8_t baseNote, NotesPlayer& notesPlayer, MusicManager& musicManager);
@@ -116,6 +118,9 @@ public:
 	String getName() const { return _name; }
 	void setName(const String& name) { _name = name; }
 	bool acceptsInput(uint8_t srcPort, uint8_t srcDevice);
+	const char* getUsbHostLabel() const { return _usbHostLabel; }
+	void setUsbHostLabel(const char* label);
+	static void setUsbHostManager(UsbHostManager* m) { _usbHostManager = m; }
 	static void setRouter(MidiRouter* router);
 	vector<RTPEventNotePlus>& getEventNoteSequence();
 	const vector<RTPEventNotePlus>& getEventNoteSequence() const;  // Const version for JSON serialization
@@ -123,6 +128,9 @@ public:
 	uint8_t page();
 	uint16_t pageOffset();
 protected:
+	// Snapshot the label of the device currently at the selected USB Host slot
+	// (PORT 5-8); clears the label for any other port or when the slot is empty.
+	void _syncUsbHostLabelToPort();
 	void pointIterator(uint16_t position);
 	void routeLiveNoteOn(uint8_t note, uint8_t velocity, uint8_t channel);
 	void routeLiveNoteOff(uint8_t note, uint8_t channel);

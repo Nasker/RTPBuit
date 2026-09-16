@@ -25,6 +25,11 @@ public:
     bool isDeviceConnected(uint8_t idx = 0) const;
     String getDeviceName(uint8_t idx = 0) const;
     String getManufacturerName(uint8_t idx = 0) const;
+    // Stable identity "VID:PID[#serial]|product" — survives re-enumeration,
+    // unlike the slot index which depends on plug order.
+    String getDeviceLabel(uint8_t idx) const;
+    // Slot index of the connected device whose label matches, or -1.
+    int8_t findDeviceByLabel(const char* label) const;
     MIDIDevice* getDevice(uint8_t idx = 0) const;
     uint8_t getDeviceCount() const { return _deviceCount; }
     bool hasConnectionChanged();  // Returns true once per connect/disconnect event

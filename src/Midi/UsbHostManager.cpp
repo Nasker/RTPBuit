@@ -54,6 +54,32 @@ String UsbHostManager::getManufacturerName(uint8_t idx) const {
     return "";
 }
 
+String UsbHostManager::getDeviceLabel(uint8_t idx) const {
+    if (idx >= MAX_DEVICES || !_devices[idx] || !(*_devices[idx])) return "";
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%04X:%04X",
+             _devices[idx]->idVendor(), _devices[idx]->idProduct());
+    String label = buf;
+    const uint8_t* s = _devices[idx]->serialNumber();
+    if (s && s[0]) {
+        label += "#";
+        label += (const char*)s;
+    }
+    const uint8_t* p = _devices[idx]->product();
+    label += "|";
+    label += (p && p[0]) ? String((const char*)p) : String("USB MIDI Device");
+    return label;
+}
+
+int8_t UsbHostManager::findDeviceByLabel(const char* label) const {
+    if (!label || !label[0]) return -1;
+    for (uint8_t i = 0; i < MAX_DEVICES; i++) {
+        if (!isDeviceConnected(i)) continue;
+        if (getDeviceLabel(i) == label) return (int8_t)i;
+    }
+    return -1;
+}
+
 MIDIDevice* UsbHostManager::getDevice(uint8_t idx) const {
     if (idx >= MAX_DEVICES) return nullptr;
     return _devices[idx];

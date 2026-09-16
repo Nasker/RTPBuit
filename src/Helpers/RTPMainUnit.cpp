@@ -146,6 +146,10 @@ void RTPMainUnit::initMidiRouter() {
   
   // Inject router into RTPEventNoteSequence (live play routing)
   RTPEventNoteSequence::setRouter(&midiRouter);
+
+  // Inject USB host manager so sequences can bind ports 5-8 to a stable
+  // device label instead of a re-enumeration-fragile slot index.
+  RTPEventNoteSequence::setUsbHostManager(&usbHostManager);
   
   // Inject router into SequencerManager (replaces hard-coded clock output)
   SequencerManager.setMidiRouter(&midiRouter);

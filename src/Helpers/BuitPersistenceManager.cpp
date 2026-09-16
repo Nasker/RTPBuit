@@ -1,5 +1,6 @@
 #include "BuitPersistenceManager.hpp"
 #include "Midi/MidiRouter.hpp"
+#include <cstring>
 
 BuitPersistenceManager::BuitPersistenceManager() {}
 
@@ -21,6 +22,7 @@ String BuitPersistenceManager::sequenceToJson(const RTPEventNoteSequence* sequen
     doc["d"] = sequence->getClockDivider();
     doc["e"] = sequence->isCurrentSequenceEnabled() ? 1 : 0;
     doc["n"] = sequence->getName();
+    doc["u"] = sequence->getUsbHostLabel();
     
     JsonArray seq = doc["s"].to<JsonArray>();
     for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
@@ -54,6 +56,7 @@ String BuitPersistenceManager::sceneToJson(const RTPScene* scene) {
             seqObj["d"] = sequence->getClockDivider();
             seqObj["e"] = sequence->isCurrentSequenceEnabled() ? 1 : 0;
             seqObj["n"] = sequence->getName();
+            seqObj["u"] = sequence->getUsbHostLabel();
             JsonArray seqArray = seqObj["s"].to<JsonArray>();
             for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
                 JsonObject noteObj = seqArray.add<JsonObject>();
@@ -100,6 +103,7 @@ String BuitPersistenceManager::sequencerToJson(const RTPSequencer& sequencer) {
                     seqObj["d"] = sequence->getClockDivider();
                     seqObj["e"] = sequence->isCurrentSequenceEnabled() ? 1 : 0;
                     seqObj["n"] = sequence->getName();
+                    seqObj["u"] = sequence->getUsbHostLabel();
                     JsonArray seqArray = seqObj["s"].to<JsonArray>();
                     for (const RTPEventNotePlus& eventNote : sequence->getEventNoteSequence()) {
                         JsonObject noteObj = seqArray.add<JsonObject>();
@@ -146,6 +150,11 @@ bool BuitPersistenceManager::loadSequenceFromJson(RTPEventNoteSequence* sequence
     sequence->setName(seqObj["n"].is<const char*>() ? seqObj["n"].as<const char*>() : "");
     sequence->setMidiChannel(midiChannel);
     sequence->setPort(port);
+    // A stored label wins. When the file has none (legacy patches), keep the
+    // label setPort() auto-captured from the device currently at that slot —
+    // old patterns gain label binding for free and persist it on next save.
+    const char* storedLabel = seqObj["u"].is<const char*>() ? seqObj["u"].as<const char*>() : "";
+    if (storedLabel[0]) sequence->setUsbHostLabel(storedLabel);
     sequence->setInput(input);
     sequence->setClockDivider((uint8_t)clockDivider);
     sequence->enableSequence(enabled);
@@ -344,6 +353,11 @@ bool BuitPersistenceManager::saveSequenceToBinary(RTPEventNoteSequence* sequence
     uint8_t nameLen = (uint8_t)name.length();
     file.write(&nameLen, 1);
     if (nameLen > 0) file.write((const uint8_t*)name.c_str(), nameLen);
+    // v5: USB host device label (stable identity for port 5-8 targeting)
+    const char* label = sequence->getUsbHostLabel();
+    uint8_t labelLen = (uint8_t)strlen(label);
+    file.write(&labelLen, 1);
+    if (labelLen > 0) file.write((const uint8_t*)label, labelLen);
     for (const RTPEventNotePlus& note : sequence->getEventNoteSequence()) {
         uint32_t low = note.getPackedLow();
         uint32_t high = note.getPackedHigh();
@@ -392,6 +406,19 @@ bool BuitPersistenceManager::loadSequenceFromBinary(RTPScene* scene, uint8_t seq
     } else {
         sequence->setName("");
     }
+    // v5: USB host device label. A stored label wins; when absent (legacy
+    // files or empty), keep the label setPort() auto-captured from the
+    // device currently at that slot.
+    if (version >= 5) {
+        uint8_t labelLen;
+        if (file.readBytes((char*)&labelLen, 1) != 1) return false;
+        char labelBuf[48] = {0};
+        uint8_t readLen = labelLen < sizeof(labelBuf) - 1 ? labelLen : sizeof(labelBuf) - 1;
+        if (readLen > 0 && file.readBytes(labelBuf, readLen) != readLen) return false;
+        if (labelLen > readLen && !file.seek(file.position() + (labelLen - readLen))) return false;
+        labelBuf[readLen] = '\0';
+        if (labelBuf[0]) sequence->setUsbHostLabel(labelBuf);
+    }
     sequence->clearSequence();
     sequence->resizeSequence(nNotes);
     auto& notes = sequence->getEventNoteSequence();
@@ -419,6 +446,11 @@ bool BuitPersistenceManager::skipSequenceInBinary(File& file, uint8_t version) {
         if (file.readBytes((char*)&nameLen, 1) != 1) return false;
         if (!file.seek(file.position() + nameLen)) return false;
     }
+    if (version >= 5) {
+        uint8_t labelLen;
+        if (file.readBytes((char*)&labelLen, 1) != 1) return false;
+        if (!file.seek(file.position() + labelLen)) return false;
+    }
     return file.seek(file.position() + (uint32_t)nNotes * 8);
 }
 
@@ -430,7 +462,7 @@ bool BuitPersistenceManager::saveSequencerToBinary(const RTPSequencer& sequencer
     }
     uint8_t header[8];
     header[0] = 'R'; header[1] = 'T'; header[2] = 'P'; header[3] = '0';
-    header[4] = 4; // version
+    header[4] = 5; // version
     header[5] = (uint8_t)sequencer.getNumScenes();
     header[6] = (uint8_t)SCENE_BLOCK_SIZE;
     header[7] = (uint8_t)sequencer.getSelectScene();
@@ -465,7 +497,7 @@ bool BuitPersistenceManager::loadSequencerFromBinary(RTPSequencer& sequencer, Fi
     if (file.readBytes((char*)header, sizeof(header)) != sizeof(header)) return false;
     if (header[0] != 'R' || header[1] != 'T' || header[2] != 'P' || header[3] != '0') return false;
     uint8_t version = header[4];
-    if (version < 1 || version > 4) return false;
+    if (version < 1 || version > 5) return false;
     uint8_t nScenes = header[5];
     // Grow the sequencer if the file has more scenes than currently exist
     while (sequencer.getNumScenes() < (int)nScenes) {

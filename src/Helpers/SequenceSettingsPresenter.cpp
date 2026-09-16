@@ -1,6 +1,7 @@
 #include "SequenceSettingsPresenter.hpp"
 #include "Sequencer/RTPEventNoteSequence.h"
 #include "Midi/UsbHostManager.hpp"
+#include <cstring>
 
 SequenceSettingsPresenter::SequenceSettingsPresenter(IDisplay& display, IButtonMatrix& trellis,
     ISequencer& sequencer, RTPSequencer& concreteSequencer, RecordingManager& recordingManager)
@@ -65,8 +66,18 @@ String SequenceSettingsPresenter::resolvePortDisplayName(int paramValue, const c
     }
     if (paramValue >= 5 && paramValue <= 8) {
         uint8_t idx = paramValue - 5;
-        if (_usbHostManager->isDeviceConnected(idx)) {
+        // The stored label may resolve to a different slot after re-enumeration.
+        RTPEventNoteSequence* seq = _concreteSequencer.getActiveSequence();
+        const char* label = seq ? seq->getUsbHostLabel() : "";
+        int8_t resolved = (label[0]) ? _usbHostManager->findDeviceByLabel(label) : -1;
+        if (resolved >= 0) {
+            valueStr = _usbHostManager->getDeviceName((uint8_t)resolved);
+        } else if (_usbHostManager->isDeviceConnected(idx)) {
             valueStr = _usbHostManager->getDeviceName(idx);
+        } else if (label[0]) {
+            // Device absent: show which device the patch expects.
+            const char* product = strrchr(label, '|');
+            valueStr = String(product ? product + 1 : label) + " (gone)";
         } else {
             valueStr = "Host " + String(idx + 1) + " (none)";
         }
