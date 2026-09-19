@@ -111,18 +111,29 @@ void RTPEventNoteSequence::selectParameter(uint8_t parameterIndex){
   if(parameterIndex >= sequenceParameters.size() - 1)
     parameterIndex = sequenceParameters.size() - 1;
   _selectedParameter = parameterIndex;
+  _pendingParamValue = -1;  // switching params abandons any uncommitted edit
   Serial.printf("Selected parameter: %d\n", _selectedParameter);
 }
 
 void RTPEventNoteSequence::increaseParameterValue(){
-  uint8_t prevValue = sequenceParameters[_selectedParameter].getValue();
-  sequenceParameters[_selectedParameter].incValue();
+  RTPParameter& p = sequenceParameters[_selectedParameter];
+  if (_pendingParamValue < 0) _pendingParamValue = p.getValue();
+  _pendingParamValue = constrain(_pendingParamValue + 1, p.getMinValue(), p.getMaxValue());
+}
+
+void RTPEventNoteSequence::commitParameterEdit(){
+  if (_pendingParamValue < 0) return;
+  RTPParameter& p = sequenceParameters[_selectedParameter];
+  int oldValue = p.getValue();
+  p.setValue(_pendingParamValue);
+  _pendingParamValue = -1;
   if (_selectedParameter == PORT) _syncUsbHostLabelToPort();
-  if (_selectedParameter == LENGTH) {
-    uint8_t newValue = sequenceParameters[LENGTH].getValue();
-    if (newValue > prevValue)
-      _tilePatternOnGrow(prevValue, newValue);
-  }
+  if (_selectedParameter == LENGTH && p.getValue() > oldValue)
+    _tilePatternOnGrow(oldValue, p.getValue());
+}
+
+void RTPEventNoteSequence::discardParameterEdit(){
+  _pendingParamValue = -1;
 }
 
 void RTPEventNoteSequence::_tilePatternOnGrow(uint8_t oldPages, uint8_t newPages){
@@ -138,8 +149,9 @@ void RTPEventNoteSequence::_tilePatternOnGrow(uint8_t oldPages, uint8_t newPages
 }
 
 void RTPEventNoteSequence::decreaseParameterValue(){
-  sequenceParameters[_selectedParameter].decValue();
-  if (_selectedParameter == PORT) _syncUsbHostLabelToPort();
+  RTPParameter& p = sequenceParameters[_selectedParameter];
+  if (_pendingParamValue < 0) _pendingParamValue = p.getValue();
+  _pendingParamValue = constrain(_pendingParamValue - 1, p.getMinValue(), p.getMaxValue());
 }
 
 void RTPEventNoteSequence::increasePage(){
@@ -154,6 +166,8 @@ void RTPEventNoteSequence::decreasePage(){
 }
 
 uint8_t RTPEventNoteSequence::getParameterValue(){
+  // Pending-aware: the settings display shows the staged value while editing.
+  if (_pendingParamValue >= 0) return _pendingParamValue;
   return sequenceParameters[_selectedParameter].getValue();
 }
 

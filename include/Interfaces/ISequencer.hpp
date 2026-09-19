@@ -74,6 +74,11 @@ public:
     virtual void selectParameter(uint8_t parameter) = 0;
     virtual void increaseParameter() = 0;
     virtual void decreaseParameter() = 0;
+    // Staged settings edits: increase/decrease adjust a pending value; it only
+    // lands on the real parameter on commit, and is dropped on discard.
+    virtual void commitParameterEdit() = 0;
+    virtual void discardParameterEdit() = 0;
+    virtual bool hasPendingParameterEdit() const = 0;
     virtual int getParameterValue() const = 0;
     virtual String getParameterName() const = 0;
     virtual int getParameterIndex() const = 0;   // selected param index (for pad highlight)

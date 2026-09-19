@@ -45,6 +45,10 @@ protected:
 	bool _isRecording;
 	size_t _currentPosition;
 	uint8_t _selectedParameter;
+        // Staged settings edit: rotary adjusts this pending value (shown in the
+        // settings display); it only lands on the real parameter on commit.
+        // -1 = no pending edit.
+        int _pendingParamValue = -1;
 	uint8_t _selectedPage;
 	uint8_t _pulseCounter;
 	String _name;
@@ -95,6 +99,10 @@ public:
 	void selectParameter(uint8_t parameterIndex);
 	void increaseParameterValue();
 	void decreaseParameterValue();
+	// Commit/discard the staged parameter edit (see _pendingParamValue).
+	void commitParameterEdit();
+	void discardParameterEdit();
+	bool hasPendingParameterEdit() const { return _pendingParamValue >= 0; }
 	virtual void increasePage();
 	virtual void decreasePage();
 	uint8_t getParameterValue();

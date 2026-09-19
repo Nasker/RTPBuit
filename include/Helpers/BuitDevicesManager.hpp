@@ -82,6 +82,8 @@ public:
 
     void selectParameter(ControlCommand command);
     void rotateParameter(ControlCommand command);
+    void commitParameterEdit()   { _sequencer.commitParameterEdit(); }
+    void discardParameterEdit()  { _sequencer.discardParameterEdit(); }
 
     void editBuitCC(ControlCommand command);
     void sendBuitCC(ControlCommand command);

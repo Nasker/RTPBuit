@@ -116,6 +116,11 @@ public:
   void selectParameter(uint8_t parameter) override { selectParameterInSequence(parameter); }
   void increaseParameter() override { incSelectParameterInSequence(); }
   void decreaseParameter() override { decSelectParameterInSequence(); }
+  void commitParameterEdit() override  { Sequencer[_selectedScene]->commitParameterEdit(); }
+  void discardParameterEdit() override { Sequencer[_selectedScene]->discardParameterEdit(); }
+  bool hasPendingParameterEdit() const override {
+    return const_cast<RTPSequencer*>(this)->Sequencer[_selectedScene]->hasPendingParameterEdit();
+  }
   int  getParameterValue() const override { return const_cast<RTPSequencer*>(this)->getSelectedParameterInSequenceValue(); }
   String getParameterName() const override { return const_cast<RTPSequencer*>(this)->getSelectedParameterInSequenceName(); }
   int  getParameterIndex() const override { return const_cast<RTPSequencer*>(this)->getSelectedParameterInSequenceIndex(); }

@@ -197,6 +197,18 @@ void RTPScene::decselectParameterInSequence() {
   SequencerScene[_selectedSequence]->decreaseParameterValue();
 }
 
+void RTPScene::commitParameterEdit() {
+  SequencerScene[_selectedSequence]->commitParameterEdit();
+}
+
+void RTPScene::discardParameterEdit() {
+  SequencerScene[_selectedSequence]->discardParameterEdit();
+}
+
+bool RTPScene::hasPendingParameterEdit() {
+  return SequencerScene[_selectedSequence]->hasPendingParameterEdit();
+}
+
 void RTPScene::incselectPageInSequence() {
   SequencerScene[_selectedSequence]->increasePage();
 }

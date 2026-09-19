@@ -38,6 +38,9 @@ public:
   void selectParameterInSequence(uint8_t parameterIndex);
   void incselectParameterInSequence();
   void decselectParameterInSequence();
+  void commitParameterEdit();
+  void discardParameterEdit();
+  bool hasPendingParameterEdit();
   int getSelectedParameterInSequenceValue();
   String getSelectedParameterInSequenceName();
   int getSelectedParameterInSequenceIndex();

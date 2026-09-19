@@ -40,6 +40,22 @@ void SequenceSettingsPresenter::presentSequenceSettings(){
         valueStr = String(paramValue);
     }
 
+    // Trailing * = staged but not yet committed (press the encoder to apply).
+    if (_sequencer.hasPendingParameterEdit()) {
+        valueStr += "*";
+        // Overlay the draft onto the trellis page so rotating previews the
+        // parameter's visual (colour, length brightness, channel hue, ...).
+        switch (_sequencer.getParameterIndex()) {
+            case TYPE:          s.type = paramValue; break;
+            case MIDI_CHANNEL:  s.midiChannel = paramValue; break;
+            case COLOR:         s.color = paramValue; break;
+            case LENGTH:        s.lenght = paramValue; break;
+            case INPUT_PORT:    s.input = paramValue; break;
+            case PORT:          s.port = paramValue; break;
+            case CLOCK_DIVIDER: s.clockDivider = paramValue; break;
+        }
+    }
+
     _display.printThreeLines("Seq Settings", valueStr, "");
     static const PadHint hints[] = {
         {0,"TYP"},{1,"CH"},{2,"COL"},{3,"LEN"},{4,"IN"},{5,"OUT"},{6,"DIV"}

@@ -7,14 +7,18 @@ SequenceSettingsState::SequenceSettingsState(BuitStateMachine& buitMachine, Buit
 }
 
 void SequenceSettingsState::onEnter() {
+  _devices.discardParameterEdit();  // safety: no stale staged value on entry
   _devices.presentSequenceSettings();
 }
 
 void SequenceSettingsState::singleClick() {
-  //Serial.println("Does nothing here!");
+  // Press = commit the staged value to the selected parameter.
+  _devices.commitParameterEdit();
+  _devices.presentSequenceSettings();
 }
 
 void SequenceSettingsState::doubleClick() {
+  _devices.discardParameterEdit();  // leaving without pressing = not applied
   _buitMachine.setState(_buitMachine.getSequenceEditState());
 }
 
@@ -24,6 +28,7 @@ void SequenceSettingsState::tripleClick() {
 
 void SequenceSettingsState::longClick() {
   // Hold toggles back out of settings (mirrors SequenceEdit's long-press to enter).
+  _devices.discardParameterEdit();
   _buitMachine.setState(_buitMachine.getSequenceEditState());
 }
 

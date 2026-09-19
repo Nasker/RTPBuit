@@ -35,6 +35,8 @@ public:
     int getValue(){
         return _value;
     }
+    int getMinValue(){ return _minValue; }
+    int getMaxValue(){ return _maxValue; }
     void setValue(int value){
         _value = value;
     }
