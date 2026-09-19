@@ -72,6 +72,7 @@ void RTPMainUnit::update(){
   rtpRotary.callbackFromClicks(this);
   rtpTrellis.read();
   SequencerManager.update();
+  devicesManager.updateLivePlay();  // expire drum hit flashes (runs even when stopped)
   devicesManager.refreshHud();  // update the status strip (dedup'd; no-op when unchanged)
   rtpOled.flush();   // render any queued screen change once, after the sequencer tick
 }
@@ -87,7 +88,10 @@ void RTPMainUnit::actOnControlsCallback(ControlCommand callbackCommand){
 
 void RTPMainUnit::actOnSequencerCallback(ControlCommand callbackCommand){
   //Serial.printf("Seq Callback  TYPE: %d  VALUE: %d\n", callbackCommand.commandType, callbackCommand.value);
-  devicesManager.recorderAdvanceTick();
+  // Recorder ticks are 16th-note steps — advancing on GRID_FINE_TICK (32nds)
+  // and transport commands too made recordings end ~3x before the loop did.
+  if (callbackCommand.commandType == GRID_TICK)
+    devicesManager.recorderAdvanceTick();
   devicesManager.processPendingPatternLoad();
   stateMachineManager.handleActions(callbackCommand);
 }

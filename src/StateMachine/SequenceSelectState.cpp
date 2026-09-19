@@ -47,7 +47,14 @@ void SequenceSelectState::trellisReleased(ControlCommand command) {
 }
 
 void SequenceSelectState::sequencerCallback(ControlCommand command) {
-  //Serial.println("Does nothing here!");
+  // Keep the sounding-pad flash alive while picking a sequence — same
+  // repaint SceneEditState performs on fine ticks and transport changes.
+  if (command.commandType == TRANSPORT_START || command.commandType == TRANSPORT_STOP) {
+    _devices.presentSequenceSelect();
+  }
+  else if (command.commandType == GRID_FINE_TICK) {
+    _devices.refreshSceneGrid();
+  }
 }
 
 void SequenceSelectState::midiNote(ControlCommand command) {

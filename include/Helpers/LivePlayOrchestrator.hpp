@@ -29,6 +29,7 @@ public:
     void handleLiveDrumRollThreeAxis(ControlCommand command);
     void syncLiveTrellis();
     void paintLiveTrellis();
+    void update();  // per-loop: expire drum hit flashes
 
     void recorderNoteOn(uint8_t note, uint8_t velocity);
     void recorderNoteOff(uint8_t note);
@@ -39,6 +40,13 @@ public:
     SequenceDisplayState getSequenceDisplayState();
 
 private:
+    // Drum hit flash: millis() at which each pad's white press flash expires,
+    // 0 = not flashing. Time-based so a missed release event can't latch a pad
+    // white — the sweep restores it regardless of event delivery.
+    uint32_t _drumFlashUntil[16] = {};
+    static constexpr uint16_t DRUM_FLASH_MS = 140;
+    void _sweepDrumFlashes();
+
     uint8_t getSelectedSequenceType();
     uint32_t getSelectedSequenceColor();
     uint8_t getLiveVelocity();

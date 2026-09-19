@@ -103,9 +103,16 @@ public:
     void handleLiveFineTick()                   { _livePlayOrchestrator.handleLiveFineTick(); }
     void handleLiveDrumRollThreeAxis(ControlCommand command) { _livePlayOrchestrator.handleLiveDrumRollThreeAxis(command); }
     void syncLiveTrellis()                      { _livePlayOrchestrator.syncLiveTrellis(); }
+    void updateLivePlay()                       { _livePlayOrchestrator.update(); }
     bool isSelectedSequenceWaiting()            { return _livePlayOrchestrator.isSelectedSequenceWaiting(); }
     SequenceDisplayState getSequenceDisplayState() { return _livePlayOrchestrator.getSequenceDisplayState(); }
     void toggleSelectedSequenceRecording()       { _livePlayOrchestrator.toggleSelectedSequenceRecording(); }
+    // Stop + dump if the selected sequence is recording or armed — used when
+    // leaving the sequence's edit context so recording can't leak into scenes.
+    void stopSelectedSequenceRecording() {
+        if (isSelectedSequenceRecording())
+            _livePlayOrchestrator.toggleSelectedSequenceRecording();
+    }
 
     void recorderNoteOn(uint8_t note, uint8_t velocity) { _livePlayOrchestrator.recorderNoteOn(note, velocity); }
     void recorderNoteOff(uint8_t note)                  { _livePlayOrchestrator.recorderNoteOff(note); }

@@ -23,6 +23,9 @@ void SequenceEditState::singleClick() {
 }
 
 void SequenceEditState::doubleClick() {
+  // Leaving this sequence's edit context — stop any active/armed recording
+  // (dumps what was captured) so it can't leak into the scene level.
+  _devices.stopSelectedSequenceRecording();
   _buitMachine.setState(_buitMachine.getSceneEditState());
 }
 

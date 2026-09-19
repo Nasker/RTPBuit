@@ -48,6 +48,7 @@ void LivePlayOrchestrator::handleLiveTrellisPressed(uint8_t pad) {
         if (isSelectedSequenceRecording())
             recorderNoteOn(note, liveVel);
         setTrellisButtonColor(pad, 0xFFFFFF);
+        _drumFlashUntil[pad] = millis() + DRUM_FLASH_MS;
         return;
     }
 
@@ -96,7 +97,8 @@ void LivePlayOrchestrator::handleLiveTrellisReleased(uint8_t pad) {
         _sequencer.playLiveNoteOff(note, 0);
         if (isSelectedSequenceRecording())
             recorderNoteOff(note);
-        setTrellisButtonColor(pad, getSelectedSequenceColor());
+        // LED is owned by the timed flash — it expires via _sweepDrumFlashes,
+        // so a missed release event can no longer latch the pad white.
         return;
     }
 
@@ -164,7 +166,10 @@ void LivePlayOrchestrator::syncLiveTrellis() {
         if (pressed) {
             setTrellisButtonColor(i, 0xFFFFFF);
         } else if (seqType == DRUM_PART) {
-            setTrellisButtonColor(i, seqColor);
+            // Keep an in-flight hit flash lit instead of stamping it out early.
+            bool flashing = _drumFlashUntil[i]
+                            && (int32_t)(millis() - _drumFlashUntil[i]) < 0;
+            setTrellisButtonColor(i, flashing ? 0xFFFFFF : seqColor);
         } else if (i < 12) {
             setTrellisButtonColor(i, isBlackKey[i] ? dimmed : seqColor);
         } else {
@@ -173,8 +178,23 @@ void LivePlayOrchestrator::syncLiveTrellis() {
     }
 }
 
+void LivePlayOrchestrator::update() {
+    _sweepDrumFlashes();
+}
+
+void LivePlayOrchestrator::_sweepDrumFlashes() {
+    uint32_t now = millis();
+    for (uint8_t i = 0; i < 16; i++) {
+        if (_drumFlashUntil[i] && (int32_t)(now - _drumFlashUntil[i]) >= 0) {
+            _drumFlashUntil[i] = 0;
+            setTrellisButtonColor(i, getSelectedSequenceColor());
+        }
+    }
+}
+
 void LivePlayOrchestrator::paintLiveTrellis() {
     uint8_t seqType = getSelectedSequenceType();
+    for (uint8_t i = 0; i < 16; i++) _drumFlashUntil[i] = 0;
 
     // Silence anything still ringing before dropping chord tracking, otherwise
     // abandoned live notes drone forever. POLY/MONO/BASS ignore the note
