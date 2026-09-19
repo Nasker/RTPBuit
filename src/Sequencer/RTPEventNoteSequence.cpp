@@ -115,8 +115,26 @@ void RTPEventNoteSequence::selectParameter(uint8_t parameterIndex){
 }
 
 void RTPEventNoteSequence::increaseParameterValue(){
+  uint8_t prevValue = sequenceParameters[_selectedParameter].getValue();
   sequenceParameters[_selectedParameter].incValue();
   if (_selectedParameter == PORT) _syncUsbHostLabelToPort();
+  if (_selectedParameter == LENGTH) {
+    uint8_t newValue = sequenceParameters[LENGTH].getValue();
+    if (newValue > prevValue)
+      _tilePatternOnGrow(prevValue, newValue);
+  }
+}
+
+void RTPEventNoteSequence::_tilePatternOnGrow(uint8_t oldPages, uint8_t newPages){
+  size_t oldSize = (size_t)oldPages * SEQ_BLOCK_SIZE;
+  size_t newSize = (size_t)newPages * SEQ_BLOCK_SIZE;
+  if (oldSize == 0) return;
+  // The vector can be shorter than N_PAGES*16 after a recording dump resized
+  // it to the logical length — grow it back before tiling.
+  if (EventNoteSequence.size() < newSize)
+    resizeSequence(newSize);
+  for (size_t pos = oldSize; pos < newSize; pos++)
+    EventNoteSequence[pos] = EventNoteSequence[pos % oldSize];
 }
 
 void RTPEventNoteSequence::decreaseParameterValue(){

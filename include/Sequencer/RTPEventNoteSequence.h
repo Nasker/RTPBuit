@@ -131,6 +131,10 @@ protected:
 	// Snapshot the label of the device currently at the selected USB Host slot
 	// (PORT 5-8); clears the label for any other port or when the slot is empty.
 	void _syncUsbHostLabelToPort();
+        // Tile existing content into newly exposed pages when LENGTH grows:
+        // new position pos copies pos % oldSize, so +1 page copies bar 1 and
+        // doubling 2->4 gives bar3=bar1, bar4=bar2.
+        void _tilePatternOnGrow(uint8_t oldPages, uint8_t newPages);
 	void pointIterator(uint16_t position);
 	void routeLiveNoteOn(uint8_t note, uint8_t velocity, uint8_t channel);
 	void routeLiveNoteOff(uint8_t note, uint8_t channel);
