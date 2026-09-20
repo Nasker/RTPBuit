@@ -1,38 +1,46 @@
 #include "Helpers/NotesRecorder.hpp"
 
 NotesRecorder::NotesRecorder() {
-    _tickCounter = 0;
-    _quantizeGrid = 1; // 1 tick = 1 step (grid ticks are already quantized to steps)
-    _quantizeStrength = 50; // Default: nearest grid (100% = snap to nearest)
+    _quantizeStrength = 100;   // Default: hard quantize to the lane's grid
     _isRecording = false;
     _waitingToStart = false;
     _sequenceLength = 0;
-    _currentChannel = 1; // Default to MIDI channel 1
+    _pulsesPerStep = 6;        // 1/16 at 24 PPQN until the owner syncs us
+    _curStep = 0;
+    _curPulse = 0;
+    _hasSynced = false;
+    _loopCompleted = false;
+    _currentChannel = 1;       // Default to MIDI channel 1
     _drumMode = false;
-    _baseNote = 36; // Default to C1 (36) as base note for drum mapping
+    _baseNote = 36;            // Default to C1 (36) as base note for drum mapping
 }
 
-void NotesRecorder::startRecording(uint16_t sequenceLength, uint8_t midiChannel, uint16_t startPosition) {
-    // Clear any previously recorded notes
+uint32_t NotesRecorder::currentPulseAbs() const {
+    return (uint32_t)_curStep * _pulsesPerStep + _curPulse;
+}
+
+uint32_t NotesRecorder::loopPulses() const {
+    return (uint32_t)_sequenceLength * _pulsesPerStep;
+}
+
+void NotesRecorder::startRecording(uint16_t sequenceLength, uint8_t midiChannel,
+                                   uint8_t pulsesPerStep, uint16_t startStep, uint8_t startPulse) {
     _recordedNotes.clear();
-    
-    // Clear any active notes
     _activeNotes.clear();
-    
+
     _sequenceLength = sequenceLength;
-    // Start one tick behind so that after the first advanceTick() increment,
-    // we're exactly at startPosition. This ensures notes at position 0 quantize to 0.
-    _tickCounter = (startPosition == 0) ? (_sequenceLength - 1) : (startPosition - 1);
+    _pulsesPerStep = pulsesPerStep ? pulsesPerStep : 1;
     _currentChannel = midiChannel;
-    
-    // If not at position 0, wait until we loop back to start
-    if (startPosition == 0) {
-        _isRecording = true;
-        _waitingToStart = false;
-    } else {
-        _isRecording = false;  // Not actually recording yet
-        _waitingToStart = true; // Armed, waiting for position 0
-    }
+    _curStep = startStep;
+    _curPulse = startPulse;
+    _hasSynced = true;
+    _loopCompleted = false;
+
+    // At the very top of the loop capture starts now; anywhere else we arm
+    // and wait for the sequence to wrap so the take is a full, aligned loop.
+    bool atLoopStart = (startStep == 0 && startPulse == 0);
+    _isRecording = atLoopStart;
+    _waitingToStart = !atLoopStart;
 }
 
 bool NotesRecorder::isWaiting() const {
@@ -42,14 +50,17 @@ bool NotesRecorder::isWaiting() const {
 void NotesRecorder::stopRecording() {
     _isRecording = false;
     _waitingToStart = false;
-    
-    // Finalize any still-active notes
-    for (auto it = _activeNotes.begin(); it != _activeNotes.end(); ++it) {
-        // Add the note to recorded notes with current length
-        _recordedNotes.push_back(it->second);
+
+    // Finalize any still-held notes: their length runs to where we are now.
+    uint32_t nowAbs = currentPulseAbs();
+    for (auto& kv : _activeNotes) {
+        ActiveNote& an = kv.second;
+        uint32_t span = (nowAbs >= an.onPulseAbs) ? (nowAbs - an.onPulseAbs)
+                                                  : (nowAbs + loopPulses() - an.onPulseAbs);
+        uint32_t steps = (span + _pulsesPerStep / 2) / _pulsesPerStep;
+        an.note.setLength(constrain(steps, 1, 15));
+        _recordedNotes.push_back(an.note);
     }
-    
-    // Clear active notes
     _activeNotes.clear();
 }
 
@@ -61,109 +72,76 @@ bool NotesRecorder::isRecording() const {
     return _isRecording;
 }
 
-bool NotesRecorder::isStartOfSequence() const {
-    if (_sequenceLength == 0) return false;
-    return (_tickCounter % _sequenceLength) == 0;
+void NotesRecorder::setPulsesPerStep(uint8_t pulsesPerStep) {
+    _pulsesPerStep = pulsesPerStep ? pulsesPerStep : 1;
 }
 
-void NotesRecorder::recordNoteOn(uint8_t note, uint8_t velocity) {
-    // Only record when actually active (not when waiting to start)
-    if (!_isRecording || _waitingToStart) return;
-    
-    // Create a new note with the current quantized position
-    uint16_t quantizedPosition = quantizeTick(_tickCounter);
-    
-    // Create the note (state true for note-on)
-    RTPEventNotePlus newNote(_currentChannel, true, note, velocity);
-    newNote.setEventRead(quantizedPosition);
-    newNote.setLength(1); // Start with minimum length, grows on each tick
-    newNote.setLiteralPitch(true); // Keyboard note: play as-is, skip harmony remapping
-    
-    // Store in active notes map using the note number as the key
-    _activeNotes[note] = newNote;
-}
+void NotesRecorder::syncPosition(uint16_t step, uint8_t pulse) {
+    bool wrapped = _hasSynced && step == 0 && pulse == 0 && !(_curStep == 0 && _curPulse == 0);
+    _curStep = step;
+    _curPulse = pulse;
+    _hasSynced = true;
 
-void NotesRecorder::recordNoteOff(uint8_t note) {
-    // Only process when actually active (not when waiting to start)
-    if (!_isRecording || _waitingToStart) return;
-    
-    // Find the note in the active notes map
-    auto it = _activeNotes.find(note);
-    
-    if (it != _activeNotes.end()) {
-        // Calculate the quantized length based on the difference between
-        // the note-on position and the current quantized position
-        uint16_t noteOnPos = it->second.getEventRead();
-        uint16_t noteOffPos = quantizeTick(_tickCounter);
-        
-        // Calculate length (handle wrap-around if needed)
-        uint16_t length;
-        if (noteOffPos >= noteOnPos) {
-            length = noteOffPos - noteOnPos + 1;
-        } else {
-            length = (_sequenceLength - noteOnPos) + noteOffPos + 1;
-        }
-        
-        // Ensure minimum length
-        if (length < 1) length = 1;
-        
-        // Set the final length
-        it->second.setLength(length);
-        
-        // Add to recorded notes
-        _recordedNotes.push_back(it->second);
-        
-        // Remove from active notes
-        _activeNotes.erase(it);
-    }
-}
-
-void NotesRecorder::advanceTick() {
-    // If waiting to start, check if we've reached position 0
     if (_waitingToStart) {
-        _tickCounter++;
-        if (isStartOfSequence()) {
-            // Transition from waiting to active recording
+        if (step == 0 && pulse == 0) {
             _waitingToStart = false;
             _isRecording = true;
         }
         return;
     }
-    
-    // Normal active recording
-    if (!_isRecording) return;
-    
-    _tickCounter++;
-    
-    // Increase length of all active notes
-    increaseNoteLengths();
+    if (_isRecording && wrapped)
+        _loopCompleted = true;
 }
 
-void NotesRecorder::resetTicks() {
-    _tickCounter = 0;
+uint32_t NotesRecorder::quantizePulse(uint32_t pulseAbs) const {
+    uint32_t loop = loopPulses();
+    if (loop == 0) return 0;
+    pulseAbs %= loop;
+
+    // Nearest step boundary (ties round up), then keep (100 - strength)% of
+    // the played deviation. Rushed notes therefore land on the step they were
+    // aimed at instead of the one before it.
+    int32_t nearest = ((int32_t)pulseAbs + _pulsesPerStep / 2) / _pulsesPerStep * _pulsesPerStep;
+    int32_t deviation = (int32_t)pulseAbs - nearest;
+    int32_t kept = deviation * (100 - (int32_t)_quantizeStrength) / 100;
+    int32_t result = nearest + kept;
+
+    result %= (int32_t)loop;
+    if (result < 0) result += loop;
+    return (uint32_t)result;
 }
 
-uint32_t NotesRecorder::getCurrentTick() const {
-    return _tickCounter;
+void NotesRecorder::recordNoteOn(uint8_t note, uint8_t velocity) {
+    if (!_isRecording || _waitingToStart) return;
+
+    uint32_t onAbs = quantizePulse(currentPulseAbs());
+
+    RTPEventNotePlus newNote(_currentChannel, true, note, velocity);
+    newNote.setEventRead(onAbs / _pulsesPerStep);      // step
+    newNote.setMicroOffset(onAbs % _pulsesPerStep);    // pulses into the step
+    newNote.setLength(1);
+    newNote.setLiteralPitch(true); // Keyboard note: play as-is, skip harmony remapping
+
+    _activeNotes[note] = ActiveNote{newNote, onAbs};
 }
 
-void NotesRecorder::increaseNoteLengths() {
-    // This function is called on each tick to increase the length of active notes
-    // Similar to decreaseTimeToLive in NotesPlayer, but increasing instead
-    
-    for (auto& notePair : _activeNotes) {
-        // Increase the length of the note
-        uint8_t currentLength = notePair.second.getLength();
-        notePair.second.setLength(currentLength + 1);
-    }
-}
+void NotesRecorder::recordNoteOff(uint8_t note) {
+    if (!_isRecording || _waitingToStart) return;
 
-void NotesRecorder::setQuantizeGrid(uint8_t grid) {
-    _quantizeGrid = grid;
-}
+    auto it = _activeNotes.find(note);
+    if (it == _activeNotes.end()) return;
 
-uint8_t NotesRecorder::getQuantizeGrid() const {
-    return _quantizeGrid;
+    ActiveNote& an = it->second;
+    uint32_t offAbs = currentPulseAbs();
+    uint32_t span = (offAbs >= an.onPulseAbs) ? (offAbs - an.onPulseAbs)
+                                              : (offAbs + loopPulses() - an.onPulseAbs);
+    // Length in steps, rounded to the nearest step; a tap shorter than half a
+    // step is still one step.
+    uint32_t steps = (span + _pulsesPerStep / 2) / _pulsesPerStep;
+    an.note.setLength(constrain(steps, 1, 15));
+
+    _recordedNotes.push_back(an.note);
+    _activeNotes.erase(it);
 }
 
 void NotesRecorder::setQuantizeStrength(uint8_t strength) {
@@ -178,36 +156,8 @@ uint16_t NotesRecorder::getSequenceLength() const {
     return _sequenceLength;
 }
 
-uint16_t NotesRecorder::quantizeTick(uint32_t tick) const {
-    if (_sequenceLength == 0) return 0;
-    
-    // Wrap tick to sequence bounds first
-    tick = tick % _sequenceLength;
-    
-    // Find previous and next grid positions
-    uint16_t prevGrid = (tick / _quantizeGrid) * _quantizeGrid;
-    uint16_t nextGrid = (prevGrid + _quantizeGrid) % _sequenceLength;
-    
-    // Calculate distances (handling wrap-around)
-    uint16_t distPrev = (tick >= prevGrid) ? (tick - prevGrid) : (tick + _sequenceLength - prevGrid);
-    uint16_t distNext = (nextGrid >= tick) ? (nextGrid - tick) : (nextGrid + _sequenceLength - tick);
-    
-    // Determine nearest grid
-    uint16_t nearestGrid = (distPrev <= distNext) ? prevGrid : nextGrid;
-    uint16_t distNearest = min(distPrev, distNext);
-    
-    // Apply strength threshold: snap if within window, else use conservative (prevGrid)
-    // Strength 0: always use prevGrid (truncate down)
-    // Strength 50: snap if within 50% of grid = nearest (normal feel)
-    // Strength 100: snap if within 100% of grid = always nearest (max forgiveness)
-    uint16_t threshold = (_quantizeGrid * _quantizeStrength) / 100;
-    
-    if (distNearest <= threshold) {
-        return nearestGrid;
-    } else {
-        // In the "dead zone" - fall back to conservative (previous grid)
-        return prevGrid;
-    }
+bool NotesRecorder::isEndOfSequence() const {
+    return _loopCompleted;
 }
 
 const vector<RTPEventNotePlus>& NotesRecorder::getRecordedNotes() const {
@@ -216,13 +166,6 @@ const vector<RTPEventNotePlus>& NotesRecorder::getRecordedNotes() const {
 
 void NotesRecorder::clearRecordedNotes() {
     _recordedNotes.clear();
-}
-
-bool NotesRecorder::isEndOfSequence() const {
-    if (_sequenceLength == 0) return false;
-    // Trigger at the LAST tick of the sequence (position sequenceLength-1)
-    // This ensures dump happens at the END of the loop, not at start of next loop
-    return (_tickCounter % _sequenceLength) == static_cast<uint32_t>(_sequenceLength - 1);
 }
 
 vector<RTPEventNotePlus> NotesRecorder::dumpRecordedSequence() {

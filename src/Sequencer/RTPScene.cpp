@@ -86,7 +86,7 @@ void RTPScene::toggleAllSequences() {
 
 void RTPScene::playScene() {
   for (auto& sequence : SequencerScene)
-    if (sequence->isStepPulse())
+    if (sequence->isNotePulse())
       sequence->playCurrentEventNote();
 }
 

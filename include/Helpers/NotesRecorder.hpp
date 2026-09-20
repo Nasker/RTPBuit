@@ -7,10 +7,24 @@
 
 using namespace std;
 
+// Timing model
+// ------------
+// The recorder does not keep its own clock. On every 24-PPQN pulse the owner
+// calls syncPosition() with the *selected sequence's* own step and pulse
+// counters, so capture is phase-locked to the lane's clock divider (1/16,
+// 1/8T, ...). Note-ons are stamped in absolute pulses (step*pps + pulse) and
+// quantised to the nearest step boundary; the strength setting scales how much
+// of the played deviation is kept:
+//   100 -> hard snap to the grid (default)
+//     0 -> keep the exact played timing (stored as RTPEventNote::microOffset)
+// Note length is measured in steps from the on/off pulse distance.
 class NotesRecorder {
-    // Container for active notes - using a single map since we record one channel at a time
-    // Key is the note number, value is the RTPEventNotePlus object
-    std::map<uint8_t, RTPEventNotePlus> _activeNotes;
+    struct ActiveNote {
+        RTPEventNotePlus note;
+        uint32_t onPulseAbs;   // absolute pulse of the (quantised) note-on
+    };
+    // Key is the note number; we record one channel at a time.
+    std::map<uint8_t, ActiveNote> _activeNotes;
     
     // Current MIDI channel being recorded
     uint8_t _currentChannel;
@@ -19,17 +33,19 @@ class NotesRecorder {
     bool _drumMode;
     uint8_t _baseNote;  // Base note for drum mapping (e.g., C1 = 36)
     
-    // Container for completed notes ready to be added to the sequence
-    // Using vector instead of queue for random access and sorting capabilities
+    // Completed notes ready to be dumped into the sequence
     vector<RTPEventNotePlus> _recordedNotes;
     
-    // High-resolution tick counter for precise timing
-    uint32_t _tickCounter;
+    // Lane clock: pulses per step (from the sequence's clock divider)
+    uint8_t _pulsesPerStep;
+    // Last synced position from the sequence
+    uint16_t _curStep;
+    uint8_t _curPulse;
+    bool _hasSynced;
+    // Set when the sequence wraps to step 0 while recording (loop complete)
+    bool _loopCompleted;
     
-    // Quantization grid resolution (in ticks)
-    uint8_t _quantizeGrid;
-    
-    // Quantization strength 0-100 (snap window as % of grid)
+    // Quantization strength 0-100 (100 = hard grid, 0 = none)
     uint8_t _quantizeStrength;
     
     // Flag to indicate if recording is active
@@ -38,16 +54,23 @@ class NotesRecorder {
     // Flag to indicate we're waiting to start at position 0
     bool _waitingToStart;
     
-    // Current sequence length in ticks
+    // Sequence length in steps
     uint16_t _sequenceLength;
+    
+    uint32_t currentPulseAbs() const;
+    uint32_t loopPulses() const;
+    // Snap an absolute pulse to the grid according to strength; returns the
+    // absolute pulse to store (wrapped into the loop).
+    uint32_t quantizePulse(uint32_t pulseAbs) const;
     
 public:
     NotesRecorder();
     
-    // Start/stop recording
-    // startPosition: where we are in the sequence when REC is pressed
-    // If not at 0, recording waits until next loop start
-    void startRecording(uint16_t sequenceLength, uint8_t midiChannel, uint16_t startPosition = 0);
+    // Start/stop recording. (startStep, startPulse) is where the sequence is
+    // when REC is pressed: at (0,0) capture starts immediately, otherwise the
+    // recorder arms and waits for the next loop start.
+    void startRecording(uint16_t sequenceLength, uint8_t midiChannel,
+                        uint8_t pulsesPerStep, uint16_t startStep, uint8_t startPulse);
     void stopRecording();
     bool isRecording() const;
     bool isWaiting() const;  // Armed but waiting for position 0
@@ -63,22 +86,13 @@ public:
     void recordNoteOn(uint8_t note, uint8_t velocity);
     void recordNoteOff(uint8_t note);
     
-    // Tick management
-    void advanceTick();
-    void resetTicks();
-    uint32_t getCurrentTick() const;
-    
-    // Note length management
-    void increaseNoteLengths();
+    // Clock sync: call on every 24-PPQN pulse with the sequence's counters.
+    void syncPosition(uint16_t step, uint8_t pulse);
+    void setPulsesPerStep(uint8_t pulsesPerStep);
     
     // Quantization settings
-    void setQuantizeGrid(uint8_t grid);
-    uint8_t getQuantizeGrid() const;
-    void setQuantizeStrength(uint8_t strength); // 0-100, 0=strict(truncate), 50=nearest(default), 100=max forgiveness
+    void setQuantizeStrength(uint8_t strength); // 0-100: 100 = hard grid (default), 0 = keep played timing
     uint8_t getQuantizeStrength() const;
-    
-    // Get quantized position for a tick
-    uint16_t quantizeTick(uint32_t tick) const;
     
     // Get recorded notes
     const vector<RTPEventNotePlus>& getRecordedNotes() const;
@@ -87,9 +101,9 @@ public:
     // Sequence length
     uint16_t getSequenceLength() const;
     
-    // End of sequence handling
+    // End of sequence handling: true once the sequence has wrapped back to
+    // step 0 while recording — the owner should stop and dump.
     bool isEndOfSequence() const;
-    bool isStartOfSequence() const;  // True at position 0
     vector<RTPEventNotePlus> dumpRecordedSequence();
     
     // Drum mode sequence mapping

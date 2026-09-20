@@ -39,6 +39,10 @@ public:
     void setUsbHostIndex(uint8_t idx);
     bool isLiteralPitch() const;
     void setLiteralPitch(bool literal);
+    // Micro-timing: 24-PPQN pulses the note fires *after* its step boundary
+    // (0 = on the grid). Captured by unquantised recording; 7 bits (0-127).
+    uint8_t getMicroOffset() const;
+    void setMicroOffset(uint8_t pulses);
 
     // Raw packed word access for binary persistence
     uint32_t getPackedLow() const { return _low; }

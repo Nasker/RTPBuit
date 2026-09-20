@@ -33,7 +33,7 @@ public:
 
     void recorderNoteOn(uint8_t note, uint8_t velocity);
     void recorderNoteOff(uint8_t note);
-    void recorderAdvanceTick();
+    void recorderAdvancePulse();   // every raw 24-PPQN pulse
     void recorderDumpToSequence();
     void toggleSelectedSequenceRecording();
     bool isSelectedSequenceWaiting();
@@ -47,6 +47,7 @@ private:
     static constexpr uint16_t DRUM_FLASH_MS = 140;
     void _sweepDrumFlashes();
 
+    RTPEventNoteSequence* _selectedSequence();
     uint8_t getSelectedSequenceType();
     uint32_t getSelectedSequenceColor();
     uint8_t getLiveVelocity();

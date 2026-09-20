@@ -94,6 +94,9 @@ public:
 	uint8_t getNoteVelocityInSequence(size_t position);
 	void editNoteInSequence(size_t position, uint8_t note, uint8_t velocity);
 	void editNoteInSequence(size_t position, uint8_t note, uint8_t velocity, uint8_t length, bool literalPitch);
+	// Absolute-position write (no page offset) used by the recorder dump.
+	void writeRecordedNote(size_t absPosition, uint8_t note, uint8_t velocity,
+	                       uint8_t length, bool literalPitch, uint8_t microOffset);
 	virtual void editNoteInCurrentPosition(ControlCommand command) = 0;
 	void resizeSequence(size_t newSize);
 	void selectParameter(uint8_t parameterIndex);
@@ -123,6 +126,11 @@ public:
 	void setClockDivider(uint8_t index);
 	uint8_t getClockDividerPulses() const;
 	bool isStepPulse() const;
+	uint8_t getPulseCounter() const { return _pulseCounter; }
+	// True on the exact 24-PPQN pulse the current step's note should fire:
+	// its stored microOffset (0 = on the grid). Notes whose offset exceeds
+	// the current divider still fire on the last pulse of the step.
+	bool isNotePulse() const;
 	String getName() const { return _name; }
 	void setName(const String& name) { _name = name; }
 	bool acceptsInput(uint8_t srcPort, uint8_t srcDevice);

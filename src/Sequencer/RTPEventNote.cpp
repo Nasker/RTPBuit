@@ -131,3 +131,11 @@ bool RTPEventNote::isLiteralPitch() const {
 void RTPEventNote::setLiteralPitch(bool literal){
     _high = (_high & ~(0x1u << 17)) | (literal ? (0x1u << 17) : 0);
 }
+
+uint8_t RTPEventNote::getMicroOffset() const {
+    return (_high >> 18) & 0x7Fu;
+}
+
+void RTPEventNote::setMicroOffset(uint8_t pulses){
+    _high = (_high & ~(0x7Fu << 18)) | ((uint32_t)(pulses & 0x7Fu) << 18);
+}

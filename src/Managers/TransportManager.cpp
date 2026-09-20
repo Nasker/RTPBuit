@@ -6,13 +6,13 @@
 
 TransportManager::TransportManager()
     : _clockGenerator(nullptr), _sequencer(nullptr),
-      _ready(false), _lastErrorTime(0), _swingAmount(0), _quantizeStrength(50) {
+      _ready(false), _lastErrorTime(0), _swingAmount(0), _quantizeStrength(100) {
 }
 
 TransportManager::TransportManager(std::shared_ptr<IClockGenerator> clockGenerator,
                                    std::shared_ptr<ISequencer> sequencer)
     : _clockGenerator(clockGenerator), _sequencer(sequencer),
-      _ready(false), _lastErrorTime(0), _swingAmount(0), _quantizeStrength(50) {
+      _ready(false), _lastErrorTime(0), _swingAmount(0), _quantizeStrength(100) {
     
     if (!_clockGenerator || !_sequencer) {
         ErrorHandler::handleError(ErrorCode::InvalidPointer, ErrorSeverity::Critical,

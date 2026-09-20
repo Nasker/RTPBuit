@@ -34,8 +34,9 @@ public:
     bool isReady() const { return _ready; }
 
     // Recording control
-    void startRecording(uint16_t sequenceLength, uint8_t midiChannel, uint16_t startPosition = 0) {
-        _recorder.startRecording(sequenceLength, midiChannel, startPosition);
+    void startRecording(uint16_t sequenceLength, uint8_t midiChannel,
+                        uint8_t pulsesPerStep, uint16_t startStep, uint8_t startPulse) {
+        _recorder.startRecording(sequenceLength, midiChannel, pulsesPerStep, startStep, startPulse);
     }
 
     void stopRecording() {
@@ -59,28 +60,16 @@ public:
         _recorder.recordNoteOff(note);
     }
 
-    // Tick management
-    void advanceTick() {
-        _recorder.advanceTick();
+    // Clock sync (every 24-PPQN pulse, with the selected sequence's counters)
+    void syncPosition(uint16_t step, uint8_t pulse) {
+        _recorder.syncPosition(step, pulse);
     }
 
-    void resetTicks() {
-        _recorder.resetTicks();
-    }
-
-    uint32_t getCurrentTick() const {
-        return _recorder.getCurrentTick();
+    void setPulsesPerStep(uint8_t pulsesPerStep) {
+        _recorder.setPulsesPerStep(pulsesPerStep);
     }
 
     // Quantization
-    void setQuantizeGrid(uint8_t grid) {
-        _recorder.setQuantizeGrid(grid);
-    }
-
-    uint8_t getQuantizeGrid() const {
-        return _recorder.getQuantizeGrid();
-    }
-
     void setQuantizeStrength(uint8_t strength) {
         _recorder.setQuantizeStrength(strength);
     }
@@ -130,9 +119,5 @@ public:
 
     bool isEndOfSequence() const {
         return _recorder.isEndOfSequence();
-    }
-
-    bool isStartOfSequence() const {
-        return _recorder.isStartOfSequence();
     }
 };

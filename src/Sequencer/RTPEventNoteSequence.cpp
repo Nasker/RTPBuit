@@ -310,6 +310,17 @@ bool RTPEventNoteSequence::isStepPulse() const {
   return _pulseCounter == 0;
 }
 
+bool RTPEventNoteSequence::isNotePulse() const {
+  if (_currentPosition >= EventNoteSequence.size())
+    return _pulseCounter == 0;
+  uint8_t offset = EventNoteSequence[_currentPosition].getMicroOffset();
+  // Offset recorded under a coarser divider may exceed this step's pulse
+  // count — clamp so the note still fires on the step's last pulse.
+  uint8_t lastPulse = getClockDividerPulses() - 1;
+  if (offset > lastPulse) offset = lastPulse;
+  return _pulseCounter == offset;
+}
+
 bool RTPEventNoteSequence::acceptsInput(uint8_t srcPort, uint8_t srcDevice){
   uint8_t inp = sequenceParameters[INPUT_PORT].getValue();
   if (inp == 0) return true;  // Any — accept everything
@@ -381,6 +392,19 @@ void RTPEventNoteSequence::editNoteInSequence(size_t position, uint8_t note, uin
     it->setEventVelocity(velocity);
     it->setLength(length);
     it->setLiteralPitch(literalPitch);
+  }
+}
+
+void RTPEventNoteSequence::writeRecordedNote(size_t absPosition, uint8_t note, uint8_t velocity,
+                                             uint8_t length, bool literalPitch, uint8_t microOffset){
+  if(absPosition < EventNoteSequence.size()){
+    RTPEventNotePlus& ev = EventNoteSequence[absPosition];
+    ev.setEventNote(note);
+    ev.setEventVelocity(velocity);
+    ev.setLength(length);
+    ev.setLiteralPitch(literalPitch);
+    ev.setMicroOffset(microOffset);
+    ev.setEventState(true);
   }
 }
 

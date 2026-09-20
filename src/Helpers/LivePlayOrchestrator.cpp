@@ -264,13 +264,21 @@ SequenceDisplayState LivePlayOrchestrator::getSequenceDisplayState(){
     }
 }
 
+RTPEventNoteSequence* LivePlayOrchestrator::_selectedSequence(){
+    RTPScene* scene = _concreteSequencer.getScene(_concreteSequencer.getSelectScene());
+    return scene ? scene->getSequence(_concreteSequencer.getSelectedSequence()) : nullptr;
+}
+
 void LivePlayOrchestrator::toggleSelectedSequenceRecording(){
     _sequencer.toggleRecording();
     if (_sequencer.isRecording()) {
+        RTPEventNoteSequence* seq = _selectedSequence();
         uint16_t seqSize = _sequencer.getSequenceLength();
         uint8_t midiChannel = _sequencer.getMidiChannel();
-        uint16_t currentPos = _sequencer.getCurrentPosition();
-        _recordingManager.startRecording(seqSize, midiChannel, currentPos);
+        uint8_t pps = seq ? seq->getClockDividerPulses() : 6;
+        uint16_t step = _sequencer.getCurrentPosition();
+        uint8_t pulse = seq ? seq->getPulseCounter() : 0;
+        _recordingManager.startRecording(seqSize, midiChannel, pps, step, pulse);
     } else {
         _recordingManager.stopRecording();
         recorderDumpToSequence();
@@ -287,35 +295,17 @@ void LivePlayOrchestrator::recorderNoteOff(uint8_t note) {
         _recordingManager.recordNoteOff(note);
 }
 
-void LivePlayOrchestrator::recorderAdvanceTick() {
+void LivePlayOrchestrator::recorderAdvancePulse() {
     if (!_recordingManager.isRecording() && !_recordingManager.isWaiting()) return;
 
-    _recordingManager.advanceTick();
+    // Keep the recorder phase-locked to the lane's own step/pulse counters.
+    RTPEventNoteSequence* seq = _selectedSequence();
+    if (seq)
+        _recordingManager.syncPosition(seq->getCurrentSequencePosition(), seq->getPulseCounter());
 
     if (_recordingManager.isRecording() && _recordingManager.isEndOfSequence()) {
         _recordingManager.stopRecording();
-
-        auto notes = _recordingManager.dumpRecordedSequence();
-        if (!notes.empty()) {
-            RTPScene* scene = _concreteSequencer.getScene(_concreteSequencer.getSelectScene());
-            if (scene) {
-                RTPEventNoteSequence* seq = scene->getSequence(_concreteSequencer.getSelectedSequence());
-                if (seq) {
-                    uint16_t seqSize = _recordingManager.getSequenceLength();
-                    seq->clearSequence();
-                    seq->resizeSequence(seqSize);
-                    for (auto& note : notes) {
-                        uint16_t pos = note.getEventRead();
-                        if (pos < seqSize) {
-                            seq->editNoteInSequence(pos, note.getEventNote(), note.getEventVelocity(),
-                                                    note.getLength(), note.isLiteralPitch());
-                            seq->editNoteInSequence(pos, true);
-                        }
-                    }
-                }
-            }
-        }
-
+        recorderDumpToSequence();
         _sequencer.toggleRecording();
     }
 }
@@ -323,19 +313,15 @@ void LivePlayOrchestrator::recorderAdvanceTick() {
 void LivePlayOrchestrator::recorderDumpToSequence() {
     auto notes = _recordingManager.dumpRecordedSequence();
     if (notes.empty()) return;
-    RTPScene* scene = _concreteSequencer.getScene(_concreteSequencer.getSelectScene());
-    if (!scene) return;
-    RTPEventNoteSequence* seq = scene->getSequence(_concreteSequencer.getSelectedSequence());
+    RTPEventNoteSequence* seq = _selectedSequence();
     if (!seq) return;
     uint16_t seqSize = _recordingManager.getSequenceLength();
     seq->clearSequence();
     seq->resizeSequence(seqSize);
     for (auto& note : notes) {
         uint16_t pos = note.getEventRead();
-        if (pos < seqSize) {
-            seq->editNoteInSequence(pos, note.getEventNote(), note.getEventVelocity(),
-                                    note.getLength(), note.isLiteralPitch());
-            seq->editNoteInSequence(pos, true);
-        }
+        if (pos < seqSize)
+            seq->writeRecordedNote(pos, note.getEventNote(), note.getEventVelocity(),
+                                   note.getLength(), note.isLiteralPitch(), note.getMicroOffset());
     }
 }

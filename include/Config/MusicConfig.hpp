@@ -113,7 +113,7 @@ namespace MusicConfig {
 
     // Recording Configuration
     namespace Recording {
-        constexpr uint8_t DEFAULT_QUANTIZE_STRENGTH = 50;
+        constexpr uint8_t DEFAULT_QUANTIZE_STRENGTH = 100;  // hard snap to the lane's grid
         constexpr uint8_t MIN_QUANTIZE_STRENGTH = 0;
         constexpr uint8_t MAX_QUANTIZE_STRENGTH = 100;
         constexpr uint8_t DEFAULT_SWING = 0;

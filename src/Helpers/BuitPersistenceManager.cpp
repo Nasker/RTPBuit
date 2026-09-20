@@ -30,6 +30,7 @@ String BuitPersistenceManager::sequenceToJson(const RTPEventNoteSequence* sequen
         note["r"] = sequence->getType() == DRUM_PART ? eventNote.getEventNote() : eventNote.getEventRead();
         note["v"] = eventNote.eventState() ? eventNote.getEventVelocity() : 0;
         note["l"] = eventNote.getLength();
+        note["o"] = eventNote.getMicroOffset();
     }
     serializeJson(doc, noteSeqString);
     return noteSeqString;
@@ -63,6 +64,7 @@ String BuitPersistenceManager::sceneToJson(const RTPScene* scene) {
                 noteObj["r"] = sequence->getType() == DRUM_PART ? eventNote.getEventNote() : eventNote.getEventRead();
                 noteObj["v"] = eventNote.eventState() ? eventNote.getEventVelocity() : 0;
                 noteObj["l"] = eventNote.getLength();
+                        noteObj["o"] = eventNote.getMicroOffset();
             }
         }
     }
@@ -110,6 +112,7 @@ String BuitPersistenceManager::sequencerToJson(const RTPSequencer& sequencer) {
                         noteObj["r"] = sequence->getType() == DRUM_PART ? eventNote.getEventNote() : eventNote.getEventRead();
                         noteObj["v"] = eventNote.eventState() ? eventNote.getEventVelocity() : 0;
                         noteObj["l"] = eventNote.getLength();
+                        noteObj["o"] = eventNote.getMicroOffset();
                     }
                 }
             }
@@ -178,11 +181,13 @@ bool BuitPersistenceManager::loadSequenceFromJson(RTPEventNoteSequence* sequence
         int read = noteObj["r"].is<int>() ? noteObj["r"].as<int>() : noteObj["read"].as<int>();
         int velocity = noteObj["v"].is<int>() ? noteObj["v"].as<int>() : noteObj["vel"].as<int>();
         int length = noteObj["l"].is<int>() ? noteObj["l"].as<int>() : noteObj["len"].as<int>();
+        int offset = noteObj["o"].is<int>() ? noteObj["o"].as<int>() : 0;
         bool isActive = velocity > 0;
         RTPEventNotePlus eventNote(midiChannel, false, read, 0);
         eventNote.setEventRead(read);
         eventNote.setEventState(isActive);
         eventNote.setLength(length);
+        eventNote.setMicroOffset(offset);
         if (isActive)
             eventNote.setEventVelocity(velocity);
         sequence->addEventNote(eventNote);

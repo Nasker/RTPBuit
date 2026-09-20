@@ -118,7 +118,7 @@ public:
 
     void recorderNoteOn(uint8_t note, uint8_t velocity) { _livePlayOrchestrator.recorderNoteOn(note, velocity); }
     void recorderNoteOff(uint8_t note)                  { _livePlayOrchestrator.recorderNoteOff(note); }
-    void recorderAdvanceTick()                           { _livePlayOrchestrator.recorderAdvanceTick(); }
+    void recorderAdvancePulse()                          { _livePlayOrchestrator.recorderAdvancePulse(); }
     void recorderDumpToSequence()                        { _livePlayOrchestrator.recorderDumpToSequence(); }
 
     void saveSequencer(const String& fileName);
@@ -173,7 +173,7 @@ public:
     
 private:
     int _swingAmount = 0;               // 0-100%
-    int _quantizeStrength = 50;         // 0-100%
+    int _quantizeStrength = 100;        // 0-100% (100 = hard snap to the grid)
     int _masterVolume = 100;            // 0-100%
     String _pendingLoadFile;            // pattern file queued for load while playing
     bool _pendingLoad = false;          // apply at next loop rollover (position 0 of step 1)

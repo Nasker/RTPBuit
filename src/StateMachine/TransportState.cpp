@@ -31,9 +31,9 @@ void TransportState::longClick() {
     _devices.transportSetBPM(120.0f);
     _devices.presentTransport(_lastPressedButton);
   }
-  // Rec (quantization): reset to 50%
+  // Rec (quantization): reset to 100% (hard)
   else if (_lastPressedButton == 2) {
-    _devices.setQuantizeStrength(50);
+    _devices.setQuantizeStrength(100);
     _devices.presentTransport(_lastPressedButton);
   }
   // No GlobalSettings jump — that screen is a stub dead-end.

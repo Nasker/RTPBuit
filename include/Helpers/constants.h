@@ -51,6 +51,7 @@
 #define TRANSPORT_START 1
 #define TRANSPORT_STOP 2
 #define GRID_FINE_TICK 3  // 32nd-note resolution for live rolls
+#define CLOCK_PULSE 4     // raw 24-PPQN pulse — recorder micro-timing only, not for the UI
 
 #define SENSOR_1_PIN 2
 #define SENSOR_2_PIN 3

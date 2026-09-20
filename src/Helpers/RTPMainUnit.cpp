@@ -88,10 +88,12 @@ void RTPMainUnit::actOnControlsCallback(ControlCommand callbackCommand){
 
 void RTPMainUnit::actOnSequencerCallback(ControlCommand callbackCommand){
   //Serial.printf("Seq Callback  TYPE: %d  VALUE: %d\n", callbackCommand.commandType, callbackCommand.value);
-  // Recorder ticks are 16th-note steps — advancing on GRID_FINE_TICK (32nds)
-  // and transport commands too made recordings end ~3x before the loop did.
-  if (callbackCommand.commandType == GRID_TICK)
-    devicesManager.recorderAdvanceTick();
+  if (callbackCommand.commandType == CLOCK_PULSE) {
+    // Raw 24-PPQN pulse: recorder micro-timing only — never reaches the UI.
+    devicesManager.recorderAdvancePulse();
+    devicesManager.processPendingPatternLoad();
+    return;
+  }
   devicesManager.processPendingPatternLoad();
   stateMachineManager.handleActions(callbackCommand);
 }

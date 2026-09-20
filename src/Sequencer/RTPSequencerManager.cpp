@@ -76,6 +76,14 @@ void RTPSequencerManager::gridClockUp(uint8_t realtimebyte){
     // Advance every raw 24-PPQN pulse; per-lane dividers gate actual steps
     _sequencer.play();
 
+    // Raw pulse for the recorder's micro-timing capture (consumed by the
+    // recorder path in actOnSequencerCallback, never reaches the UI states)
+    ControlCommand pulseCommand;
+    pulseCommand.controlType = SEQUENCER;
+    pulseCommand.commandType = CLOCK_PULSE;
+    pulseCommand.value = counter;
+    mainUnit->actOnSequencerCallback(pulseCommand);
+
     // 16th-note grid: UI sync and note TTL still run at the original rate
     if (counter % MusicConfig::Timing::CLOCK_GRID == 0){
         _sequencer.decreaseTimeToLive();
