@@ -74,7 +74,10 @@ void LivePlayOrchestrator::handleLiveTrellisPressed(uint8_t pad) {
         }
 
         if (isSelectedSequenceRecording()) {
-            recorderNoteOn(rootNote, liveVel);
+            if (seqType == HARMONY_TRACK)
+                recorderHarmonyEvent(pad % N_NOTES, chordType & 0x0F);
+            else
+                recorderNoteOn(rootNote, liveVel);
         }
 
         setTrellisButtonColor(pad, 0xFFFFFF);
@@ -280,6 +283,15 @@ void LivePlayOrchestrator::toggleSelectedSequenceRecording(bool fromPianoRoll){
         uint8_t pps = seq ? seq->getClockDividerPulses() : 6;
         uint16_t step = _sequencer.getCurrentPosition();
         uint8_t pulse = seq ? seq->getPulseCounter() : 0;
+        // Mode selection: drum and harmony need special capture/dump logic.
+        _recordingManager.disableDrumMode();
+        _recordingManager.disableHarmonyMode();
+        if (seq) {
+            if (seq->getType() == DRUM_PART)
+                _recordingManager.enableDrumMode(BASE_NOTE);
+            else if (seq->getType() == HARMONY_TRACK)
+                _recordingManager.enableHarmonyMode();
+        }
         _recordingManager.startRecording(seqSize, midiChannel, pps, step, pulse);
     } else {
         _recordFromPianoRoll = false;
@@ -296,6 +308,11 @@ void LivePlayOrchestrator::recorderNoteOn(uint8_t note, uint8_t velocity) {
 void LivePlayOrchestrator::recorderNoteOff(uint8_t note) {
     if (_recordingManager.isRecording())
         _recordingManager.recordNoteOff(note);
+}
+
+void LivePlayOrchestrator::recorderHarmonyEvent(uint8_t root, uint8_t chordType) {
+    if (_recordingManager.isRecording())
+        _recordingManager.recordHarmonyEvent(root, chordType);
 }
 
 void LivePlayOrchestrator::recorderAdvancePulse() {
@@ -324,17 +341,58 @@ int8_t LivePlayOrchestrator::consumeRecordReturnView() {
 }
 
 void LivePlayOrchestrator::recorderDumpToSequence() {
-    auto notes = _recordingManager.dumpRecordedSequence();
-    if (notes.empty()) return;
-    RTPEventNoteSequence* seq = _selectedSequence();
-    if (!seq) return;
-    uint16_t seqSize = _recordingManager.getSequenceLength();
-    seq->clearSequence();
-    seq->resizeSequence(seqSize);
-    for (auto& note : notes) {
-        uint16_t pos = note.getEventRead();
-        if (pos < seqSize)
-            seq->writeRecordedNote(pos, note.getEventNote(), note.getEventVelocity(),
-                                   note.getLength(), note.isLiteralPitch(), note.getMicroOffset());
+    RTPScene* scene = _concreteSequencer.getScene(_concreteSequencer.getSelectScene());
+    if (!scene) return;
+
+    if (_recordingManager.isHarmonyMode()) {
+        // Harmony: every step gets the most recent chord (forward-fill).
+        auto notes = _recordingManager.dumpHarmonySequence();
+        if (notes.empty()) return;
+        RTPEventNoteSequence* seq = _selectedSequence();
+        if (!seq) return;
+        uint16_t seqSize = _recordingManager.getSequenceLength();
+        seq->clearSequence();
+        seq->resizeSequence(seqSize);
+        for (auto& note : notes) {
+            uint16_t pos = note.getEventRead();
+            if (pos < seqSize)
+                seq->writeRecordedNote(pos, note.getEventNote(),
+                                       note.getEventVelocity(), note.getLength(),
+                                       note.isLiteralPitch(), note.getMicroOffset());
+        }
+    } else if (_recordingManager.isDrumMode()) {
+        // Fan notes out to the scene sequence whose index matches (note - BASE_NOTE).
+        auto drumMap = _recordingManager.dumpDrumSequences();
+        uint16_t seqSize = _recordingManager.getSequenceLength();
+        for (auto& pair : drumMap) {
+            uint8_t seqIdx = pair.first;          // pad / sequence index
+            auto& notes    = pair.second;
+            RTPEventNoteSequence* seq = scene->getSequence(seqIdx);
+            if (!seq || seq->getType() != DRUM_PART) continue;
+            seq->clearSequence();
+            seq->resizeSequence(seqSize);
+            for (auto& note : notes) {
+                uint16_t pos = note.getEventRead();
+                if (pos < seqSize)
+                    seq->writeRecordedNote(pos, note.getEventNote(),
+                                           note.getEventVelocity(), note.getLength(),
+                                           note.isLiteralPitch(), note.getMicroOffset());
+            }
+        }
+    } else {
+        // Tonal sequences: dump everything into the selected sequence.
+        auto notes = _recordingManager.dumpRecordedSequence();
+        if (notes.empty()) return;
+        RTPEventNoteSequence* seq = _selectedSequence();
+        if (!seq) return;
+        uint16_t seqSize = _recordingManager.getSequenceLength();
+        seq->clearSequence();
+        seq->resizeSequence(seqSize);
+        for (auto& note : notes) {
+            uint16_t pos = note.getEventRead();
+            if (pos < seqSize)
+                seq->writeRecordedNote(pos, note.getEventNote(), note.getEventVelocity(),
+                                       note.getLength(), note.isLiteralPitch(), note.getMicroOffset());
+        }
     }
 }

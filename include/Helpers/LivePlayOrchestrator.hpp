@@ -33,6 +33,7 @@ public:
 
     void recorderNoteOn(uint8_t note, uint8_t velocity);
     void recorderNoteOff(uint8_t note);
+    void recorderHarmonyEvent(uint8_t root, uint8_t chordType);
     void recorderAdvancePulse();   // every raw 24-PPQN pulse
     void recorderDumpToSequence();
     void toggleSelectedSequenceRecording(bool fromPianoRoll = false);

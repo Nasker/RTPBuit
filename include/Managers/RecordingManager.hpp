@@ -91,6 +91,17 @@ public:
         return _recorder.isDrumMode();
     }
 
+    // Harmony mode
+    void enableHarmonyMode() { _recorder.enableHarmonyMode(); }
+    void disableHarmonyMode() { _recorder.disableHarmonyMode(); }
+    bool isHarmonyMode() const { return _recorder.isHarmonyMode(); }
+    void recordHarmonyEvent(uint8_t root, uint8_t chordType) {
+        _recorder.recordHarmonyEvent(root, chordType);
+    }
+    vector<RTPEventNotePlus> dumpHarmonySequence() {
+        return _recorder.dumpHarmonySequence();
+    }
+
     // Get recorded data
     const vector<RTPEventNotePlus>& getRecordedNotes() const {
         return _recorder.getRecordedNotes();

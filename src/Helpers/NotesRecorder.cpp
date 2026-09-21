@@ -1,4 +1,5 @@
 #include "Helpers/NotesRecorder.hpp"
+#include <algorithm>
 
 NotesRecorder::NotesRecorder() {
     _quantizeStrength = 100;   // Default: hard quantize to the lane's grid
@@ -12,6 +13,7 @@ NotesRecorder::NotesRecorder() {
     _loopCompleted = false;
     _currentChannel = 1;       // Default to MIDI channel 1
     _drumMode = false;
+    _harmonyMode = false;
     _baseNote = 36;            // Default to C1 (36) as base note for drum mapping
 }
 
@@ -190,6 +192,69 @@ bool NotesRecorder::isDrumMode() const {
 
 uint8_t NotesRecorder::getBaseNote() const {
     return _baseNote;
+}
+
+void NotesRecorder::enableHarmonyMode() { _harmonyMode = true; }
+void NotesRecorder::disableHarmonyMode() { _harmonyMode = false; }
+bool NotesRecorder::isHarmonyMode() const { return _harmonyMode; }
+
+void NotesRecorder::recordHarmonyEvent(uint8_t root, uint8_t chordType) {
+    if (!_isRecording || _waitingToStart) return;
+    // Hard quantize: snap to the current step (ignore pulse offset)
+    uint16_t step = _curStep % _sequenceLength;
+
+    // Build a note event with harmony semantics:
+    //   eventRead  = root (0-11)
+    //   eventVelocity = chordType (0-15)
+    //   length = 1 (fill-forward happens at dump time)
+    RTPEventNotePlus ev(_currentChannel, true, root, chordType);
+    ev.setEventRead(step);
+    ev.setMicroOffset(0);
+    ev.setLength(1);
+    ev.setLiteralPitch(false);
+
+    // Last chord on a given step wins: remove any earlier event on this step
+    _recordedNotes.erase(
+        std::remove_if(_recordedNotes.begin(), _recordedNotes.end(),
+            [step](const RTPEventNotePlus& n){ return n.getEventRead() == step; }),
+        _recordedNotes.end());
+    _recordedNotes.push_back(ev);
+}
+
+vector<RTPEventNotePlus> NotesRecorder::dumpHarmonySequence() {
+    if (_recordedNotes.empty()) return {};
+
+    // Sort captured events by step so forward-fill is simple.
+    std::sort(_recordedNotes.begin(), _recordedNotes.end(),
+        [](const RTPEventNotePlus& a, const RTPEventNotePlus& b){
+            return a.getEventRead() < b.getEventRead();
+        });
+
+    // Build a full-length sequence: every step gets the most recent chord.
+    vector<RTPEventNotePlus> filled;
+    filled.reserve(_sequenceLength);
+
+    size_t srcIdx = 0;
+    uint8_t lastRoot  = _recordedNotes[0].getEventNote();
+    uint8_t lastChord = _recordedNotes[0].getEventVelocity();
+
+    for (uint16_t step = 0; step < _sequenceLength; step++) {
+        // Advance to the latest recorded event on or before this step.
+        while (srcIdx < _recordedNotes.size() && _recordedNotes[srcIdx].getEventRead() <= step) {
+            lastRoot  = _recordedNotes[srcIdx].getEventNote();
+            lastChord = _recordedNotes[srcIdx].getEventVelocity();
+            srcIdx++;
+        }
+        RTPEventNotePlus ev(_currentChannel, true, lastRoot, lastChord);
+        ev.setEventRead(step);
+        ev.setMicroOffset(0);
+        ev.setLength(1);
+        ev.setLiteralPitch(false);
+        filled.push_back(ev);
+    }
+
+    _recordedNotes.clear();
+    return filled;
 }
 
 std::map<uint8_t, vector<RTPEventNotePlus>> NotesRecorder::dumpDrumSequences() {

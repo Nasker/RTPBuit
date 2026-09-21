@@ -32,6 +32,10 @@ class NotesRecorder {
     // Drum mode settings
     bool _drumMode;
     uint8_t _baseNote;  // Base note for drum mapping (e.g., C1 = 36)
+
+    // Harmony mode: captures (root, chordType) per step, hard quantized,
+    // no note-off, no micro-timing. Used by HARMONY_TRACK sequences.
+    bool _harmonyMode;
     
     // Completed notes ready to be dumped into the sequence
     vector<RTPEventNotePlus> _recordedNotes;
@@ -81,6 +85,16 @@ public:
     void disableDrumMode();
     bool isDrumMode() const;
     uint8_t getBaseNote() const;
+
+    // Harmony mode
+    void enableHarmonyMode();
+    void disableHarmonyMode();
+    bool isHarmonyMode() const;
+    // Record a chord change at the current step (hard quantized, no length).
+    // root: chromatic index 0-11; chordType: 0-15.
+    void recordHarmonyEvent(uint8_t root, uint8_t chordType);
+    // Dump with forward-fill: every step without a chord inherits the previous.
+    vector<RTPEventNotePlus> dumpHarmonySequence();
     
     // Process incoming notes
     void recordNoteOn(uint8_t note, uint8_t velocity);
