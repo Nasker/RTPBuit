@@ -269,9 +269,11 @@ RTPEventNoteSequence* LivePlayOrchestrator::_selectedSequence(){
     return scene ? scene->getSequence(_concreteSequencer.getSelectedSequence()) : nullptr;
 }
 
-void LivePlayOrchestrator::toggleSelectedSequenceRecording(){
+void LivePlayOrchestrator::toggleSelectedSequenceRecording(bool fromPianoRoll){
     _sequencer.toggleRecording();
     if (_sequencer.isRecording()) {
+        _recordFromPianoRoll = fromPianoRoll;
+        _pendingViewReturn = false;
         RTPEventNoteSequence* seq = _selectedSequence();
         uint16_t seqSize = _sequencer.getSequenceLength();
         uint8_t midiChannel = _sequencer.getMidiChannel();
@@ -280,6 +282,7 @@ void LivePlayOrchestrator::toggleSelectedSequenceRecording(){
         uint8_t pulse = seq ? seq->getPulseCounter() : 0;
         _recordingManager.startRecording(seqSize, midiChannel, pps, step, pulse);
     } else {
+        _recordFromPianoRoll = false;
         _recordingManager.stopRecording();
         recorderDumpToSequence();
     }
@@ -307,7 +310,17 @@ void LivePlayOrchestrator::recorderAdvancePulse() {
         _recordingManager.stopRecording();
         recorderDumpToSequence();
         _sequencer.toggleRecording();
+        // Take finished — ask the UI to return to the view it was armed from.
+        _pendingViewReturn = true;
     }
+}
+
+int8_t LivePlayOrchestrator::consumeRecordReturnView() {
+    if (!_pendingViewReturn) return -1;
+    _pendingViewReturn = false;
+    bool toPianoRoll = _recordFromPianoRoll;
+    _recordFromPianoRoll = false;
+    return toPianoRoll ? 1 : 0;
 }
 
 void LivePlayOrchestrator::recorderDumpToSequence() {

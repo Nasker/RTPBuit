@@ -58,6 +58,12 @@ void SequenceEditState::trellisReleased(ControlCommand command) {
 }
 
 void SequenceEditState::sequencerCallback(ControlCommand command) {
+  // A finished take returns to the view it was armed from — if that was the
+  // piano roll, leave the sequence edit now that recording is done.
+  if (_devices.consumeRecordReturnView() == 1) {
+    _buitMachine.setState(_buitMachine.getSequencePianoRollState());
+    return;
+  }
   _devices.displayCursorInSequence(command);
 }
 

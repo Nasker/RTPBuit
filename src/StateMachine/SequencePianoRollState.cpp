@@ -6,9 +6,7 @@ SequencePianoRollState::SequencePianoRollState(BuitStateMachine& buitMachine, Bu
   Serial.println("SequencePianoRollState");
 }
 
-void SequencePianoRollState::onEnter() {
-  _devices.paintLiveTrellis();
-
+void SequencePianoRollState::_printStatus(const char* status) {
   uint8_t seqType = _devices.getSelectedSequenceType();
   String typeName;
   switch (seqType) {
@@ -18,7 +16,12 @@ void SequencePianoRollState::onEnter() {
     case POLY_SYNTH: typeName = "Poly";  break;
     default:         typeName = "Live";  break;
   }
-  _devices.printToScreen("Piano Roll", typeName, "Live");
+  _devices.printToScreen("Piano Roll", typeName, status);
+}
+
+void SequencePianoRollState::onEnter() {
+  _devices.paintLiveTrellis();
+  _printStatus(_devices.isSelectedSequenceRecording() ? "REC" : "Live");
 }
 
 void SequencePianoRollState::singleClick() {}
@@ -28,7 +31,9 @@ void SequencePianoRollState::doubleClick() {
 }
 
 void SequencePianoRollState::tripleClick() {
-  _devices.toggleSelectedSequenceRecording();
+  _devices.toggleSelectedSequenceRecording(true);  // armed from the piano roll
+  _printStatus(_devices.isSelectedSequenceRecording() ? "REC"
+             : _devices.isSelectedSequenceWaiting()   ? "ARM" : "Live");
 }
 
 void SequencePianoRollState::longClick() {}
@@ -54,12 +59,21 @@ void SequencePianoRollState::trellisReleased(ControlCommand command) {
 }
 
 void SequencePianoRollState::sequencerCallback(ControlCommand command) {
+  // A finished take returns to the view it was armed from — if that was the
+  // sequence edit, leave the piano roll now that recording is done.
+  int8_t returnView = _devices.consumeRecordReturnView();
+  if (returnView == 0) {
+    _buitMachine.setState(_buitMachine.getSequenceEditState());
+    return;
+  }
+  if (returnView == 1)
+    _printStatus("Live");  // take armed here just auto-finished
   if (command.commandType == GRID_TICK)
     _devices.handleLiveSequencerTick();
   if (command.commandType == GRID_FINE_TICK)
     _devices.handleLiveFineTick();
-  if (_devices.isSelectedSequenceRecording())
-    _devices.displayCursorInSequence(command);
+  // No displayCursorInSequence here — the piano roll keeps its live pads
+  // while recording; the OLED status line carries the REC indicator.
 }
 
 void SequencePianoRollState::midiNote(ControlCommand command) {}

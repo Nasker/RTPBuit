@@ -2,6 +2,7 @@
 
 class SequencePianoRollState : public BuitState{
   BuitStateMachine& _buitMachine;
+  void _printStatus(const char* status);
 
 public:
   SequencePianoRollState (BuitStateMachine& voidMachine, BuitDevicesManager& devices);

@@ -35,7 +35,10 @@ public:
     void recorderNoteOff(uint8_t note);
     void recorderAdvancePulse();   // every raw 24-PPQN pulse
     void recorderDumpToSequence();
-    void toggleSelectedSequenceRecording();
+    void toggleSelectedSequenceRecording(bool fromPianoRoll = false);
+    // After a take auto-finishes at loop end the UI returns to the view it was
+    // armed from. Consumes the flag — 1 = piano roll, 0 = sequence edit, -1 = none.
+    int8_t consumeRecordReturnView();
     bool isSelectedSequenceWaiting();
     SequenceDisplayState getSequenceDisplayState();
 
@@ -46,6 +49,9 @@ private:
     uint32_t _drumFlashUntil[16] = {};
     static constexpr uint16_t DRUM_FLASH_MS = 140;
     void _sweepDrumFlashes();
+
+    bool _recordFromPianoRoll = false;   // view the take was armed from
+    bool _pendingViewReturn = false;     // auto-finished — UI should return to origin view
 
     RTPEventNoteSequence* _selectedSequence();
     uint8_t getSelectedSequenceType();

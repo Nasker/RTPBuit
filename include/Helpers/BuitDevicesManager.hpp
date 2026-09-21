@@ -108,7 +108,12 @@ public:
     void updateLivePlay()                       { _livePlayOrchestrator.update(); }
     bool isSelectedSequenceWaiting()            { return _livePlayOrchestrator.isSelectedSequenceWaiting(); }
     SequenceDisplayState getSequenceDisplayState() { return _livePlayOrchestrator.getSequenceDisplayState(); }
-    void toggleSelectedSequenceRecording()       { _livePlayOrchestrator.toggleSelectedSequenceRecording(); }
+    void toggleSelectedSequenceRecording(bool fromPianoRoll = false) {
+        _livePlayOrchestrator.toggleSelectedSequenceRecording(fromPianoRoll);
+    }
+    // After a take auto-finishes: which view armed it (1 = piano roll,
+    // 0 = sequence edit, -1 = no pending return). Consumed once.
+    int8_t consumeRecordReturnView() { return _livePlayOrchestrator.consumeRecordReturnView(); }
     // Stop + dump if the selected sequence is recording or armed — used when
     // leaving the sequence's edit context so recording can't leak into scenes.
     void stopSelectedSequenceRecording() {
