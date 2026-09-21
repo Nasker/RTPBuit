@@ -37,6 +37,9 @@ public:
     void recorderAdvancePulse();   // every raw 24-PPQN pulse
     void recorderDumpToSequence();
     void toggleSelectedSequenceRecording(bool fromPianoRoll = false);
+    // Force-stop any active/armed recording: dumps captured data, un-mutes
+    // the sequence if it was muted, and resets all recording flags.
+    void forceStopRecording();
     // After a take auto-finishes at loop end the UI returns to the view it was
     // armed from. Consumes the flag — 1 = piano roll, 0 = sequence edit, -1 = none.
     int8_t consumeRecordReturnView();

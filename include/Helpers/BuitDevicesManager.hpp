@@ -118,7 +118,7 @@ public:
     // leaving the sequence's edit context so recording can't leak into scenes.
     void stopSelectedSequenceRecording() {
         if (isSelectedSequenceRecording())
-            _livePlayOrchestrator.toggleSelectedSequenceRecording();
+            _livePlayOrchestrator.forceStopRecording();
     }
 
     void recorderNoteOn(uint8_t note, uint8_t velocity) { _livePlayOrchestrator.recorderNoteOn(note, velocity); }

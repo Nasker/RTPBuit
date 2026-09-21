@@ -27,6 +27,7 @@ void SequencePianoRollState::onEnter() {
 void SequencePianoRollState::singleClick() {}
 
 void SequencePianoRollState::doubleClick() {
+  _devices.stopSelectedSequenceRecording();
   _buitMachine.setState(_buitMachine.getSequenceEditState());
 }
 

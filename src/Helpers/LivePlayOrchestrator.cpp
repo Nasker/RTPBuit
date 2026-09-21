@@ -23,7 +23,7 @@ uint8_t LivePlayOrchestrator::getLiveVelocity(){
 }
 
 bool LivePlayOrchestrator::isSelectedSequenceRecording(){
-    return _sequencer.isRecording();
+    return _sequencer.isRecording() || _recordingManager.isRecording() || _recordingManager.isWaiting();
 }
 
 void LivePlayOrchestrator::setTrellisButtonColor(uint8_t index, uint32_t color){
@@ -302,6 +302,17 @@ void LivePlayOrchestrator::toggleSelectedSequenceRecording(bool fromPianoRoll){
         _recordingManager.stopRecording();
         recorderDumpToSequence();
     }
+}
+
+void LivePlayOrchestrator::forceStopRecording() {
+    _recordingManager.stopRecording();
+    recorderDumpToSequence();
+    // Un-mute the sequence if the take was armed from the piano roll
+    // (that's the only path that sets _isRecording on the sequence).
+    if (_recordFromPianoRoll)
+        _sequencer.toggleRecording();
+    _recordFromPianoRoll = false;
+    _pendingViewReturn = false;
 }
 
 void LivePlayOrchestrator::recorderNoteOn(uint8_t note, uint8_t velocity) {

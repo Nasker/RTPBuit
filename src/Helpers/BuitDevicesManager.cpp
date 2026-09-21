@@ -165,7 +165,7 @@ uint32_t BuitDevicesManager::getSelectedSequenceColor(){
 }
 
 bool BuitDevicesManager::isSelectedSequenceRecording(){
-    return _sequencer.isRecording();
+    return _sequencer.isRecording() || _recordingManager.isRecording() || _recordingManager.isWaiting();
 }
 
 bool BuitDevicesManager::acceptsInputFrom(uint8_t srcPort, uint8_t srcDevice){
