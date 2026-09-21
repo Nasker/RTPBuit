@@ -10,6 +10,7 @@ void DrumSequence::setTypeSpecificColor(){
 }
 
 void DrumSequence::playCurrentEventNote(){
+    if(isRecording()) return;
     pointIterator(_currentPosition);
     it->setMidiChannel(getMidiChannel());
     it->setDestPort(getPortAsMidiPort());

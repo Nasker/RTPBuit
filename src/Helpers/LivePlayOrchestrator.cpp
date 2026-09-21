@@ -273,8 +273,12 @@ RTPEventNoteSequence* LivePlayOrchestrator::_selectedSequence(){
 }
 
 void LivePlayOrchestrator::toggleSelectedSequenceRecording(bool fromPianoRoll){
-    _sequencer.toggleRecording();
-    if (_sequencer.isRecording()) {
+    // Only mute the sequence during playback when recording from the piano
+    // roll (replacing the pattern). Sequence-edit recording is an in-place
+    // 3-axis refinement, so the sequence should keep sounding.
+    if (fromPianoRoll)
+        _sequencer.toggleRecording();
+    if (fromPianoRoll ? _sequencer.isRecording() : !_recordingManager.isRecording()) {
         _recordFromPianoRoll = fromPianoRoll;
         _pendingViewReturn = false;
         RTPEventNoteSequence* seq = _selectedSequence();
@@ -326,7 +330,9 @@ void LivePlayOrchestrator::recorderAdvancePulse() {
     if (_recordingManager.isRecording() && _recordingManager.isEndOfSequence()) {
         _recordingManager.stopRecording();
         recorderDumpToSequence();
-        _sequencer.toggleRecording();
+        // Un-mute the sequence only if it was muted (piano-roll recording).
+        if (_recordFromPianoRoll)
+            _sequencer.toggleRecording();
         // Take finished — ask the UI to return to the view it was armed from.
         _pendingViewReturn = true;
     }
