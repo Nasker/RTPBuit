@@ -203,7 +203,7 @@ void testDefaultRoutes() {
     router.setOutput(MidiPort::INTERNAL, &mockInternal);
     router.setDefaultRoutes();
 
-    ASSERT_EQ(4, router.getRouteCount());
+    ASSERT_EQ(5, router.getRouteCount());
 
     // Internal NoteOn → USB_DEVICE + DIN
     MidiMessage noteMsg { MidiMessage::NoteOn, 1, 60, 90, MidiPort::INTERNAL };
@@ -220,6 +220,15 @@ void testDefaultRoutes() {
     ASSERT_EQ(1, mockInternal.noteOnCount());
     ASSERT_EQ(0, mockUsb.eventCount());  // no echo
     ASSERT_EQ(0, mockDin.eventCount());
+
+    mockUsb.reset(); mockDin.reset(); mockInternal.reset();
+
+    // DIN NoteOn → INTERNAL
+    MidiMessage dinNote { MidiMessage::NoteOn, 2, 64, 80, MidiPort::DIN };
+    router.route(dinNote);
+    ASSERT_EQ(1, mockInternal.noteOnCount());
+    ASSERT_EQ(0, mockUsb.eventCount());
+    ASSERT_EQ(0, mockDin.eventCount());  // no echo
 
     mockUsb.reset(); mockDin.reset(); mockInternal.reset();
 

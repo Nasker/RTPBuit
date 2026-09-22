@@ -1,5 +1,7 @@
-#include "RTPSequencerManager.hpp"
+// RTPMainUnit.hpp first: it pulls Adafruit_seesaw.h, whose 'byte' params are
+// ambiguous once 'using namespace std' (RTPSequencer.h) is in scope.
 #include "RTPMainUnit.hpp"
+#include "RTPSequencerManager.hpp"
 #include "Config/MusicConfig.hpp"
 #include "Midi/MidiRouter.hpp"
 #include "Midi/MidiMessage.hpp"

@@ -44,6 +44,7 @@ RTPEventNoteSequence::RTPEventNoteSequence(uint8_t midiChannel, uint16_t NEvents
   _selectedPage = 0;
   _pulseCounter = 0;
   _usbHostLabel[0] = '\0';
+  _inputUsbHostLabel[0] = '\0';
   EventNoteSequence.resize(NEvents, RTPEventNotePlus(midiChannel, false, _baseNote, 80));
 }
 
@@ -127,6 +128,7 @@ void RTPEventNoteSequence::commitParameterEdit(){
   int oldValue = p.getValue();
   p.setValue(_pendingParamValue);
   _pendingParamValue = -1;
+  if (_selectedParameter == INPUT_PORT) _syncUsbHostLabelToInput();
   if (_selectedParameter == PORT) _syncUsbHostLabelToPort();
   if (_selectedParameter == LENGTH && p.getValue() > oldValue)
     _tilePatternOnGrow(oldValue, p.getValue());
@@ -275,6 +277,25 @@ uint8_t RTPEventNoteSequence::getInput() const {
 
 void RTPEventNoteSequence::setInput(uint8_t input){
   sequenceParameters[INPUT_PORT].setValue(input);
+  _syncUsbHostLabelToInput();
+}
+
+void RTPEventNoteSequence::setInputUsbHostLabel(const char* label){
+  if (!label) label = "";
+  strncpy(_inputUsbHostLabel, label, sizeof(_inputUsbHostLabel) - 1);
+  _inputUsbHostLabel[sizeof(_inputUsbHostLabel) - 1] = '\0';
+}
+
+void RTPEventNoteSequence::_syncUsbHostLabelToInput(){
+  uint8_t input = sequenceParameters[INPUT_PORT].getValue();
+  if (input >= 5 && input <= 8 && _usbHostManager) {
+    String label = _usbHostManager->getDeviceLabel(input - 5);
+    if (label.length() > 0) {
+      setInputUsbHostLabel(label.c_str());
+      return;
+    }
+  }
+  _inputUsbHostLabel[0] = '\0';
 }
 
 uint8_t RTPEventNoteSequence::getLength() const {
@@ -321,9 +342,9 @@ bool RTPEventNoteSequence::isNotePulse() const {
   return _pulseCounter == offset;
 }
 
-bool RTPEventNoteSequence::acceptsInput(uint8_t srcPort, uint8_t srcDevice){
+bool RTPEventNoteSequence::acceptsInput(uint8_t srcPort, uint8_t srcDevice, bool isSelected){
   uint8_t inp = sequenceParameters[INPUT_PORT].getValue();
-  if (inp == 0) return true;  // Any — accept everything
+  if (inp == 0) return isSelected;  // Follow selection
   // Map input parameter to expected source port
   // 1=USB_DEVICE(0x01), 2=USB_HOST(0x02), 3=DIN(0x04), 4=ALL(accept any)
   // 5-8=USB Host device 1-4
@@ -335,8 +356,8 @@ bool RTPEventNoteSequence::acceptsInput(uint8_t srcPort, uint8_t srcDevice){
     case 5: case 6: case 7: case 8: {
       if (srcPort != static_cast<uint8_t>(MidiPort::USB_HOST)) return false;
       uint8_t expected = inp - 5;
-      if (_usbHostManager && _usbHostLabel[0]) {
-        int8_t idx = _usbHostManager->findDeviceByLabel(_usbHostLabel);
+      if (_usbHostManager && _inputUsbHostLabel[0]) {
+        int8_t idx = _usbHostManager->findDeviceByLabel(_inputUsbHostLabel);
         if (idx >= 0) expected = (uint8_t)idx;
       }
       return srcDevice == expected;

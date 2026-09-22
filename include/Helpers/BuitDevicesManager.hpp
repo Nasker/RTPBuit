@@ -15,6 +15,7 @@
 #include "Managers/LivePlayManager.hpp"
 #include "SequenceSettingsPresenter.hpp"
 #include "LivePlayOrchestrator.hpp"
+#include "Midi/MidiInputDispatcher.hpp"
 
 class UsbHostManager;
 
@@ -49,6 +50,7 @@ class BuitDevicesManager {
     LivePlayManager _livePlayManager;
     SequenceSettingsPresenter _settingsPresenter;
     LivePlayOrchestrator _livePlayOrchestrator;
+    MidiInputDispatcher _midiInputDispatcher;
 
 public:
     BuitDevicesManager(IDisplay& display, IButtonMatrix& trellis, RTPSequencer& sequencer);
@@ -125,6 +127,17 @@ public:
     void recorderNoteOff(uint8_t note)                  { _livePlayOrchestrator.recorderNoteOff(note); }
     void recorderAdvancePulse()                          { _livePlayOrchestrator.recorderAdvancePulse(); }
     void recorderDumpToSequence()                        { _livePlayOrchestrator.recorderDumpToSequence(); }
+
+    // Incoming external MIDI fan-out (per-lane input routing, UI-independent)
+    void midiInputNoteOn(uint8_t ch, uint8_t note, uint8_t vel, uint8_t srcPort, uint8_t srcDevice) {
+        _midiInputDispatcher.noteOn(ch, note, vel, srcPort, srcDevice);
+    }
+    void midiInputNoteOff(uint8_t ch, uint8_t note, uint8_t srcPort, uint8_t srcDevice) {
+        _midiInputDispatcher.noteOff(ch, note, srcPort, srcDevice);
+    }
+    void midiInputCC(uint8_t ch, uint8_t ctrl, uint8_t val, uint8_t srcPort, uint8_t srcDevice) {
+        _midiInputDispatcher.controlChange(ch, ctrl, val, srcPort, srcDevice);
+    }
 
     void saveSequencer(const String& fileName);
     void loadSequencer(const String& fileName);

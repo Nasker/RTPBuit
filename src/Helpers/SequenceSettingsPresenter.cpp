@@ -25,11 +25,15 @@ void SequenceSettingsPresenter::presentSequenceSettings(){
     } else if (paramName == "Output") {
         const char* portNames[] = {"Default", "USB", "USB Host", "DIN", "ALL",
                                     "Host 1", "Host 2", "Host 3", "Host 4"};
-        valueStr = resolvePortDisplayName(paramValue, portNames);
+        RTPEventNoteSequence* seq = _concreteSequencer.getActiveSequence();
+        valueStr = resolvePortDisplayName(paramValue, portNames,
+                                          seq ? seq->getUsbHostLabel() : "");
     } else if (paramName == "Input") {
-        const char* inputNames[] = {"Any", "USB", "USB Host", "DIN", "ALL",
+        const char* inputNames[] = {"Selected", "USB", "USB Host", "DIN", "ALL",
                                      "Host 1", "Host 2", "Host 3", "Host 4"};
-        valueStr = resolvePortDisplayName(paramValue, inputNames);
+        RTPEventNoteSequence* seq = _concreteSequencer.getActiveSequence();
+        valueStr = resolvePortDisplayName(paramValue, inputNames,
+                                          seq ? seq->getInputUsbHostLabel() : "");
     } else if (paramName == "Div") {
         // Grid step rate: index -> musical note division (24 PPQN)
         const char* divNames[] = {"1/1", "1/2", "1/4", "1/4T", "1/8", "1/8T",
@@ -64,7 +68,7 @@ void SequenceSettingsPresenter::presentSequenceSettings(){
     _trellis.writeSequenceSettingsPage(s);
 }
 
-String SequenceSettingsPresenter::resolvePortDisplayName(int paramValue, const char* names[]) {
+String SequenceSettingsPresenter::resolvePortDisplayName(int paramValue, const char* names[], const char* hostLabel) {
     String valueStr = (paramValue >= 0 && paramValue <= 8) ? String(names[paramValue]) : String("?");
     if (!_usbHostManager) return valueStr;
     if (paramValue == 2) {
@@ -83,8 +87,7 @@ String SequenceSettingsPresenter::resolvePortDisplayName(int paramValue, const c
     if (paramValue >= 5 && paramValue <= 8) {
         uint8_t idx = paramValue - 5;
         // The stored label may resolve to a different slot after re-enumeration.
-        RTPEventNoteSequence* seq = _concreteSequencer.getActiveSequence();
-        const char* label = seq ? seq->getUsbHostLabel() : "";
+        const char* label = hostLabel;
         int8_t resolved = (label[0]) ? _usbHostManager->findDeviceByLabel(label) : -1;
         if (resolved >= 0) {
             valueStr = _usbHostManager->getDeviceName((uint8_t)resolved);

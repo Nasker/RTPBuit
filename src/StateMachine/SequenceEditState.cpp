@@ -1,14 +1,6 @@
 #include "Arduino.h"
 
 #include "SequenceEditState.h"
-#include "Midi/MidiRouter.hpp"
-#include "Midi/MidiMessage.hpp"
-
-MidiRouter* SequenceEditState::_router = nullptr;
-
-void SequenceEditState::setRouter(MidiRouter* router) {
-    _router = router;
-}
 
 SequenceEditState::SequenceEditState(BuitStateMachine& buitMachine, BuitDevicesManager& devices) : BuitState(devices), _buitMachine(buitMachine) {
   Serial.println("SequenceEditState");
@@ -68,41 +60,12 @@ void SequenceEditState::sequencerCallback(ControlCommand command) {
 }
 
 void SequenceEditState::midiNote(ControlCommand command) {
-  // Filter by input port setting
-  if (!_devices.acceptsInputFrom(command.sourcePort, command.sourceDevice)) return;
-  // Always play the note via MIDI router
-  int midiChannel = _devices.getSelectedSequenceMidichannel();
-  if (_router) {
-    MidiMessage msg { MidiMessage::NoteOn,
-                      static_cast<uint8_t>(midiChannel),
-                      static_cast<uint8_t>(command.commandType),
-                      static_cast<uint8_t>(command.value),
-                      MidiPort::INTERNAL };
-    _router->route(msg);
-  }
-  
-  // Record via NotesRecorder when recording is active
-  if(_devices.isSelectedSequenceRecording()) {
-    _devices.recorderNoteOn(command.commandType, command.value);
-  }
+  // Thru and recording are handled by MidiInputDispatcher before the event
+  // reaches the UI — nothing view-specific left to do here.
 }
 
 void SequenceEditState::midiNoteOff(ControlCommand command) {
-  if (!_devices.acceptsInputFrom(command.sourcePort, command.sourceDevice)) return;
-  // Send MIDI note-off via router
-  int midiChannel = _devices.getSelectedSequenceMidichannel();
-  if (_router) {
-    MidiMessage msg { MidiMessage::NoteOff,
-                      static_cast<uint8_t>(midiChannel),
-                      static_cast<uint8_t>(command.commandType),
-                      0,
-                      MidiPort::INTERNAL };
-    _router->route(msg);
-  }
-  
-  if(_devices.isSelectedSequenceRecording()) {
-    _devices.recorderNoteOff(command.commandType);
-  }
+  // See midiNote — dispatcher owns thru + record.
 }
 
 void SequenceEditState::midiCC(ControlCommand command) {

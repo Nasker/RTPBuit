@@ -7,7 +7,8 @@ _trellis(trellis),
 _sequencer(seq),
 _concreteSequencer(seq),
 _settingsPresenter(display, trellis, seq, seq, _recordingManager),
-_livePlayOrchestrator(display, trellis, seq, seq, _recordingManager, _livePlayManager){}
+_livePlayOrchestrator(display, trellis, seq, seq, _recordingManager, _livePlayManager),
+_midiInputDispatcher(seq, _recordingManager, _livePlayOrchestrator){}
 
 void BuitDevicesManager::initSetup(){
     // Display is initialized via DeviceManager -> DisplayManager -> IDisplay::initialize()
@@ -171,7 +172,7 @@ bool BuitDevicesManager::isSelectedSequenceRecording(){
 bool BuitDevicesManager::acceptsInputFrom(uint8_t srcPort, uint8_t srcDevice){
     RTPEventNoteSequence* seq = _concreteSequencer.getActiveSequence();
     if (!seq) return true;
-    return seq->acceptsInput(srcPort, srcDevice);
+    return seq->acceptsInput(srcPort, srcDevice, true);
 }
 
 void BuitDevicesManager::playLiveNoteOn(uint8_t rootNote, uint8_t velocity, uint8_t chordType){

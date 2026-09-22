@@ -53,6 +53,7 @@ protected:
 	uint8_t _pulseCounter;
 	String _name;
 	char _usbHostLabel[48];
+	char _inputUsbHostLabel[48];
 	static class UsbHostManager* _usbHostManager;
 	static const uint8_t CLOCK_DIVIDER_PULSES[11];
 public:
@@ -133,9 +134,18 @@ public:
 	bool isNotePulse() const;
 	String getName() const { return _name; }
 	void setName(const String& name) { _name = name; }
-	bool acceptsInput(uint8_t srcPort, uint8_t srcDevice);
+	// isSelected matters only for INPUT_PORT == 0 ("follow selection"); an
+	// explicitly chosen source (1-8) listens regardless of selection.
+	bool acceptsInput(uint8_t srcPort, uint8_t srcDevice, bool isSelected);
 	const char* getUsbHostLabel() const { return _usbHostLabel; }
 	void setUsbHostLabel(const char* label);
+	const char* getInputUsbHostLabel() const { return _inputUsbHostLabel; }
+	void setInputUsbHostLabel(const char* label);
+	// Live-input thru: plays the incoming event out this lane's own port,
+	// literally (no harmony/chord remap). Not gated on lane enable.
+	void thruNoteOn(uint8_t note, uint8_t velocity)  { routeLiveNoteOn(note, velocity, getMidiChannel()); }
+	void thruNoteOff(uint8_t note)                   { routeLiveNoteOff(note, getMidiChannel()); }
+	void thruCC(uint8_t controller, uint8_t value)   { routeLiveCC(controller, value, getMidiChannel()); }
 	static void setUsbHostManager(UsbHostManager* m) { _usbHostManager = m; }
 	static void setRouter(MidiRouter* router);
 	vector<RTPEventNotePlus>& getEventNoteSequence();
@@ -147,6 +157,9 @@ protected:
 	// Snapshot the label of the device currently at the selected USB Host slot
 	// (PORT 5-8); clears the label for any other port or when the slot is empty.
 	void _syncUsbHostLabelToPort();
+	// Same for the input binding (INPUT_PORT 5-8), kept separate so a lane can
+	// listen to one host device while outputting to another.
+	void _syncUsbHostLabelToInput();
         // Tile existing content into newly exposed pages when LENGTH grows:
         // new position pos copies pos % oldSize, so +1 page copies bar 1 and
         // doubling 2->4 gives bar3=bar1, bar4=bar2.

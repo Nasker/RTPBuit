@@ -107,8 +107,12 @@ void RTPMainUnit::linkToSequencerManager(uint8_t realtimebyte){
 
 void RTPMainUnit::routeControlChange(uint8_t channel, uint8_t control, uint8_t value,
                                      uint8_t srcPort, uint8_t srcDevice) {
-  musicManager.setCurrentHarmony(channel, control, value);
-  ControlCommand command = ControlCommand{MIDI_CC, control, value, srcPort, srcDevice};
+  // Harmony capture only when the active lane listens to this source —
+  // otherwise any ch-1 CC 0-15 from any port hijacks global root/scale.
+  if (devicesManager.acceptsInputFrom(srcPort, srcDevice))
+    musicManager.setCurrentHarmony(channel, control, value);
+  devicesManager.midiInputCC(channel, control, value, srcPort, srcDevice);
+  ControlCommand command = ControlCommand{MIDI_CC, control, value, srcPort, srcDevice, channel};
   stateMachineManager.handleActions(command);
 }
 
@@ -118,8 +122,14 @@ void RTPMainUnit::routeNoteOnOff(uint8_t channel, uint8_t note, uint8_t velocity
   // For note-on: controlType = MIDI_NOTE (7)
   // For note-off: controlType = MIDI_NOTE + 100 (107)
   int controlType = (velocity > 0) ? MIDI_NOTE : MIDI_NOTE + 100;
-  
-  ControlCommand command = ControlCommand{controlType, note, velocity, srcPort, srcDevice};
+
+  // Per-lane thru + record happens regardless of the current UI screen.
+  if (velocity > 0)
+    devicesManager.midiInputNoteOn(channel, note, velocity, srcPort, srcDevice);
+  else
+    devicesManager.midiInputNoteOff(channel, note, srcPort, srcDevice);
+
+  ControlCommand command = ControlCommand{controlType, note, velocity, srcPort, srcDevice, channel};
   stateMachineManager.handleActions(command, channel);
 }
 
@@ -161,7 +171,6 @@ void RTPMainUnit::initMidiRouter() {
   SequencerManager.setMidiRouter(&midiRouter);
   
   // Inject router into remaining classes with direct usbMIDI usage
-  SequenceEditState::setRouter(&midiRouter);
   BuitControlChanger::setRouter(&midiRouter);
   
   // Set backward-compatible default routes

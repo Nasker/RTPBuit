@@ -34,6 +34,6 @@ public:
     void presentTransport(int8_t focusedPad = -1);
 
 private:
-    String resolvePortDisplayName(int paramValue, const char* names[]);
+    String resolvePortDisplayName(int paramValue, const char* names[], const char* hostLabel);
     void writeTransportPage();
 };

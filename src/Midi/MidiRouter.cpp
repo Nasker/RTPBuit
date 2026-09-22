@@ -68,6 +68,9 @@ void MidiRouter::setDefaultRoutes() {
     // USB Host → Internal  (incoming notes, CC from external controllers/synths)
     addRoute(MidiPort::USB_HOST, MidiPort::INTERNAL,
              MidiTypeMask::NOTES | MidiTypeMask::CC);
+
+    // DIN → Internal  (incoming notes, CC from the 5-pin input)
+    addRoute(MidiPort::DIN, MidiPort::INTERNAL, MidiTypeMask::NOTES | MidiTypeMask::CC);
 }
 
 void MidiRouter::enableRoute(uint8_t index, bool enabled) {
